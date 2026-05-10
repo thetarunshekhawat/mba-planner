@@ -22,7 +22,7 @@ export function LoginForm() {
     const { data: entry } = await supabase
       .from('cohort_whitelist')
       .select('email')
-      .eq('email', email.toLowerCase().trim())
+      .ilike('email', email.trim())
       .maybeSingle();
 
     if (!entry) {

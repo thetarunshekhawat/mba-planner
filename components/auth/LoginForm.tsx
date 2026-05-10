@@ -40,7 +40,12 @@ export function LoginForm() {
 
     if (error) {
       setStatus('error');
-      setErrorMsg(error.message);
+      // If the error message is literally "{}" (common with some SMTP misconfigurations) or empty
+      let msg = error.message;
+      if (!msg || msg === '{}') {
+        msg = 'Failed to send email. Please verify your Supabase SMTP credentials (App Password) and rate limits.';
+      }
+      setErrorMsg(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } else {
       setStatus('sent');
     }

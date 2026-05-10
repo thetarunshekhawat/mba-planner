@@ -1,0 +1,309 @@
+'use client';
+
+import { Star, AlertTriangle, CheckCircle2, PlusCircle } from 'lucide-react';
+import type { Course, SpecId } from '@/types';
+import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
+
+interface Props {
+  selected: Set<number>;
+  userSpecs: SpecId[];
+  visibleIds: Set<number>;
+  onToggle: (id: number) => void;
+  onCourseClick: (course: Course) => void;
+}
+
+function MiniStars({ value, max = 5 }: { value: number; max?: number }) {
+  return (
+    <span className="flex gap-px items-center">
+      {Array.from({ length: max }).map((_, i) => (
+        <Star key={i} className="w-2.5 h-2.5"
+          fill={i < value ? '#f59e0b' : 'none'}
+          stroke={i < value ? '#f59e0b' : '#d1d5db'} strokeWidth={1.5} />
+      ))}
+    </span>
+  );
+}
+
+function CourseCard({
+  course,
+  isSelected,
+  isDimmed,
+  hasConflict,
+  onToggle,
+  onClick,
+}: {
+  course: Course;
+  isSelected: boolean;
+  isDimmed: boolean;
+  hasConflict: boolean;
+  onToggle: () => void;
+  onClick: () => void;
+}) {
+  const isWaw = course.type === 'waw';
+  const isMandatory = course.type === 'mandatory';
+  const isFixed = isWaw || isMandatory;
+
+  const primarySpec = SPECS.find(s => course.specs.includes(s.id));
+  let accentColor = '#64748b';
+  if (isWaw) accentColor = '#d97706';
+  else if (isMandatory) accentColor = '#2563eb';
+  else if (primarySpec) accentColor = primarySpec.color;
+
+  return (
+    <div
+      className={`
+        relative rounded-xl border-2 p-4 transition-all cursor-pointer
+        ${isSelected && !isFixed ? 'shadow-md' : 'shadow-sm hover:shadow-md hover:-translate-y-px'}
+        ${isDimmed ? 'opacity-40' : ''}
+        ${hasConflict ? 'border-red-400 bg-red-50' : isSelected && !isFixed
+          ? 'bg-white'
+          : isWaw ? '' : isMandatory ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}
+      `}
+      style={{
+        borderColor: hasConflict ? '#f87171' : isSelected && !isFixed ? accentColor : isFixed ? accentColor + '55' : '#cbd5e1',
+        minWidth: '230px',
+        maxWidth: '320px',
+        boxShadow: isSelected && !isFixed ? `0 2px 8px ${accentColor}30` : isWaw ? '0 2px 8px rgba(251,191,36,0.25)' : '0 1px 3px rgba(0,0,0,0.08)',
+        background: isWaw ? 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fed7aa 100%)' : undefined,
+      }}
+      onClick={isFixed ? onClick : undefined}
+    >
+      {/* Conflict indicator */}
+      {hasConflict && (
+        <div className="flex items-center gap-1 text-red-500 text-xs font-semibold mb-2">
+          <AlertTriangle className="w-3 h-3" /> Conflict
+        </div>
+      )}
+
+      {/* Top row: type badge + select button */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex flex-wrap gap-1">
+          {isWaw && (
+            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: '#d9770622', color: '#d97706' }}>WaW</span>
+          )}
+          {isMandatory && (
+            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: '#2563eb22', color: '#2563eb' }}>Required</span>
+          )}
+          {course.specs.map(specId => {
+            const s = SPECS.find(sp => sp.id === specId);
+            if (!s) return null;
+            return (
+              <span key={specId} className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                style={{ backgroundColor: s.color + '20', color: s.color }}>
+                {specId}
+              </span>
+            );
+          })}
+        </div>
+
+        {!isFixed && (
+          <button
+            onClick={e => { e.stopPropagation(); onToggle(); }}
+            className="flex-shrink-0 transition-colors"
+            style={{ color: isSelected ? accentColor : '#9ca3af' }}
+          >
+            {isSelected
+              ? <CheckCircle2 className="w-5 h-5" />
+              : <PlusCircle className="w-5 h-5" />}
+          </button>
+        )}
+      </div>
+
+      {/* Course name */}
+      <p
+        className="font-semibold text-[15px] text-gray-800 leading-snug mb-1 cursor-pointer hover:underline"
+        onClick={e => { e.stopPropagation(); onClick(); }}
+      >
+        {course.name}
+      </p>
+
+      {/* Faculty */}
+      {course.faculty && (
+        <p className="text-xs text-gray-500 mb-2.5">{course.faculty}</p>
+      )}
+
+      {/* Review row */}
+      {course.review && (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[9px] font-semibold text-gray-400 w-9 flex-shrink-0">Depth</span>
+            <MiniStars value={course.review.learningDepth} />
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[9px] font-semibold text-gray-400 w-9 flex-shrink-0">Career</span>
+            <MiniStars value={course.review.careerRelevance} />
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[9px] font-semibold text-gray-400 w-9 flex-shrink-0">Load</span>
+            {(() => {
+              const w = normalizeWorkload(course.review!.workload);
+              return (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                  style={{ color: w.color, backgroundColor: w.bg }}>
+                  {w.label}
+                </span>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Seats */}
+      {course.seats && (
+        <p className="text-[10px] text-gray-400 mt-1.5">{course.seats} seats</p>
+      )}
+    </div>
+  );
+}
+
+function WeekGroup({
+  term,
+  week,
+  courses,
+  selected,
+  userSpecs,
+  visibleIds,
+  onToggle,
+  onClick,
+}: {
+  term: 4 | 5 | 6;
+  week: number;
+  courses: Course[];
+  selected: Set<number>;
+  userSpecs: SpecId[];
+  visibleIds: Set<number>;
+  onToggle: (id: number) => void;
+  onClick: (c: Course) => void;
+}) {
+  const special = courses.find(c => c.type === 'exam' || c.type === 'free');
+  if (special) {
+    return (
+      <div className="flex items-center gap-3 py-2">
+        <div className="flex items-center gap-2 text-xs text-gray-400 min-w-[80px]">
+          <span className="font-semibold">Wk {week}</span>
+          <span>{courses[0].dates}</span>
+        </div>
+        <div className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium border border-dashed ${special.type === 'exam'
+            ? 'bg-red-50 text-red-400 border-red-200'
+            : 'bg-green-50 text-green-500 border-green-200'
+          }`}>
+          {special.type === 'exam' ? '📝 Exam Week — No electives' : '🟢 Free Week'}
+        </div>
+      </div>
+    );
+  }
+
+  // Build conflict map for this week
+  const weekElectives = courses.filter(c => c.type === 'elective' || c.type === 'mandatory');
+  const wawCourses = courses.filter(c => c.type === 'waw');
+
+  // Detect conflicts (multiple selected in same conflictGroup)
+  const conflictGroups = new Set<string>();
+  const groupMap: Record<string, number[]> = {};
+  weekElectives.forEach(c => {
+    if (c.conflictGroup) {
+      groupMap[c.conflictGroup] = groupMap[c.conflictGroup] || [];
+      groupMap[c.conflictGroup].push(c.id);
+    }
+  });
+  Object.entries(groupMap).forEach(([grp, ids]) => {
+    if (ids.filter(id => selected.has(id)).length > 1) conflictGroups.add(grp);
+  });
+
+  const blockLabel = courses.find(c => c.block)?.block;
+
+  const visible = [...weekElectives, ...wawCourses].filter(c => visibleIds.has(c.id));
+  if (visible.length === 0) return null;
+
+  return (
+    <div className="flex gap-4 py-10 border-b border-gray-400 last:border-0">
+      {/* Week meta column */}
+      <div className="flex flex-col items-start min-w-[92px] pt-0.5 flex-shrink-0">
+        <span className="text-sm font-bold text-gray-700">Wk {week}</span>
+        <span className="text-[11px] text-gray-400 leading-tight mt-0.5">{courses[0].dates}</span>
+        {blockLabel && (
+          <span className="mt-1.5 text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+            Block {blockLabel}
+          </span>
+        )}
+      </div>
+
+      {/* Cards row */}
+      <div className="flex flex-wrap gap-3 flex-1 min-w-0">
+        {visible.map(c => {
+          const specMatch = c.specs.some(s => userSpecs.includes(s));
+          const isDimmed = userSpecs.length > 0 && !specMatch && c.type === 'elective';
+          const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id));
+
+          return (
+            <CourseCard
+              key={c.id}
+              course={c}
+              isSelected={selected.has(c.id)}
+              isDimmed={isDimmed}
+              hasConflict={hasConflict}
+              onToggle={() => onToggle(c.id)}
+              onClick={() => onClick(c)}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onCourseClick }: Props) {
+  const terms: (4 | 5 | 6)[] = [4, 5, 6];
+  const termLabels = { 4: 'Term 4', 5: 'Term 5', 6: 'Term 6' };
+  const termDates = {
+    4: 'Jun 29 – Sep 27, 2026',
+    5: 'Sep 28 – Dec 27, 2026',
+    6: 'Jan – Apr, 2027',
+  };
+
+  return (
+    <div className="p-4 lg:p-6 min-h-screen" style={{ backgroundColor: '#f8fafc' }}>
+      {terms.map(term => {
+        const termCourses = ALL_COURSES.filter(c => c.term === term);
+        const weeks = [...new Set(termCourses.map(c => c.week))].sort((a, b) => a - b);
+
+        return (
+          <div key={term} className="mb-10">
+            {/* Term header */}
+            <div className="flex items-center gap-4 mb-5">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-orange-300/60" />
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30">
+                <span className="text-orange-600 font-bold text-sm">{termLabels[term]}</span>
+                <span className="text-orange-400/60 text-xs">·</span>
+                <span className="text-orange-500/70 text-xs">{termDates[term]}</span>
+              </div>
+              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-orange-300/60" />
+            </div>
+
+            {/* Week groups */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6">
+              {weeks.map(week => {
+                const weekCourses = termCourses.filter(c => c.week === week);
+                return (
+                  <WeekGroup
+                    key={week}
+                    term={term}
+                    week={week}
+                    courses={weekCourses}
+                    selected={selected}
+                    userSpecs={userSpecs}
+                    visibleIds={visibleIds}
+                    onToggle={onToggle}
+                    onClick={onCourseClick}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

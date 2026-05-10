@@ -1,0 +1,185 @@
+'use client';
+
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, PlusCircle, Star } from 'lucide-react';
+import type { Course } from '@/types';
+import { SPECS, normalizeWorkload } from '@/data/courses';
+
+interface Props {
+  course: Course | null;
+  isSelected: boolean;
+  onToggle: (id: number) => void;
+  onClose: () => void;
+}
+
+function Stars({ value, max = 5 }: { value: number; max?: number }) {
+  return (
+    <span className="flex gap-0.5">
+      {Array.from({ length: max }).map((_, i) => (
+        <Star
+          key={i}
+          className="w-4 h-4"
+          fill={i < value ? '#f59e0b' : 'none'}
+          stroke={i < value ? '#f59e0b' : '#94a3b8'}
+        />
+      ))}
+    </span>
+  );
+}
+
+export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Props) {
+  if (!course) return null;
+
+  const specObjects = SPECS.filter(s => course.specs.includes(s.id));
+  const isWaw = course.type === 'waw';
+  const isMandatory = course.type === 'mandatory';
+  const isExamOrFree = course.type === 'exam' || course.type === 'free';
+
+  return (
+    <Sheet open={!!course} onOpenChange={open => { if (!open) onClose(); }}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-white/10 text-white"
+      >
+        <SheetHeader className="mb-6">
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {isWaw && (
+              <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs">
+                Ways of Working
+              </Badge>
+            )}
+            {isMandatory && (
+              <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs">
+                Mandatory
+              </Badge>
+            )}
+            {specObjects.map(s => (
+              <Badge
+                key={s.id}
+                style={{ backgroundColor: s.color + '33', color: s.color, borderColor: s.color + '55' }}
+                className="text-xs border"
+              >
+                {s.label}
+              </Badge>
+            ))}
+          </div>
+          <SheetTitle className="text-white text-xl leading-tight">{course.name}</SheetTitle>
+          {course.faculty && (
+            <p className="text-slate-400 text-sm mt-1">{course.faculty}</p>
+          )}
+          <p className="text-slate-500 text-xs mt-1">{course.dates}</p>
+        </SheetHeader>
+
+        {course.review ? (
+          <div className="space-y-6">
+            {/* Ratings block */}
+            <div className="bg-white/5 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 text-sm">Learning Depth</span>
+                <Stars value={course.review.learningDepth} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 text-sm">Career Relevance</span>
+                <Stars value={course.review.careerRelevance} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 text-sm">Workload</span>
+                {(() => {
+                  const w = normalizeWorkload(course.review!.workload);
+                  return (
+                    <span
+                      className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                      style={{ color: w.color, backgroundColor: w.bg }}
+                    >
+                      {w.label}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* What you'll learn */}
+            {course.review.whatYouLearn.length > 0 && (
+              <div>
+                <h3 className="text-slate-300 font-semibold text-sm mb-2">What you&apos;ll learn</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {course.review.whatYouLearn.map(tag => (
+                    <span
+                      key={tag}
+                      className="text-xs bg-white/10 text-slate-300 px-2 py-1 rounded-md"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Highlights */}
+            {course.review.highlights.length > 0 && (
+              <div>
+                <h3 className="text-slate-300 font-semibold text-sm mb-2">Highlights</h3>
+                <ul className="space-y-2">
+                  {course.review.highlights.map((h, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-slate-300">
+                      <span className="w-1 flex-shrink-0 bg-green-500 rounded-full mt-1.5" />
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Lowlights */}
+            {course.review.lowlights.length > 0 && (
+              <div>
+                <h3 className="text-slate-300 font-semibold text-sm mb-2">Watch out for</h3>
+                <ul className="space-y-2">
+                  {course.review.lowlights.map((l, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-slate-300">
+                      <span className="w-1 flex-shrink-0 bg-orange-400 rounded-full mt-1.5" />
+                      {l}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Summary quote */}
+            {course.review.summary && (
+              <blockquote className="border-l-2 border-orange-500 pl-3 text-slate-400 italic text-sm">
+                {course.review.summary}
+              </blockquote>
+            )}
+          </div>
+        ) : !isExamOrFree && !isWaw && !isMandatory ? (
+          <p className="text-slate-500 text-sm">
+            Review not yet available for this course.
+          </p>
+        ) : null}
+
+        {/* CTA */}
+        {!isWaw && !isMandatory && !isExamOrFree && (
+          <div className="mt-8 pt-6 border-t border-white/10">
+            <Button
+              onClick={() => onToggle(course.id)}
+              className={`w-full font-semibold ${
+                isSelected
+                  ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white'
+              }`}
+            >
+              {isSelected ? (
+                <><CheckCircle2 className="w-4 h-4 mr-2" /> Remove from plan</>
+              ) : (
+                <><PlusCircle className="w-4 h-4 mr-2" /> Add to plan</>
+              )}
+            </Button>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}

@@ -167,11 +167,11 @@ export default function PlannerPage() {
         <div className="flex-1 flex items-center justify-end">
           {viewMode === 'schedule' && (
             <Sheet>
-              <SheetTrigger asChild>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10">
-                  <CalendarDays className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Calendar</span>
-                </button>
+              <SheetTrigger render={
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10" />
+              }>
+                <CalendarDays className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Calendar</span>
               </SheetTrigger>
               <SheetContent side="right" className="w-[340px] sm:w-[400px] bg-slate-900 border-slate-800 p-6">
                 <SheetHeader className="px-0">

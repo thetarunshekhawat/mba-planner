@@ -7,7 +7,8 @@ import { TimetableView } from '@/components/planner/TimetableView';
 import { PlannerListView } from '@/components/planner/PlannerListView';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
-import { GraduationCap, LayoutList, CalendarDays, Menu, X } from 'lucide-react';
+import { generateScheduleICS } from '@/lib/calendar';
+import { GraduationCap, LayoutList, CalendarDays, Menu, X, CalendarPlus } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ALL_COURSES } from '@/data/courses';
@@ -104,6 +105,22 @@ export default function PlannerPage() {
       .map(c => c.id),
   );
 
+  const handleExportCalendar = () => {
+    const coursesToExport = ALL_COURSES.filter(c => scheduleVisibleIds.has(c.id));
+    if (coursesToExport.length === 0) return;
+    
+    const icsContent = generateScheduleICS(coursesToExport);
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mba-schedule.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading || !profile) {
     return (
       <div className="h-screen bg-slate-900 flex items-center justify-center">
@@ -164,27 +181,37 @@ export default function PlannerPage() {
         </div>
 
         {/* Right side actions */}
-        <div className="flex-1 flex items-center justify-end">
+        <div className="flex-1 flex items-center justify-end gap-2">
           {viewMode === 'schedule' && (
-            <Sheet>
-              <SheetTrigger render={
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10" />
-              }>
-                <CalendarDays className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Calendar</span>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[340px] sm:w-[400px] bg-slate-900 border-slate-800 p-6">
-                <SheetHeader className="px-0">
-                  <SheetTitle className="text-white">Monthly Calendar</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6 flex justify-center">
-                  <Calendar
-                    mode="single"
-                    className="rounded-md border border-slate-800 bg-slate-900/50 text-white"
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
+            <>
+              <button
+                onClick={handleExportCalendar}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10"
+                title="Export schedule to Google/Apple Calendar (.ics)"
+              >
+                <CalendarPlus className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+              <Sheet>
+                <SheetTrigger render={
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10" />
+                }>
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Calendar</span>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[340px] sm:w-[400px] bg-slate-900 border-slate-800 p-6">
+                  <SheetHeader className="px-0">
+                    <SheetTitle className="text-white">Monthly Calendar</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 flex justify-center">
+                    <Calendar
+                      mode="single"
+                      className="rounded-md border border-slate-800 bg-slate-900/50 text-white"
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </>
           )}
         </div>
       </header>

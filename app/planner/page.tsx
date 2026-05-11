@@ -8,9 +8,10 @@ import { PlannerListView } from '@/components/planner/PlannerListView';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
 import { generateScheduleICS } from '@/lib/calendar';
-import { GraduationCap, LayoutList, CalendarDays, Menu, X, CalendarPlus } from 'lucide-react';
+import { GraduationCap, LayoutList, CalendarDays, Menu, X, CalendarPlus, CalendarHeart, Download } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ALL_COURSES } from '@/data/courses';
 import type { Course, SpecId, Profile } from '@/types';
 import { useRouter } from 'next/navigation';
@@ -121,6 +122,29 @@ export default function PlannerPage() {
     URL.revokeObjectURL(url);
   };
 
+  const getSubscriptionUrl = () => {
+    const courseIds = Array.from(selected).join(',');
+    if (!courseIds) return '';
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${baseUrl}/api/calendar?courses=${courseIds}`;
+  };
+
+  const getGoogleCalendarUrl = () => {
+    const url = getSubscriptionUrl();
+    if (!url) return '#';
+    return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(url)}`;
+  };
+
+  const getAppleCalendarUrl = () => {
+    const url = getSubscriptionUrl();
+    if (!url) return '#';
+    return url.replace(/^https?:\/\//, 'webcal://');
+  };
+
+  const handleExportPDF = () => {
+    window.print();
+  };
+
   if (loading || !profile) {
     return (
       <div className="h-screen bg-slate-900 flex items-center justify-center">
@@ -184,14 +208,97 @@ export default function PlannerPage() {
         <div className="flex-1 flex items-center justify-end gap-2">
           {viewMode === 'schedule' && (
             <>
-              <button
-                onClick={handleExportCalendar}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10"
-                title="Export schedule to Google/Apple Calendar (.ics)"
-              >
-                <CalendarPlus className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Export</span>
-              </button>
+              <Dialog>
+                <DialogTrigger render={
+                  <button
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10"
+                    title="Export Schedule"
+                  />
+                }>
+                  <CalendarPlus className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Export</span>
+                </DialogTrigger>
+                <DialogContent className="bg-slate-900 border-slate-800 text-white sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Export Options</DialogTitle>
+                    <DialogDescription className="text-slate-400">
+                      Choose how you want to export your schedule.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-6 mt-4">
+                    {/* PDF Section */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-300 mb-3 px-1">Document</h4>
+                      <button
+                        onClick={handleExportPDF}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5 w-full"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+                          <Download className="w-4 h-4 text-orange-400" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-medium text-sm text-slate-200">Save as PDF</div>
+                          <div className="text-xs text-slate-400">Print or save as a PDF document</div>
+                        </div>
+                      </button>
+                    </div>
+
+                    {/* Calendar Section */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-300 mb-3 px-1">Calendar Sync</h4>
+                      <div className="flex flex-col gap-2">
+                        {/* Google Calendar */}
+                        <a
+                          href={getGoogleCalendarUrl()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z"/>
+                            </svg>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium text-sm text-slate-200">Subscribe in Google Calendar</div>
+                            <div className="text-xs text-slate-400">Updates automatically</div>
+                          </div>
+                        </a>
+
+                        {/* Apple Calendar */}
+                        <a
+                          href={getAppleCalendarUrl()}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.89 4 3 4.9 3 6v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+                            </svg>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium text-sm text-slate-200">Subscribe in Apple Calendar</div>
+                            <div className="text-xs text-slate-400">Updates automatically</div>
+                          </div>
+                        </a>
+
+                        {/* Download ICS */}
+                        <button
+                          onClick={handleExportCalendar}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5 w-full"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                            <CalendarHeart className="w-4 h-4 text-slate-300" />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium text-sm text-slate-200">Download .ics File</div>
+                            <div className="text-xs text-slate-400">Static file, manually import</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Sheet>
                 <SheetTrigger render={
                   <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10" />

@@ -128,3 +128,29 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: white !important;
+  }
+
+  /* Hide Shadcn/Base UI Dialogs entirely on print so they don't block the screen */
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-content"],
+  [data-slot="dialog-portal"] {
+    display: none !important;
+  }
+
+  /* Force table layouts and generic containers to not break awkwardly */
+  table { page-break-inside: auto; }
+  tr    { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+}

@@ -154,9 +154,9 @@ export default function PlannerPage() {
   }
 
   return (
-    <div className="h-screen bg-slate-900 flex flex-col overflow-hidden">
+    <div className="h-screen bg-slate-900 flex flex-col overflow-hidden print:h-auto print:overflow-visible print:bg-white">
       {/* Top bar */}
-      <header className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 bg-slate-900/95 backdrop-blur border-b border-white/10 sticky top-0 z-30">
+      <header className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 bg-slate-900/95 backdrop-blur border-b border-white/10 sticky top-0 z-30 print:hidden">
         <div className="flex-1 flex items-center gap-3">
           <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(s => !s)}>
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -323,7 +323,7 @@ export default function PlannerPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden min-h-0">
+      <div className="flex flex-1 overflow-hidden min-h-0 print:overflow-visible print:h-auto">
         {/*
           Sidebar: on desktop (≥lg) it stays in the flex flow (flex-shrink-0).
           On mobile (<lg) it becomes a fixed overlay that slides in/out.
@@ -334,6 +334,7 @@ export default function PlannerPage() {
           flex-shrink-0 h-full
           transition-transform duration-200
           ${sidebarOpen ? '' : 'max-lg:-translate-x-full'}
+          print:hidden
         `}>
           <FilterSidebar
             filters={filters}
@@ -348,11 +349,11 @@ export default function PlannerPage() {
         </div>
 
         {sidebarOpen && (
-          <div className="fixed inset-0 z-10 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 z-10 bg-black/50 lg:hidden print:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto min-h-0">
+        <main className="flex-1 overflow-y-auto min-h-0 print:overflow-visible print:h-auto">
           {viewMode === 'plan' ? (
             <PlannerListView
               selected={selected}

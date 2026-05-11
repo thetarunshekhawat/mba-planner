@@ -130,7 +130,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, onCourseClick
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white print:overflow-visible print:border-none print:shadow-none">
         <table className="w-full border-collapse" style={{ minWidth: 560 }}>
           <thead>
             <tr className="bg-slate-700 border-b border-slate-600">
@@ -320,7 +320,7 @@ export function TimetableView({ selected, visibleIds, onCourseClick }: Props) {
   const conflictCourses = allVisible.filter(c => conflictIds.has(c.id));
 
   return (
-    <div className="p-4 lg:p-6 min-h-screen" style={{ backgroundColor: '#f8fafc' }}>
+    <div className="p-4 lg:p-6 min-h-screen print:min-h-0 print:p-0 print:bg-white" style={{ backgroundColor: '#f8fafc' }}>
       <SpecLegend />
 
       {/* Conflict warning banner */}

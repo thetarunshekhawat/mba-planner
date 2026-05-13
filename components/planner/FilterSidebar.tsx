@@ -3,7 +3,7 @@
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { GraduationCap, LogOut, BookOpen } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, ShieldAlert } from 'lucide-react';
 import { SPECS, ALL_COURSES, WAW_IDS, MANDATORY_IDS } from '@/data/courses';
 import type { SpecId, WorkloadLevel } from '@/types';
 
@@ -19,6 +19,7 @@ export interface Filters {
   workloads: WorkloadLevel[];// empty = all
   selectedOnly: boolean;
   showWaw: boolean;
+  showMandatoryOnly: boolean;
 }
 
 interface Props {
@@ -125,7 +126,11 @@ export function FilterSidebar({
         </div>
         {userSpecs.length > 0 && (
           <p className="text-slate-600 text-xs mt-2">
-            {userSpecs.length === 1 ? 'Pick 1 more for dual spec' : 'Dual specialization selected'}
+            {userSpecs.length === 1
+              ? 'Pick 1–2 more for dual/triple spec'
+              : userSpecs.length === 2
+              ? 'Dual specialization — or pick 1 more'
+              : 'Triple specialization selected'}
           </p>
         )}
       </div>
@@ -187,6 +192,26 @@ export function FilterSidebar({
             );
           })}
         </div>
+      </div>
+
+      {/* Mandatory courses quick-filter tab */}
+      <div className="p-4 border-b border-white/10">
+        <button
+          onClick={() => set({ showMandatoryOnly: !filters.showMandatoryOnly })}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-all font-semibold text-xs"
+          style={{
+            backgroundColor: filters.showMandatoryOnly ? '#dc262618' : 'transparent',
+            borderColor: filters.showMandatoryOnly ? '#dc2626aa' : 'rgba(255,255,255,0.1)',
+            color: filters.showMandatoryOnly ? '#ef4444' : '#94a3b8',
+          }}
+        >
+          <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
+          Mandatory Courses Only
+          {filters.showMandatoryOnly && (
+            <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: '#dc262622', color: '#ef4444' }}>ON</span>
+          )}
+        </button>
       </div>
 
       {/* Filters */}

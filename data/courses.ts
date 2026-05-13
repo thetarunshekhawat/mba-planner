@@ -44,7 +44,7 @@ export const ALL_COURSES: Course[] = [
     name: 'Supply Chain Analytics',
     code: 'SCAT',
     faculty: 'Prof. Ravi Subramanian',
-    seats: 60, specs: ['ECOM', 'OPS'], type: 'elective', conflictGroup: null,
+    seats: 60, specs: ['ECOM', 'OPS'], mandatoryFor: ['OPS'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
     review: {
       learningDepth: 2, workload: 'Moderate', careerRelevance: 1,
@@ -146,7 +146,7 @@ export const ALL_COURSES: Course[] = [
     name: 'Future of Work and Jobs',
     code: 'FWKJ',
     faculty: 'Prof. Prithwiraj Choudhury',
-    seats: 120, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: null,
+    seats: 120, specs: ['ENT', 'LSTR'], mandatoryFor: ['LSTR'], type: 'elective', conflictGroup: null,
     timings: [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
@@ -643,7 +643,7 @@ export const ALL_COURSES: Course[] = [
     dates: 'Dec 7–11', block: 26,
     name: 'International Marketing',
     faculty: 'Venkatesh (Venky) Shankar',
-    seats: null, specs: ['MKT'], type: 'elective', conflictGroup: 'T5W24',
+    seats: null, specs: ['MKT'], mandatoryFor: ['MKT'], type: 'elective', conflictGroup: 'T5W24',
     review: {
       learningDepth: 3, workload: 'Moderate', careerRelevance: 2,
       whatYouLearn: ['Market entry mechanisms', 'Market Expansion frameworks', 'International Pricing mechanism', 'International Sales & Distribution'],
@@ -797,7 +797,7 @@ export const ALL_COURSES: Course[] = [
     dates: 'Jan 18–22', block: 28,
     name: 'Crafting & Delivering Services',
     faculty: 'Prof. Kapil Tuli',
-    seats: null, specs: ['ENT', 'ECOM', 'MKT'], type: 'elective', conflictGroup: null,
+    seats: null, specs: ['ENT', 'ECOM', 'MKT'], mandatoryFor: ['ENT', 'ECOM'], type: 'elective', conflictGroup: null,
     review: {
       learningDepth: 1, workload: 'High', careerRelevance: 1,
       whatYouLearn: ['CLV (but other profs do it better)'],

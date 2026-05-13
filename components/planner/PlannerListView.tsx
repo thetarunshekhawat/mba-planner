@@ -1,6 +1,6 @@
 'use client';
 
-import { Star, AlertTriangle, CheckCircle2, PlusCircle } from 'lucide-react';
+import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 
@@ -29,6 +29,7 @@ function CourseCard({
   isSelected,
   isDimmed,
   hasConflict,
+  userSpecs,
   onToggle,
   onClick,
 }: {
@@ -36,6 +37,7 @@ function CourseCard({
   isSelected: boolean;
   isDimmed: boolean;
   hasConflict: boolean;
+  userSpecs: SpecId[];
   onToggle: () => void;
   onClick: () => void;
 }) {
@@ -49,22 +51,54 @@ function CourseCard({
   else if (isMandatory) accentColor = '#2563eb';
   else if (primarySpec) accentColor = primarySpec.color;
 
+  // Mandatory-for-spec: show crimson treatment when course is required for user's selected spec
+  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
+    s => userSpecs.length === 0 || userSpecs.includes(s)
+  );
+  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+
+  const resolvedBorderColor = hasConflict
+    ? '#f87171'
+    : isMandatoryForUserSpec
+    ? '#dc2626'
+    : isSelected && !isFixed
+    ? accentColor
+    : isFixed
+    ? accentColor + '55'
+    : '#cbd5e1';
+
+  const resolvedBoxShadow = isMandatoryForUserSpec
+    ? '0 2px 8px #dc262628'
+    : isSelected && !isFixed
+    ? `0 2px 8px ${accentColor}30`
+    : isWaw
+    ? '0 2px 8px rgba(251,191,36,0.25)'
+    : '0 1px 3px rgba(0,0,0,0.08)';
+
+  const resolvedBackground = hasConflict
+    ? undefined
+    : isMandatoryForUserSpec
+    ? `linear-gradient(135deg, #fee2e2 0%, #fff5f5 60%, ${accentColor}10 100%)`
+    : isWaw
+    ? 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fed7aa 100%)'
+    : undefined;
+
   return (
     <div
       className={`
         relative rounded-xl border-2 p-4 transition-all cursor-pointer
         ${isSelected && !isFixed ? 'shadow-md' : 'shadow-sm hover:shadow-md hover:-translate-y-px'}
         ${isDimmed ? 'opacity-40' : ''}
-        ${hasConflict ? 'border-red-400 bg-red-50' : isSelected && !isFixed
+        ${hasConflict ? 'border-red-400 bg-red-50' : isMandatoryForUserSpec ? '' : isSelected && !isFixed
           ? 'bg-white'
           : isWaw ? '' : isMandatory ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}
       `}
       style={{
-        borderColor: hasConflict ? '#f87171' : isSelected && !isFixed ? accentColor : isFixed ? accentColor + '55' : '#cbd5e1',
+        borderColor: resolvedBorderColor,
         minWidth: '230px',
         maxWidth: '320px',
-        boxShadow: isSelected && !isFixed ? `0 2px 8px ${accentColor}30` : isWaw ? '0 2px 8px rgba(251,191,36,0.25)' : '0 1px 3px rgba(0,0,0,0.08)',
-        background: isWaw ? 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fed7aa 100%)' : undefined,
+        boxShadow: resolvedBoxShadow,
+        background: resolvedBackground,
       }}
       onClick={isFixed ? onClick : undefined}
     >
@@ -86,6 +120,13 @@ function CourseCard({
             <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
               style={{ backgroundColor: '#2563eb22', color: '#2563eb' }}>Required</span>
           )}
+          {/* Mandatory-for-spec badges */}
+          {relevantMandatorySpecs.map(specId => (
+            <span key={`mand-${specId}`} className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: '#dc262615', color: '#dc2626' }}>
+              Req. {specId}
+            </span>
+          ))}
           {course.specs.map(specId => {
             const s = SPECS.find(sp => sp.id === specId);
             if (!s) return null;
@@ -214,6 +255,11 @@ function WeekGroup({
 
   const blockLabel = courses.find(c => c.block)?.block;
 
+  // Count selected electives this week for double/triple block detection
+  const selectedElectivesCount = weekElectives.filter(
+    c => c.type === 'elective' && selected.has(c.id)
+  ).length;
+
   const visible = [...weekElectives, ...wawCourses].filter(c => visibleIds.has(c.id));
   if (visible.length === 0) return null;
 
@@ -230,25 +276,47 @@ function WeekGroup({
         )}
       </div>
 
-      {/* Cards row */}
-      <div className="flex flex-wrap gap-3 flex-1 min-w-0">
-        {visible.map(c => {
-          const specMatch = c.specs.some(s => userSpecs.includes(s));
-          const isDimmed = userSpecs.length > 0 && !specMatch && c.type === 'elective';
-          const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id));
+      {/* Cards column: cards + block warning below */}
+      <div className="flex flex-col gap-3 flex-1 min-w-0">
+        <div className="flex flex-wrap gap-3">
+          {visible.map(c => {
+            const specMatch = c.specs.some(s => userSpecs.includes(s));
+            const isDimmed = userSpecs.length > 0 && !specMatch && c.type === 'elective';
+            const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id));
 
-          return (
-            <CourseCard
-              key={c.id}
-              course={c}
-              isSelected={selected.has(c.id)}
-              isDimmed={isDimmed}
-              hasConflict={hasConflict}
-              onToggle={() => onToggle(c.id)}
-              onClick={() => onClick(c)}
-            />
-          );
-        })}
+            return (
+              <CourseCard
+                key={c.id}
+                course={c}
+                isSelected={selected.has(c.id)}
+                isDimmed={isDimmed}
+                hasConflict={hasConflict}
+                userSpecs={userSpecs}
+                onToggle={() => onToggle(c.id)}
+                onClick={() => onClick(c)}
+              />
+            );
+          })}
+        </div>
+
+        {/* Double / Triple block warning — below the cards */}
+        {selectedElectivesCount >= 3 && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm"
+            style={{ backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' }}>
+            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+            <div>
+              <span className="font-bold">Warning: Triple Block</span>
+              <span className="font-normal text-red-500"> — 3 electives in one week is extremely demanding</span>
+            </div>
+          </div>
+        )}
+        {selectedElectivesCount === 2 && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm"
+            style={{ backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fbbf24' }}>
+            <Zap className="w-5 h-5 flex-shrink-0" />
+            Double Block — you&apos;re doing 2 electives this week
+          </div>
+        )}
       </div>
     </div>
   );

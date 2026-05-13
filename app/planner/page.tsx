@@ -25,6 +25,7 @@ const DEFAULT_FILTERS: Filters = {
   workloads: [],
   selectedOnly: false,
   showWaw: true,
+  showMandatoryOnly: false,
 };
 
 export default function PlannerPage() {
@@ -38,7 +39,7 @@ export default function PlannerPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('plan');
 
-  const { selected, loading, toggle } = useSelections(userId);
+  const { selected, loading, toggle, selectBatch, deselectBatch } = useSelections(userId);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -67,13 +68,26 @@ export default function PlannerPage() {
     let next: SpecId[];
     if (current.includes(spec)) {
       next = current.filter(s => s !== spec);
-    } else if (current.length >= 2) {
-      next = [current[1], spec];
+    } else if (current.length >= 3) {
+      next = [current[1], current[2], spec];
     } else {
       next = [...current, spec];
     }
     setProfile({ ...profile, specializations: next });
     supabase.from('profiles').update({ specializations: next }).eq('id', profile.id);
+
+    // Auto-select/deselect mandatory courses for the toggled spec
+    const mandatoryCourses = ALL_COURSES.filter(c => c.mandatoryFor?.includes(spec));
+    if (next.includes(spec)) {
+      // Spec was added — select its mandatory courses
+      selectBatch(mandatoryCourses.map(c => c.id));
+    } else {
+      // Spec was removed — deselect courses only if not mandatory for any remaining spec
+      const toDeselect = mandatoryCourses
+        .filter(c => !c.mandatoryFor!.some(s => next.includes(s)))
+        .map(c => c.id);
+      deselectBatch(toDeselect);
+    }
   }
 
   // For "Plan" tab: show all courses that pass filters
@@ -81,6 +95,9 @@ export default function PlannerPage() {
     ALL_COURSES
       .filter(c => {
         if (c.type === 'exam' || c.type === 'free') return false;
+        if (filters.showMandatoryOnly) {
+          return c.type === 'mandatory' || (c.mandatoryFor && c.mandatoryFor.length > 0);
+        }
         if (c.type === 'mandatory') return true;
         if (c.type === 'waw') return filters.showWaw;
         if (filters.selectedOnly && !selected.has(c.id)) return false;

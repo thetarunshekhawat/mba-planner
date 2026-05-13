@@ -42,5 +42,31 @@ export function useSelections(userId: string | null) {
     }
   }, [userId, selected]);
 
-  return { selected, loading, toggle };
+  const selectBatch = useCallback(async (courseIds: number[]) => {
+    if (!userId || courseIds.length === 0) return;
+    const toAdd = courseIds.filter(id => !selected.has(id));
+    if (toAdd.length === 0) return;
+    const next = new Set(selected);
+    toAdd.forEach(id => next.add(id));
+    setSelected(next);
+    await supabase
+      .from('course_selections')
+      .upsert(toAdd.map(course_id => ({ user_id: userId, course_id })));
+  }, [userId, selected]);
+
+  const deselectBatch = useCallback(async (courseIds: number[]) => {
+    if (!userId || courseIds.length === 0) return;
+    const toRemove = courseIds.filter(id => selected.has(id));
+    if (toRemove.length === 0) return;
+    const next = new Set(selected);
+    toRemove.forEach(id => next.delete(id));
+    setSelected(next);
+    await supabase
+      .from('course_selections')
+      .delete()
+      .eq('user_id', userId)
+      .in('course_id', toRemove);
+  }, [userId, selected]);
+
+  return { selected, loading, toggle, selectBatch, deselectBatch };
 }

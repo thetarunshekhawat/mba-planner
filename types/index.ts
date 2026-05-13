@@ -40,6 +40,7 @@ export interface Course {
   faculty: string;
   seats: number | null;
   specs: SpecId[];
+  mandatoryFor?: SpecId[];   // specializations this course is required for
   type: CourseType;
   conflictGroup: string | null;
   timings?: SessionSlot[]; // time slot + room data from timetable (Term 4 has this)

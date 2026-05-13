@@ -8,6 +8,7 @@ interface Props {
   course: Course;
   isSelected: boolean;
   showReviews: boolean;
+  userSpecs?: string[];
   onClick: () => void;
 }
 
@@ -27,7 +28,7 @@ function MiniStars({ value }: { value: number }) {
   );
 }
 
-export function CourseBar({ course, isSelected, showReviews, onClick }: Props) {
+export function CourseBar({ course, isSelected, showReviews, userSpecs = [], onClick }: Props) {
   const isWaw = course.type === 'waw';
   const isMandatory = course.type === 'mandatory';
   const isRequired = isWaw || isMandatory;
@@ -40,16 +41,29 @@ export function CourseBar({ course, isSelected, showReviews, onClick }: Props) {
   else if (isMandatory) accentColor = '#2563eb'; // blue
   else if (primarySpec) accentColor = primarySpec.color;
 
+  // Mandatory-for-spec treatment
+  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
+    s => userSpecs.length === 0 || userSpecs.includes(s)
+  );
+  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+
+  const borderColor = isMandatoryForUserSpec ? '#dc2626' : accentColor;
+
   const bgSelected = accentColor + '18';
   const bgDefault  = accentColor + '0d';
+  const bgMandatorySpec = 'linear-gradient(135deg, #fee2e280 0%, #fff5f5 100%)';
 
   return (
     <button
       onClick={onClick}
       className="w-full text-left rounded-lg transition-all hover:shadow-sm active:scale-[0.995] cursor-pointer group"
       style={{
-        backgroundColor: isSelected && !isRequired ? bgSelected : bgDefault,
-        borderLeft: `4px solid ${accentColor}`,
+        background: isMandatoryForUserSpec
+          ? bgMandatorySpec
+          : isSelected && !isRequired
+          ? bgSelected
+          : bgDefault,
+        borderLeft: `4px solid ${borderColor}`,
         outline: isSelected && !isRequired ? `2px solid ${accentColor}55` : 'none',
         outlineOffset: '1px',
       }}
@@ -66,6 +80,13 @@ export function CourseBar({ course, isSelected, showReviews, onClick }: Props) {
           <span className="flex-shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
             style={{ backgroundColor: accentColor + '22', color: accentColor }}>
             Req
+          </span>
+        )}
+        {/* Mandatory-for-spec badge */}
+        {isMandatoryForUserSpec && (
+          <span className="flex-shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+            style={{ backgroundColor: '#dc262615', color: '#dc2626' }}>
+            Req. {relevantMandatorySpecs.join('/')}
           </span>
         )}
 

@@ -25,6 +25,8 @@ export function AdminDashboard() {
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [tab, setTab] = useState<Tab>('overview');
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null);
+  const [overviewExpandedCourse, setOverviewExpandedCourse] = useState<number | null>(null);
+  const [overviewExpandedSpec, setOverviewExpandedSpec] = useState<SpecId | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -229,16 +231,44 @@ export function AdminDashboard() {
                   {SPECS.map(spec => {
                     const count = specCounts[spec.id];
                     const pct = (count / maxSpecCount) * 100;
+                    const isExpanded = overviewExpandedSpec === spec.id;
+                    const specMembers = profiles.filter(p => p.specializations.includes(spec.id));
                     return (
-                      <div key={spec.id} className="flex items-center gap-3">
-                        <span className="text-xs text-slate-400 w-28 shrink-0">{spec.label}</span>
-                        <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{ width: `${pct}%`, backgroundColor: spec.color }}
-                          />
+                      <div key={spec.id}>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setOverviewExpandedSpec(isExpanded ? null : spec.id)}
+                            className="text-xs w-28 shrink-0 text-left hover:text-orange-300 transition-colors text-slate-400"
+                            style={{ color: isExpanded ? spec.color : undefined }}
+                          >
+                            {spec.label}
+                          </button>
+                          <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{ width: `${pct}%`, backgroundColor: spec.color }}
+                            />
+                          </div>
+                          <span className="text-xs text-slate-300 w-6 text-right">{count}</span>
                         </div>
-                        <span className="text-xs text-slate-300 w-6 text-right">{count}</span>
+                        {isExpanded && (
+                          <div className="mt-1.5 mb-1 ml-0 bg-slate-700/40 rounded-lg p-3">
+                            <p className="text-[10px] text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                              {spec.label} members ({specMembers.length})
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {specMembers.map(p => (
+                                <button
+                                  key={p.id}
+                                  onClick={() => { setSelectedMember(p); setTab('member'); setOverviewExpandedSpec(null); setExpandedCourse(null); }}
+                                  className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
+                                >
+                                  {p.name || p.email.split('@')[0]}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -253,24 +283,51 @@ export function AdminDashboard() {
                     {top10.map(({ course, count }, i) => {
                       const pct = profiles.length ? Math.round((count / profiles.length) * 100) : 0;
                       const spec = SPECS.find(s => course.specs.includes(s.id));
+                      const isExpanded = overviewExpandedCourse === course.id;
+                      const takers = profiles.filter(p => selectionsByUser.get(p.id)?.has(course.id) ?? false);
                       return (
-                        <div key={course.id} className="flex items-center gap-2">
-                          <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs text-slate-200 truncate">{course.name}</div>
-                            <div className="flex items-center gap-1 mt-0.5">
-                              <div className="h-1 rounded-full flex-1 bg-slate-700">
-                                <div
-                                  className="h-full rounded-full"
-                                  style={{
-                                    width: `${pct}%`,
-                                    backgroundColor: spec?.color ?? '#64748b',
-                                  }}
-                                />
+                        <div key={course.id}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <button
+                                onClick={() => setOverviewExpandedCourse(isExpanded ? null : course.id)}
+                                className="text-xs text-slate-200 truncate hover:text-orange-300 transition-colors text-left w-full"
+                              >
+                                {course.name}
+                              </button>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <div className="h-1 rounded-full flex-1 bg-slate-700">
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${pct}%`,
+                                      backgroundColor: spec?.color ?? '#64748b',
+                                    }}
+                                  />
+                                </div>
                               </div>
                             </div>
+                            <span className="text-xs text-slate-300 shrink-0">{count} ({pct}%)</span>
                           </div>
-                          <span className="text-xs text-slate-300 shrink-0">{count} ({pct}%)</span>
+                          {isExpanded && (
+                            <div className="mt-1.5 mb-1 ml-6 bg-slate-700/40 rounded-lg p-3">
+                              <p className="text-[10px] text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                                Enrolled ({takers.length})
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {takers.map(p => (
+                                  <button
+                                    key={p.id}
+                                    onClick={() => { setSelectedMember(p); setTab('member'); setOverviewExpandedCourse(null); setExpandedCourse(null); }}
+                                    className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
+                                  >
+                                    {p.name || p.email.split('@')[0]}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}

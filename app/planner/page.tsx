@@ -70,7 +70,7 @@ export default function PlannerPage() {
     router.replace('/');
   }
 
-  function handleSpecToggle(spec: SpecId) {
+  async function handleSpecToggle(spec: SpecId) {
     if (!profile) return;
     const current = profile.specializations;
     let next: SpecId[];
@@ -82,7 +82,7 @@ export default function PlannerPage() {
       next = [...current, spec];
     }
     setProfile({ ...profile, specializations: next });
-    supabase.from('profiles').update({ specializations: next }).eq('id', profile.id);
+    await supabase.from('profiles').update({ specializations: next }).eq('id', profile.id);
 
     // Auto-select/deselect mandatory courses for the toggled spec
     const mandatoryCourses = ALL_COURSES.filter(c => c.mandatoryFor?.includes(spec));

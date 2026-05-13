@@ -399,6 +399,7 @@ export default function PlannerPage() {
                 <TimetableView
                   selected={selected}
                   visibleIds={scheduleVisibleIds}
+                  userSpecs={profile.specializations}
                   onCourseClick={course => setActiveModal(course)}
                 />
               )}

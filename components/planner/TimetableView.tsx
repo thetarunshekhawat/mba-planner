@@ -1,12 +1,13 @@
 'use client';
 
 import { AlertTriangle } from 'lucide-react';
-import type { Course } from '@/types';
+import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 
 interface Props {
   selected: Set<number>;
   visibleIds: Set<number>;
+  userSpecs: SpecId[];
   onCourseClick: (course: Course) => void;
 }
 
@@ -67,15 +68,26 @@ function getConflictIds(courses: Course[], visibleIds: Set<number>): Set<number>
   return conflicting;
 }
 
-function CoursePill({ course, room, hasConflict, onClick }: {
+function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
   course: Course;
   room: string;
   hasConflict: boolean;
+  userSpecs: SpecId[];
   onClick: () => void;
 }) {
-  const accent = hasConflict ? '#ef4444' : getCourseAccent(course);
+  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
+    s => userSpecs.length === 0 || userSpecs.includes(s)
+  );
+  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+
+  const accent = hasConflict ? '#ef4444' : isMandatoryForUserSpec ? '#dc2626' : getCourseAccent(course);
   const isWaw = course.type === 'waw';
-  const bg = hasConflict ? '#fee2e2' : getCourseBg(course);
+  const bg = hasConflict
+    ? '#fee2e2'
+    : isMandatoryForUserSpec
+    ? `linear-gradient(135deg, #fee2e2 0%, #fff5f5 100%)`
+    : getCourseBg(course);
+
   return (
     <button
       onClick={onClick}
@@ -92,6 +104,11 @@ function CoursePill({ course, room, hasConflict, onClick }: {
           {course.code ?? course.name.slice(0, 4).toUpperCase()}
         </span>
       </div>
+      {isMandatoryForUserSpec && (
+        <div className="text-[9px] font-bold mt-0.5" style={{ color: '#dc2626' }}>
+          Req. {relevantMandatorySpecs.join('/')}
+        </div>
+      )}
       {room && (
         <div className="text-[10px] font-mono font-semibold mt-0.5" style={{ color: accent + 'bb' }}>
           {room}
@@ -101,11 +118,12 @@ function CoursePill({ course, room, hasConflict, onClick }: {
   );
 }
 
-function BlockTable({ blockInfo, courses, visibleIds, conflictIds, onCourseClick }: {
+function BlockTable({ blockInfo, courses, visibleIds, conflictIds, userSpecs, onCourseClick }: {
   blockInfo: typeof TERM4_BLOCKS[0];
   courses: Course[];
   visibleIds: Set<number>;
   conflictIds: Set<number>;
+  userSpecs: SpecId[];
   onCourseClick: (c: Course) => void;
 }) {
   const blockCourses = courses
@@ -190,6 +208,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, onCourseClick
                                 course={c}
                                 room={timing?.room ?? ''}
                                 hasConflict={conflictIds.has(c.id)}
+                                userSpecs={userSpecs}
                                 onClick={() => onCourseClick(c)}
                               />
                             );
@@ -227,6 +246,7 @@ function SpecLegend() {
     ...SPECS.map(s => ({ label: s.label, color: s.color })),
     { label: 'WaW', color: '#d97706' },
     { label: 'Required', color: '#2563eb' },
+    { label: 'Req. for Spec', color: '#dc2626' },
   ];
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px', padding: '6px 4px 12px', fontSize: 11, color: '#6b7280' }}>
@@ -242,9 +262,10 @@ function SpecLegend() {
 }
 
 // Simple week-based list for terms without timing data
-function CourseWeekList({ courses, visibleIds, onCourseClick }: {
+function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
   courses: Course[];
   visibleIds: Set<number>;
+  userSpecs: SpecId[];
   onCourseClick: (c: Course) => void;
 }) {
   const visible = courses.filter(c => visibleIds.has(c.id));
@@ -272,21 +293,43 @@ function CourseWeekList({ courses, visibleIds, onCourseClick }: {
             </div>
             <div className="flex flex-wrap gap-2 flex-1">
               {wkCourses.map(c => {
-                const accent = getCourseAccent(c);
+                const relevantMandatorySpecs = (c.mandatoryFor ?? []).filter(
+                  s => userSpecs.length === 0 || userSpecs.includes(s)
+                );
+                const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+                const accent = isMandatoryForUserSpec ? '#dc2626' : getCourseAccent(c);
                 return (
                   <button
                     key={c.id}
                     onClick={() => onCourseClick(c)}
                     className="rounded-xl border-2 px-3 py-2 text-left hover:shadow-md transition-all"
                     style={{
-                      borderColor: c.type === 'waw' ? '#fbbf24' : accent + '44',
-                      background: c.type === 'waw' ? WAW_GRADIENT : accent + '0d',
+                      borderColor: isMandatoryForUserSpec ? '#dc2626aa' : c.type === 'waw' ? '#fbbf24' : accent + '44',
+                      background: isMandatoryForUserSpec
+                        ? `linear-gradient(135deg, #fee2e2 0%, #fff5f5 60%, ${getCourseAccent(c)}10 100%)`
+                        : c.type === 'waw' ? WAW_GRADIENT : accent + '0d',
                       minWidth: 160,
-                      boxShadow: c.type === 'waw' ? '0 1px 4px rgba(251,191,36,0.3)' : undefined,
+                      boxShadow: isMandatoryForUserSpec
+                        ? '0 2px 8px #dc262628'
+                        : c.type === 'waw' ? '0 1px 4px rgba(251,191,36,0.3)' : undefined,
                     }}
                   >
-                    <div className="text-xs font-bold mb-0.5" style={{ color: accent }}>
-                      {c.type === 'waw' ? 'WaW' : c.type === 'mandatory' ? 'Required' : c.code ?? ''}
+                    <div className="flex flex-wrap gap-1 mb-0.5">
+                      {c.type === 'waw' && (
+                        <span className="text-xs font-bold" style={{ color: '#d97706' }}>WaW</span>
+                      )}
+                      {c.type === 'mandatory' && (
+                        <span className="text-xs font-bold" style={{ color: '#2563eb' }}>Required</span>
+                      )}
+                      {isMandatoryForUserSpec && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                          style={{ backgroundColor: '#dc262615', color: '#dc2626' }}>
+                          Req. {relevantMandatorySpecs.join('/')}
+                        </span>
+                      )}
+                      {!isMandatoryForUserSpec && c.type === 'elective' && c.code && (
+                        <span className="text-xs font-bold" style={{ color: accent }}>{c.code}</span>
+                      )}
                     </div>
                     <div className="text-sm font-semibold text-gray-800 leading-snug">{c.name}</div>
                     {c.faculty && (
@@ -305,7 +348,7 @@ function CourseWeekList({ courses, visibleIds, onCourseClick }: {
   );
 }
 
-export function TimetableView({ selected, visibleIds, onCourseClick }: Props) {
+export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }: Props) {
   const term4 = ALL_COURSES.filter(c => c.term === 4 && c.type !== 'exam' && c.type !== 'free');
   const term5 = ALL_COURSES.filter(c => c.term === 5 && c.type !== 'exam' && c.type !== 'free');
   const term6 = ALL_COURSES.filter(c => c.term === 6 && c.type !== 'exam' && c.type !== 'free');
@@ -357,6 +400,7 @@ export function TimetableView({ selected, visibleIds, onCourseClick }: Props) {
                 courses={term4}
                 visibleIds={visibleIds}
                 conflictIds={conflictIds}
+                userSpecs={userSpecs}
                 onCourseClick={onCourseClick}
               />
             </div>
@@ -365,10 +409,10 @@ export function TimetableView({ selected, visibleIds, onCourseClick }: Props) {
       )}
 
       <TermDivider label="Term 5" dateRange="Sep 28 – Dec 27, 2026" />
-      <CourseWeekList courses={term5} visibleIds={visibleIds} onCourseClick={onCourseClick} />
+      <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
 
       <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
-      <CourseWeekList courses={term6} visibleIds={visibleIds} onCourseClick={onCourseClick} />
+      <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
     </div>
   );
 }

@@ -8,13 +8,20 @@ import { PlannerListView } from '@/components/planner/PlannerListView';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
 import { generateScheduleICS } from '@/lib/calendar';
-import { GraduationCap, LayoutList, CalendarDays, Menu, X, CalendarPlus, CalendarHeart, Download } from 'lucide-react';
+import { GraduationCap, LayoutList, CalendarDays, Menu, X, CalendarPlus, CalendarHeart, Download, ShieldCheck } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ALL_COURSES } from '@/data/courses';
 import type { Course, SpecId, Profile } from '@/types';
 import { useRouter } from 'next/navigation';
+
+const ADMIN_EMAILS = new Set([
+  'tarun.shekhawat2027@bitsom.edu.in',
+  'varad.dharap2027@bitsom.edu.in',
+  'yash.kolhe2027@bitsom.edu.in',
+  'apoorv.sharma2027@bitsom.edu.in',
+]);
 
 type ViewMode = 'plan' | 'schedule';
 
@@ -54,6 +61,7 @@ export default function PlannerPage() {
         .then(({ data }) => {
           if (data) setProfile(data as Profile);
         });
+
     });
   }, []);
 
@@ -223,6 +231,15 @@ export default function PlannerPage() {
 
         {/* Right side actions */}
         <div className="flex-1 flex items-center justify-end gap-2">
+          {profile?.email && ADMIN_EMAILS.has(profile.email.toLowerCase()) && (
+            <button
+              onClick={() => router.push('/admin')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-orange-400 hover:bg-slate-700 hover:text-orange-300 transition-all border border-orange-500/30"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Admin</span>
+            </button>
+          )}
           {viewMode === 'schedule' && (
             <>
               <Dialog>

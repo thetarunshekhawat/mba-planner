@@ -25,6 +25,8 @@ export function LoginForm() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [ringAngle, setRingAngle] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
+  const [dispersing, setDispersing] = useState(false);
 
   // Info section state
   const [displayCourse, setDisplayCourse] = useState(PROFESSORS[0].course);
@@ -70,6 +72,7 @@ export function LoginForm() {
   const handleAngleChange = useCallback((a: number) => setRingAngle(a), []);
   const handleActiveChange = useCallback((i: number) => setActiveIdx(i), []);
   const handleDragChange = useCallback((d: boolean) => setIsDragging(d), []);
+  const handleIntroComplete = useCallback(() => setIntroComplete(true), []);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -120,7 +123,9 @@ export function LoginForm() {
       setStatus('error');
       setErrorMsg('Invalid or expired code.');
     } else {
-      router.push('/planner');
+      setStatus('idle');
+      setDispersing(true);
+      setTimeout(() => router.push('/planner'), 850);
     }
   }
 
@@ -141,16 +146,18 @@ export function LoginForm() {
 
   return (
     <div
-      className="fixed inset-0 overflow-hidden flex flex-col"
+      className="fixed inset-0 overflow-hidden flex flex-col items-center justify-center"
       style={{ background: '#000', userSelect: 'none' }}
     >
-      {/* Ring — centered, takes all available vertical space */}
-      <div className="flex-1 flex items-center justify-center" style={{ minHeight: 0 }}>
+      {/* Ring */}
+      <div className="flex items-center justify-center">
         <ProfessorRing
           professors={PROFESSORS}
           onActiveChange={handleActiveChange}
           onAngleChange={handleAngleChange}
           onDragChange={handleDragChange}
+          onIntroComplete={handleIntroComplete}
+          dispersing={dispersing}
         >
           {/* Only the login form lives in the ring center */}
           <div
@@ -254,8 +261,13 @@ export function LoginForm() {
 
       {/* Info section — below ring */}
       <div
-        className="flex flex-col items-center text-center px-8 pb-10 pt-2"
-        style={{ minHeight: 148 }}
+        className="flex flex-col items-center text-center px-8 pb-0 pt-7"
+        style={{
+          minHeight: 148,
+          opacity: introComplete && !dispersing ? 1 : 0,
+          transform: introComplete && !dispersing ? 'translateY(0)' : 'translateY(14px)',
+          transition: 'opacity 0.55s ease, transform 0.55s ease',
+        }}
       >
         {/* Course name — word-by-word staggered flip on professor change */}
         <style>{`

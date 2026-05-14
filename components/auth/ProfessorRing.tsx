@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback, useEffect, useState, ReactNode } from 'react';
+import { useRef, useCallback, useEffect, useState, useMemo, ReactNode } from 'react';
 import Image from 'next/image';
 import { type Professor } from '@/data/professors';
 
@@ -13,11 +13,15 @@ const FRICTION = 0.93;           // velocity decay per frame
 const SNAP_THRESHOLD = 0.35;     // deg/frame below which we snap
 const CLICK_MAX_PX = 8;          // max movement to count as a click (not a drag)
 
+type IntroPhase = 'hidden' | 'rising' | 'expanding' | 'done';
+
 interface Props {
   professors: Professor[];
   onActiveChange: (index: number) => void;
   onAngleChange: (angle: number) => void;
   onDragChange: (dragging: boolean) => void;
+  onIntroComplete?: () => void;
+  dispersing?: boolean;
   children: ReactNode;
 }
 
@@ -26,6 +30,8 @@ export function ProfessorRing({
   onActiveChange,
   onAngleChange,
   onDragChange,
+  onIntroComplete,
+  dispersing = false,
   children,
 }: Props) {
   const N = professors.length;
@@ -33,6 +39,7 @@ export function ProfessorRing({
 
   const [rotation, setRotation] = useState(INITIAL_ROT);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+  const [introPhase, setIntroPhase] = useState<IntroPhase>('hidden');
 
   const rotRef = useRef(INITIAL_ROT);
   const rafRef = useRef<number>(0);
@@ -120,10 +127,35 @@ export function ProfessorRing({
     [startSnap],
   );
 
+  // hidden → rising (after one paint)
   useEffect(() => {
+    const id = requestAnimationFrame(() => setIntroPhase('rising'));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  // rising → expanding
+  useEffect(() => {
+    if (introPhase !== 'rising') return;
+    const t = setTimeout(() => setIntroPhase('expanding'), 650);
+    return () => clearTimeout(t);
+  }, [introPhase]);
+
+  // expanding → done
+  useEffect(() => {
+    if (introPhase !== 'expanding') return;
+    const t = setTimeout(() => {
+      setIntroPhase('done');
+      onIntroComplete?.();
+    }, (N - 1) * 40 + 800 + 60);
+    return () => clearTimeout(t);
+  }, [introPhase, N, onIntroComplete]);
+
+  // RAF runs only when intro is done and not dispersing
+  useEffect(() => {
+    if (introPhase !== 'done' || dispersing) return;
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [tick]);
+  }, [introPhase, dispersing, tick]);
 
   useEffect(() => {
     onAngleChange(rotation);
@@ -132,6 +164,7 @@ export function ProfessorRing({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      if (introPhase !== 'done' || dispersing) return;
       modeRef.current = 'drag';
       startXRef.current = e.clientX;
       startRotRef.current = rotRef.current;
@@ -162,7 +195,7 @@ export function ProfessorRing({
       onDragChange(true);
       e.currentTarget.setPointerCapture(e.pointerId);
     },
-    [N, ANGLE_PER, onDragChange],
+    [N, ANGLE_PER, onDragChange, introPhase, dispersing],
   );
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -199,6 +232,14 @@ export function ProfessorRing({
 
   const toRad = (deg: number) => (deg * Math.PI) / 180;
 
+  const startPositions = useMemo(() =>
+    professors.map((_, i) => ({
+      x: (professors.length > 1 ? i / (professors.length - 1) : 0.5) * 480 - 240,
+      y: 160 + (i % 2) * 25,
+    })), [professors]);
+
+  const isDone = introPhase === 'done';
+
   return (
     <div
       className="relative"
@@ -207,7 +248,7 @@ export function ProfessorRing({
         height: 280,
         touchAction: 'none',
         userSelect: 'none',
-        cursor: 'grab',
+        cursor: isDone && !dispersing ? 'grab' : 'default',
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -220,15 +261,44 @@ export function ProfessorRing({
         const x = Math.cos(angle) * RADIUS_X;
         const y = Math.sin(angle) * RADIUS_Y;
         const yNorm = y / RADIUS_Y;
-        const depth = (yNorm + 1) / 2; // 0 (back/top) → 1 (front/bottom)
+        const depth = (yNorm + 1) / 2;
         const isActive = getActiveIndex(rotation) === i;
 
-        // Higher floor so back-of-ring items are always visible
         const opacity = 0.55 + depth * 0.45;
         const baseScale = 0.62 + depth * 0.38;
         const itemScale = isActive ? baseScale * 1.18 : baseScale;
         const zIndex = Math.round(depth * 90) + 1;
         const showInitials = !prof.imagePath || imgErrors[prof.id];
+        const sp = startPositions[i];
+
+        let itemTransform: string;
+        let itemOpacity: number;
+        let itemTransition: string;
+
+        if (dispersing) {
+          const len = Math.sqrt(x * x + y * y) || 1;
+          const dX = (x / len) * 750;
+          const dY = (y / len) * 750;
+          itemTransform = `translate(${dX - ITEM_SIZE / 2}px, ${dY - ITEM_SIZE / 2}px) scale(0)`;
+          itemOpacity = 0;
+          itemTransition = `transform 0.75s cubic-bezier(0.55,0,1,1) ${i * 35}ms, opacity 0.5s ease ${i * 25}ms`;
+        } else if (introPhase === 'hidden') {
+          itemTransform = `translate(${sp.x - ITEM_SIZE / 2}px, ${sp.y - ITEM_SIZE / 2}px) scale(0.2)`;
+          itemOpacity = 0;
+          itemTransition = 'none';
+        } else if (introPhase === 'rising') {
+          itemTransform = `translate(${-ITEM_SIZE / 2}px, ${-ITEM_SIZE / 2}px) scale(0.45)`;
+          itemOpacity = 0.75;
+          itemTransition = 'transform 0.65s cubic-bezier(0.55,0,0.45,1), opacity 0.35s ease';
+        } else if (introPhase === 'expanding') {
+          itemTransform = `translate(${x - ITEM_SIZE / 2}px, ${y - ITEM_SIZE / 2}px) scale(${itemScale})`;
+          itemOpacity = opacity;
+          itemTransition = `transform 0.75s cubic-bezier(0.34,1.56,0.64,1) ${i * 40}ms, opacity 0.4s ease ${i * 40}ms`;
+        } else {
+          itemTransform = `translate(${x - ITEM_SIZE / 2}px, ${y - ITEM_SIZE / 2}px) scale(${itemScale})`;
+          itemOpacity = opacity;
+          itemTransition = 'none';
+        }
 
         return (
           <div
@@ -237,17 +307,17 @@ export function ProfessorRing({
               position: 'absolute',
               width: ITEM_SIZE,
               height: ITEM_SIZE,
-              // Fixed center anchor; translate does the orbiting (sub-pixel smooth)
               left: '50%',
               top: '50%',
               borderRadius: '50%',
               overflow: 'hidden',
-              opacity,
-              transform: `translate(${x - ITEM_SIZE / 2}px, ${y - ITEM_SIZE / 2}px) scale(${itemScale})`,
+              opacity: itemOpacity,
+              transform: itemTransform,
+              transition: itemTransition,
               transformOrigin: 'center center',
               willChange: 'transform, opacity',
               zIndex,
-              boxShadow: isActive
+              boxShadow: isActive && isDone && !dispersing
                 ? '0 0 0 2px rgba(255,255,255,0.88), 0 0 22px rgba(255,255,255,0.16)'
                 : 'none',
             }}
@@ -285,6 +355,9 @@ export function ProfessorRing({
           top: '50%',
           transform: 'translate(-50%, -50%)',
           pointerEvents: 'auto',
+          opacity: (introPhase === 'hidden' || introPhase === 'rising' || dispersing) ? 0 : 1,
+          transition: 'opacity 0.5s ease',
+          transitionDelay: introPhase === 'expanding' ? '400ms' : '0ms',
         }}
         onPointerDown={e => e.stopPropagation()}
       >

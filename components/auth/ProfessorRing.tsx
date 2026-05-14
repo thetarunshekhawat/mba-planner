@@ -50,6 +50,8 @@ export function ProfessorRing({
   const angVelRef = useRef(0);
   const totalDragRef = useRef(0);
   const clickedIdxRef = useRef(-1); // professor index nearest to pointer-down
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const prevActiveForSoundRef = useRef(-1);
 
   // 'auto' | 'drag' | 'momentum' | 'snap'
   const modeRef = useRef<'auto' | 'drag' | 'momentum' | 'snap'>('auto');
@@ -102,7 +104,12 @@ export function ProfessorRing({
       if (modeRef.current === 'auto') {
         const next = rotRef.current + 0.018;
         rotRef.current = next;
-        setRotation(next);
+        // Three incommensurable sine waves → organic micro-tremor, never repeats
+        const vib =
+          0.40 * Math.sin(now * 0.0019) +
+          0.25 * Math.sin(now * 0.0043) +
+          0.15 * Math.sin(now * 0.0089);
+        setRotation(next + vib);
       } else if (modeRef.current === 'momentum') {
         angVelRef.current *= FRICTION;
         const next = rotRef.current + angVelRef.current;
@@ -150,6 +157,28 @@ export function ProfessorRing({
     return () => clearTimeout(t);
   }, [introPhase, N, onIntroComplete]);
 
+  // AudioContext: created on first user gesture (browser autoplay policy)
+  useEffect(() => {
+    if (introPhase !== 'done') return;
+
+    function initAudio() {
+      document.removeEventListener('pointerdown', initAudio);
+      document.removeEventListener('keydown', initAudio);
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    }
+
+    document.addEventListener('pointerdown', initAudio);
+    document.addEventListener('keydown', initAudio);
+
+    return () => {
+      document.removeEventListener('pointerdown', initAudio);
+      document.removeEventListener('keydown', initAudio);
+      const ctx = audioCtxRef.current;
+      audioCtxRef.current = null;
+      ctx?.close().catch(() => {});
+    };
+  }, [introPhase]);
+
   // RAF runs only when intro is done and not dispersing
   useEffect(() => {
     if (introPhase !== 'done' || dispersing) return;
@@ -159,8 +188,33 @@ export function ProfessorRing({
 
   useEffect(() => {
     onAngleChange(rotation);
-    onActiveChange(getActiveIndex(rotation));
-  }, [rotation, onAngleChange, onActiveChange, getActiveIndex]);
+    const newIdx = getActiveIndex(rotation);
+    onActiveChange(newIdx);
+
+    // Click on profile change — only after intro, not during dispersal
+    const ctx = audioCtxRef.current;
+    if (
+      ctx?.state === 'running' &&
+      introPhase === 'done' &&
+      !dispersing &&
+      prevActiveForSoundRef.current !== -1 &&
+      prevActiveForSoundRef.current !== newIdx
+    ) {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 920;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.002);  // 2ms attack
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.022); // 20ms decay
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.03);
+    }
+    prevActiveForSoundRef.current = newIdx;
+  }, [rotation, onAngleChange, onActiveChange, getActiveIndex, introPhase, dispersing]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {

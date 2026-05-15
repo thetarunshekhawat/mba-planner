@@ -1,12 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-export function useSelections(userId: string | null) {
+type OnEvent = (type: 'course_selected' | 'course_removed', courseId: number) => void;
+
+export function useSelections(userId: string | null, onEvent?: OnEvent) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  // Stable ref so toggle doesn't need onEvent in its dependency array
+  const onEventRef = useRef<OnEvent | undefined>(onEvent);
+  useEffect(() => { onEventRef.current = onEvent; }, [onEvent]);
 
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
@@ -28,6 +33,7 @@ export function useSelections(userId: string | null) {
     if (next.has(courseId)) {
       next.delete(courseId);
       setSelected(next);
+      onEventRef.current?.('course_removed', courseId);
       await supabase
         .from('course_selections')
         .delete()
@@ -36,6 +42,7 @@ export function useSelections(userId: string | null) {
     } else {
       next.add(courseId);
       setSelected(next);
+      onEventRef.current?.('course_selected', courseId);
       await supabase
         .from('course_selections')
         .insert({ user_id: userId, course_id: courseId });

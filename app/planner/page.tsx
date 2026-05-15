@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useSelections } from '@/hooks/useSelections';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { TimetableView } from '@/components/planner/TimetableView';
 import { PlannerListView } from '@/components/planner/PlannerListView';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
@@ -46,7 +47,12 @@ export default function PlannerPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('plan');
 
-  const { selected, loading, toggle, selectBatch, deselectBatch } = useSelections(userId);
+  const { trackEvent } = useAnalytics(userId);
+  const filtersDirtyRef = useRef(false);
+  const { selected, loading, toggle, selectBatch, deselectBatch } = useSelections(
+    userId,
+    (type, courseId) => trackEvent(type, { course_id: courseId }),
+  );
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -65,6 +71,20 @@ export default function PlannerPage() {
     });
   }, []);
 
+  // Debounced filter tracking — only fires after user actively changes filters
+  useEffect(() => {
+    if (!userId || !filtersDirtyRef.current) return;
+    const timer = setTimeout(() => {
+      trackEvent('filters_applied', { ...filters });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [filters, userId]);
+
+  function handleFiltersChange(newFilters: Filters) {
+    filtersDirtyRef.current = true;
+    setFilters(newFilters);
+  }
+
   async function handleSignOut() {
     await supabase.auth.signOut();
     router.replace('/');
@@ -81,6 +101,7 @@ export default function PlannerPage() {
     } else {
       next = [...current, spec];
     }
+    trackEvent('spec_toggled', { spec, action: current.includes(spec) ? 'removed' : 'added' });
     setProfile({ ...profile, specializations: next });
     await supabase.from('profiles').update({ specializations: next }).eq('id', profile.id);
 
@@ -134,6 +155,7 @@ export default function PlannerPage() {
   const handleExportCalendar = () => {
     const coursesToExport = ALL_COURSES.filter(c => scheduleVisibleIds.has(c.id));
     if (coursesToExport.length === 0) return;
+    trackEvent('export_triggered', { type: 'ics' });
     
     const icsContent = generateScheduleICS(coursesToExport);
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
@@ -167,6 +189,7 @@ export default function PlannerPage() {
   };
 
   const handleExportPDF = () => {
+    trackEvent('export_triggered', { type: 'pdf' });
     window.print();
   };
 
@@ -200,7 +223,7 @@ export default function PlannerPage() {
         <div className="flex-none flex justify-center">
           <div className="flex bg-slate-800 rounded-lg p-0.5 border border-white/10">
             <button
-              onClick={() => setViewMode('plan')}
+              onClick={() => { setViewMode('plan'); trackEvent('view_changed', { to: 'plan' }); }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 viewMode === 'plan'
                   ? 'bg-white text-slate-900 shadow-sm'
@@ -211,7 +234,7 @@ export default function PlannerPage() {
               Plan
             </button>
             <button
-              onClick={() => setViewMode('schedule')}
+              onClick={() => { setViewMode('schedule'); trackEvent('view_changed', { to: 'schedule' }); }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 viewMode === 'schedule'
                   ? 'bg-white text-slate-900 shadow-sm'
@@ -286,6 +309,7 @@ export default function PlannerPage() {
                           href={getGoogleCalendarUrl()}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => trackEvent('export_triggered', { type: 'google' })}
                           className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5"
                         >
                           <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
@@ -302,6 +326,7 @@ export default function PlannerPage() {
                         {/* Apple Calendar */}
                         <a
                           href={getAppleCalendarUrl()}
+                          onClick={() => trackEvent('export_triggered', { type: 'apple' })}
                           className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5"
                         >
                           <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
@@ -372,7 +397,7 @@ export default function PlannerPage() {
         `}>
           <FilterSidebar
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={handleFiltersChange}
             selected={selected}
             userSpecs={profile.specializations}
             onSpecToggle={handleSpecToggle}
@@ -394,7 +419,7 @@ export default function PlannerPage() {
               userSpecs={profile.specializations}
               visibleIds={planVisibleIds}
               onToggle={toggle}
-              onCourseClick={course => setActiveModal(course)}
+              onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
             />
           ) : (
             <>
@@ -417,7 +442,7 @@ export default function PlannerPage() {
                   selected={selected}
                   visibleIds={scheduleVisibleIds}
                   userSpecs={profile.specializations}
-                  onCourseClick={course => setActiveModal(course)}
+                  onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
                 />
               )}
             </>

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ArrowLeft, X } from 'lucide-react';
+import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ArrowLeft, X, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface MemberSelection {
@@ -12,7 +12,36 @@ interface MemberSelection {
   course_id: number;
 }
 
-type Tab = 'overview' | 'member';
+interface SessionRow {
+  user_id: string;
+  session_start: string;
+  session_end: string | null;
+  duration_seconds: number | null;
+}
+
+interface EventRow {
+  user_id: string;
+  event_type: string;
+  payload: Record<string, unknown> | null;
+  occurred_at: string;
+}
+
+interface LastSignInRow {
+  user_id: string;
+  last_sign_in_at: string;
+}
+
+const EVENT_LABELS: Record<string, string> = {
+  course_viewed: 'Course Detail Views',
+  course_selected: 'Course Added',
+  course_removed: 'Course Removed',
+  spec_toggled: 'Specialisation Changed',
+  export_triggered: 'Schedule Exported',
+  view_changed: 'View Switched',
+  filters_applied: 'Filters Applied',
+};
+
+type Tab = 'overview' | 'member' | 'activity';
 
 export function AdminDashboard() {
   const supabase = createClient();
@@ -27,6 +56,10 @@ export function AdminDashboard() {
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null);
   const [overviewExpandedCourse, setOverviewExpandedCourse] = useState<number | null>(null);
   const [overviewExpandedSpec, setOverviewExpandedSpec] = useState<SpecId | null>(null);
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [events, setEvents] = useState<EventRow[]>([]);
+  const [lastSignIns, setLastSignIns] = useState<LastSignInRow[]>([]);
+  const activityLoadedRef = useRef(false);
 
   useEffect(() => {
     Promise.all([
@@ -38,6 +71,21 @@ export function AdminDashboard() {
       setLoading(false);
     });
   }, []);
+
+  // Lazy-load activity data the first time the Activity tab is opened
+  useEffect(() => {
+    if (tab !== 'activity' || activityLoadedRef.current) return;
+    activityLoadedRef.current = true;
+    Promise.all([
+      supabase.from('user_sessions').select('user_id, session_start, session_end, duration_seconds'),
+      supabase.from('user_events').select('user_id, event_type, payload, occurred_at'),
+      supabase.rpc('get_user_last_sign_in'),
+    ]).then(([{ data: s }, { data: e }, { data: l }]) => {
+      setSessions((s ?? []) as SessionRow[]);
+      setEvents((e ?? []) as EventRow[]);
+      setLastSignIns((l ?? []) as LastSignInRow[]);
+    });
+  }, [tab]);
 
   const filteredProfiles = profiles.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -97,6 +145,60 @@ export function AdminDashboard() {
       (selectionsByUser.get(p.id)?.has(courseId) ?? false)
     );
   }
+
+  // ── Activity tab derived stats ────────────────────────────────────────────
+
+  const lastSignInMap = new Map<string, string>(
+    lastSignIns.map(r => [r.user_id, r.last_sign_in_at]),
+  );
+
+  const userSessionStats = new Map<string, { lastVisit: string; totalSessions: number; avgMinutes: number }>();
+  for (const p of profiles) {
+    const userSessions = sessions.filter(s => s.user_id === p.id);
+    const completed = userSessions.filter(s => s.duration_seconds != null);
+    const avgSecs = completed.length
+      ? completed.reduce((sum, s) => sum + (s.duration_seconds ?? 0), 0) / completed.length
+      : 0;
+    const lastVisit = lastSignInMap.get(p.id)
+      ?? userSessions.map(s => s.session_start).sort().at(-1)
+      ?? '';
+    userSessionStats.set(p.id, {
+      lastVisit,
+      totalSessions: userSessions.length,
+      avgMinutes: Math.round(avgSecs / 60),
+    });
+  }
+
+  const today = new Date();
+  const dauData = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(today);
+    day.setDate(today.getDate() - (6 - i));
+    const dateStr = day.toISOString().slice(0, 10);
+    const count = new Set(
+      sessions.filter(s => s.session_start.slice(0, 10) === dateStr).map(s => s.user_id),
+    ).size;
+    return { date: dateStr, count };
+  });
+  const maxDau = Math.max(...dauData.map(d => d.count), 1);
+
+  const eventTypeCounts = new Map<string, number>();
+  for (const e of events) {
+    eventTypeCounts.set(e.event_type, (eventTypeCounts.get(e.event_type) ?? 0) + 1);
+  }
+  const sortedEventTypes = Array.from(eventTypeCounts.entries()).sort((a, b) => b[1] - a[1]);
+  const maxEventCount = Math.max(...sortedEventTypes.map(([, c]) => c), 1);
+
+  const courseViewCounts = new Map<number, number>();
+  for (const e of events.filter(ev => ev.event_type === 'course_viewed')) {
+    const cid = (e.payload as { course_id?: number })?.course_id;
+    if (cid) courseViewCounts.set(cid, (courseViewCounts.get(cid) ?? 0) + 1);
+  }
+  const topViewedCourses = ALL_COURSES
+    .map(c => ({ course: c, views: courseViewCounts.get(c.id) ?? 0 }))
+    .filter(x => x.views > 0)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 10);
+  const maxViews = Math.max(...topViewedCourses.map(x => x.views), 1);
 
   if (loading) {
     return (
@@ -202,6 +304,14 @@ export function AdminDashboard() {
               }`}
             >
               {selectedMember ? `${selectedMember.name || selectedMember.email.split('@')[0]}` : 'Member Detail'}
+            </button>
+            <button
+              onClick={() => setTab('activity')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                tab === 'activity' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Activity
             </button>
           </div>
 
@@ -470,6 +580,137 @@ export function AdminDashboard() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── ACTIVITY TAB ── */}
+          {tab === 'activity' && (
+            <div className="p-4 space-y-6">
+              {/* DAU Trend */}
+              <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-400" />
+                  Daily Active Users — Last 7 Days
+                </h3>
+                {sessions.length === 0 ? (
+                  <p className="text-xs text-slate-500">No session data yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {dauData.map(({ date, count }) => (
+                      <div key={date} className="flex items-center gap-3">
+                        <span className="text-[10px] text-slate-500 w-20 shrink-0">
+                          {new Date(date + 'T12:00:00').toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+                        </span>
+                        <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-blue-500 transition-all"
+                            style={{ width: `${(count / maxDau) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-slate-300 w-4 text-right">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Feature Usage + Top Viewed Courses */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                  <h3 className="text-sm font-semibold text-slate-200 mb-4">Feature Usage</h3>
+                  {sortedEventTypes.length === 0 ? (
+                    <p className="text-xs text-slate-500">No events tracked yet.</p>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {sortedEventTypes.map(([type, count]) => (
+                        <div key={type} className="flex items-center gap-3">
+                          <span className="text-xs text-slate-400 w-36 shrink-0 truncate">
+                            {EVENT_LABELS[type] ?? type}
+                          </span>
+                          <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-orange-500 transition-all"
+                              style={{ width: `${(count / maxEventCount) * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-slate-300 w-8 text-right">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                  <h3 className="text-sm font-semibold text-slate-200 mb-3">Most Viewed Courses</h3>
+                  {topViewedCourses.length === 0 ? (
+                    <p className="text-xs text-slate-500">No course views tracked yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {topViewedCourses.map(({ course, views }, i) => {
+                        const spec = SPECS.find(s => course.specs.includes(s.id));
+                        return (
+                          <div key={course.id} className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-slate-200 truncate">{course.name}</div>
+                              <div className="h-1 rounded-full bg-slate-700 mt-0.5">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{ width: `${(views / maxViews) * 100}%`, backgroundColor: spec?.color ?? '#64748b' }}
+                                />
+                              </div>
+                            </div>
+                            <span className="text-xs text-slate-300 shrink-0">{views}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Per-User Engagement */}
+              <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                <h3 className="text-sm font-semibold text-slate-200 mb-4">Member Engagement</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-slate-500 border-b border-white/5">
+                        <th className="text-left py-2 pr-4 font-medium">Member</th>
+                        <th className="text-left py-2 pr-4 font-medium">Last Visit</th>
+                        <th className="text-right py-2 pr-4 font-medium">Sessions</th>
+                        <th className="text-right py-2 font-medium">Avg Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {profiles
+                        .map(p => ({ p, stats: userSessionStats.get(p.id) }))
+                        .sort((a, b) => (b.stats?.lastVisit ?? '').localeCompare(a.stats?.lastVisit ?? ''))
+                        .map(({ p, stats }) => (
+                          <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
+                            <td className="py-2 pr-4">
+                              <button
+                                onClick={() => { setSelectedMember(p); setTab('member'); setExpandedCourse(null); }}
+                                className="text-slate-200 hover:text-orange-300 transition-colors text-left"
+                              >
+                                {p.name || p.email.split('@')[0]}
+                              </button>
+                            </td>
+                            <td className="py-2 pr-4 text-slate-400">
+                              {stats?.lastVisit
+                                ? new Date(stats.lastVisit).toLocaleDateString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                : '—'}
+                            </td>
+                            <td className="py-2 pr-4 text-right text-slate-300">{stats?.totalSessions ?? 0}</td>
+                            <td className="py-2 text-right text-slate-300">
+                              {stats?.avgMinutes ? `${stats.avgMinutes}m` : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
 

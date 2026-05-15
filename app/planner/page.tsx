@@ -49,6 +49,9 @@ export default function PlannerPage() {
 
   const { trackEvent } = useAnalytics(userId);
   const filtersDirtyRef = useRef(false);
+  const modalOpenTimeRef = useRef<number | null>(null);
+  const modalCourseRef = useRef<Course | null>(null);
+  const planVisibleCountRef = useRef(0);
   const { selected, loading, toggle, selectBatch, deselectBatch } = useSelections(
     userId,
     (type, courseId) => trackEvent(type, { course_id: courseId }),
@@ -71,14 +74,33 @@ export default function PlannerPage() {
     });
   }, []);
 
-  // Debounced filter tracking — only fires after user actively changes filters
+  // Debounced filter tracking — also detects dead-end (zero results) filter combos
   useEffect(() => {
     if (!userId || !filtersDirtyRef.current) return;
     const timer = setTimeout(() => {
       trackEvent('filters_applied', { ...filters });
+      if (planVisibleCountRef.current === 0) {
+        trackEvent('filter_dead_end', { ...filters });
+      }
     }, 800);
     return () => clearTimeout(timer);
   }, [filters, userId]);
+
+  // Track how long a course detail modal stays open
+  useEffect(() => {
+    if (activeModal) {
+      modalOpenTimeRef.current = Date.now();
+      modalCourseRef.current = activeModal;
+    } else if (modalOpenTimeRef.current && modalCourseRef.current) {
+      trackEvent('modal_view_duration', {
+        course_id: modalCourseRef.current.id,
+        course_name: modalCourseRef.current.name,
+        duration_ms: Date.now() - modalOpenTimeRef.current,
+      });
+      modalOpenTimeRef.current = null;
+      modalCourseRef.current = null;
+    }
+  }, [activeModal]);
 
   function handleFiltersChange(newFilters: Filters) {
     filtersDirtyRef.current = true;
@@ -86,6 +108,7 @@ export default function PlannerPage() {
   }
 
   async function handleSignOut() {
+    trackEvent('user_signed_out');
     await supabase.auth.signOut();
     router.replace('/');
   }
@@ -139,6 +162,8 @@ export default function PlannerPage() {
       })
       .map(c => c.id),
   );
+
+  planVisibleCountRef.current = planVisibleIds.size;
 
   // For "My Schedule" tab: only show selected + WaW + mandatory
   const scheduleVisibleIds = new Set(

@@ -13,13 +13,16 @@ interface MemberSelection {
 }
 
 interface SessionRow {
+  id?: string;
   user_id: string;
   session_start: string;
   session_end: string | null;
   duration_seconds: number | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 interface EventRow {
+  id?: string;
   user_id: string;
   event_type: string;
   payload: Record<string, unknown> | null;
@@ -31,6 +34,14 @@ interface LastSignInRow {
   last_sign_in_at: string;
 }
 
+type Tab = 'overview' | 'member' | 'activity' | 'insights';
+type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
+
+type TimelineItem =
+  | { kind: 'session_start'; session: SessionRow; ts: string }
+  | { kind: 'session_end'; session: SessionRow; ts: string }
+  | { kind: 'event'; event: EventRow; ts: string };
+
 const EVENT_LABELS: Record<string, string> = {
   course_viewed: 'Course Detail Views',
   course_selected: 'Course Added',
@@ -39,11 +50,100 @@ const EVENT_LABELS: Record<string, string> = {
   export_triggered: 'Schedule Exported',
   view_changed: 'View Switched',
   filters_applied: 'Filters Applied',
+  filter_dead_end: 'Dead-end Filter',
+  modal_view_duration: 'Modal Viewed',
+  login_complete: 'Login',
+  user_signed_out: 'Sign Out',
+  rage_click: 'Rage Click',
+  js_error: 'JS Error',
+  calendar_accessed: 'Calendar Access',
 };
 
-type Tab = 'overview' | 'member' | 'activity';
+function courseNameById(id: number): string {
+  return ALL_COURSES.find(c => c.id === id)?.name ?? `Course #${id}`;
+}
 
-export function AdminDashboard() {
+function describeEvent(e: EventRow): { icon: string; text: string } {
+  const p = e.payload as Record<string, unknown>;
+  switch (e.event_type) {
+    case 'course_viewed':       return { icon: '👁', text: `Viewed "${(p?.course_name as string) ?? courseNameById(p?.course_id as number)}"` };
+    case 'course_selected':     return { icon: '✔', text: `Added "${courseNameById(p?.course_id as number)}"` };
+    case 'course_removed':      return { icon: '✖', text: `Removed "${courseNameById(p?.course_id as number)}"` };
+    case 'spec_toggled':        return { icon: '🎓', text: `${p?.action === 'added' ? 'Added' : 'Removed'} spec: ${p?.spec}` };
+    case 'export_triggered':    return { icon: '📤', text: `Exported schedule (${p?.type})` };
+    case 'view_changed':        return { icon: '🔀', text: `Switched to ${p?.to} view` };
+    case 'filters_applied':     return { icon: '🔧', text: 'Applied filters' };
+    case 'filter_dead_end':     return { icon: '⚠', text: 'Filter returned zero results' };
+    case 'modal_view_duration': return { icon: '⏱', text: `Spent ${Math.round((p?.duration_ms as number) / 1000)}s on "${p?.course_name}"` };
+    case 'login_complete':      return { icon: '🔓', text: 'Logged in' };
+    case 'user_signed_out':     return { icon: '🔒', text: 'Signed out' };
+    case 'rage_click':          return { icon: '😤', text: `Rage-clicked "${String(p?.element_text ?? '').slice(0, 30)}"` };
+    case 'js_error':            return { icon: '🔴', text: `JS error: ${String(p?.message ?? '').slice(0, 60)}` };
+    case 'calendar_accessed':   return { icon: '📅', text: 'Accessed calendar subscription' };
+    default:                    return { icon: '•', text: e.event_type };
+  }
+}
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds) return '?';
+  if (seconds < 60) return `${seconds}s`;
+  return `${Math.round(seconds / 60)}m`;
+}
+
+function fmtTs(ts: string): string {
+  const d = new Date(ts);
+  return (
+    d.toLocaleDateString('en', { day: 'numeric', month: 'short' }) +
+    ' · ' +
+    d.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })
+  );
+}
+
+function fmtRelative(ts: string): string {
+  const diffMin = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  return `${Math.floor(diffH / 24)}d ago`;
+}
+
+function BarRow({
+  label,
+  value,
+  max,
+  color = '#f97316',
+  suffix = '',
+}: {
+  label: string;
+  value: number;
+  max: number;
+  color?: string;
+  suffix?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs text-slate-400 w-28 shrink-0 truncate">{label}</span>
+      <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${(value / max) * 100}%`, backgroundColor: color }}
+        />
+      </div>
+      <span className="text-xs text-slate-300 w-12 text-right shrink-0">
+        {value}{suffix}
+      </span>
+    </div>
+  );
+}
+
+export function AdminDashboard({
+  adminUserId,
+  isSuperAdmin,
+}: {
+  adminUserId: string;
+  isSuperAdmin: boolean;
+}) {
   const supabase = createClient();
   const router = useRouter();
 
@@ -56,10 +156,23 @@ export function AdminDashboard() {
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null);
   const [overviewExpandedCourse, setOverviewExpandedCourse] = useState<number | null>(null);
   const [overviewExpandedSpec, setOverviewExpandedSpec] = useState<SpecId | null>(null);
+
+  // Shared analytics data (Activity + Insights tabs)
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [lastSignIns, setLastSignIns] = useState<LastSignInRow[]>([]);
-  const activityLoadedRef = useRef(false);
+  const analyticsLoadedRef = useRef(false);
+
+  // Per-member detail data
+  const [memberSubTab, setMemberSubTab] = useState<MemberSubTab>('courses');
+  const [memberSessions, setMemberSessions] = useState<SessionRow[]>([]);
+  const [memberEvents, setMemberEvents] = useState<EventRow[]>([]);
+  const [memberDataLoading, setMemberDataLoading] = useState(false);
+  const [adminViewLogs, setAdminViewLogs] = useState<{ actor_name: string; occurred_at: string }[]>([]);
+  const adminViewLogsLoadedRef = useRef(false);
+
+  // Dwell time tracking — records when the current member profile was opened
+  const memberOpenTimeRef = useRef<{ userId: string; name: string; openedAt: number } | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -72,12 +185,14 @@ export function AdminDashboard() {
     });
   }, []);
 
-  // Lazy-load activity data the first time the Activity tab is opened
+  // Lazy-load analytics data when Activity or Insights tab first opens
   useEffect(() => {
-    if (tab !== 'activity' || activityLoadedRef.current) return;
-    activityLoadedRef.current = true;
+    if ((tab !== 'activity' && tab !== 'insights') || analyticsLoadedRef.current) return;
+    analyticsLoadedRef.current = true;
     Promise.all([
-      supabase.from('user_sessions').select('user_id, session_start, session_end, duration_seconds'),
+      supabase
+        .from('user_sessions')
+        .select('user_id, session_start, session_end, duration_seconds, metadata'),
       supabase.from('user_events').select('user_id, event_type, payload, occurred_at'),
       supabase.rpc('get_user_last_sign_in'),
     ]).then(([{ data: s }, { data: e }, { data: l }]) => {
@@ -87,9 +202,75 @@ export function AdminDashboard() {
     });
   }, [tab]);
 
-  const filteredProfiles = profiles.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.email.toLowerCase().includes(search.toLowerCase())
+  // Fetch per-member sessions + events when selected member changes
+  useEffect(() => {
+    if (!selectedMember) return;
+    setMemberDataLoading(true);
+    adminViewLogsLoadedRef.current = false;
+    setAdminViewLogs([]);
+    Promise.all([
+      supabase
+        .from('user_sessions')
+        .select('id, user_id, session_start, session_end, duration_seconds, metadata')
+        .eq('user_id', selectedMember.id)
+        .order('session_start', { ascending: false }),
+      supabase
+        .from('user_events')
+        .select('id, user_id, event_type, payload, occurred_at')
+        .eq('user_id', selectedMember.id)
+        .order('occurred_at', { ascending: false }),
+    ]).then(([{ data: s }, { data: e }]) => {
+      setMemberSessions((s ?? []) as SessionRow[]);
+      setMemberEvents((e ?? []) as EventRow[]);
+      setMemberDataLoading(false);
+    });
+  }, [selectedMember?.id]);
+
+  // Lazy-load admin view audit when Security sub-tab opens (super-admin only)
+  useEffect(() => {
+    if (
+      memberSubTab !== 'security' ||
+      !isSuperAdmin ||
+      !selectedMember ||
+      adminViewLogsLoadedRef.current
+    ) return;
+    adminViewLogsLoadedRef.current = true;
+    supabase
+      .from('security_events')
+      .select('actor_id, occurred_at')
+      .eq('event_type', 'admin_member_viewed')
+      .filter('payload->>viewed_user_id', 'eq', selectedMember.id)
+      .order('occurred_at', { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
+        const logs = data.map(row => {
+          const actorId = row.actor_id as string | null;
+          const actor = actorId ? profiles.find(p => p.id === actorId) : null;
+          return {
+            actor_name: actor?.name || actor?.email?.split('@')[0] || 'Unknown admin',
+            occurred_at: row.occurred_at as string,
+          };
+        });
+        setAdminViewLogs(logs);
+      });
+  }, [memberSubTab, isSuperAdmin, selectedMember?.id]);
+
+  function fireMemberLeft() {
+    if (!memberOpenTimeRef.current) return;
+    const { userId, name, openedAt } = memberOpenTimeRef.current;
+    const dwell_seconds = Math.round((Date.now() - openedAt) / 1000);
+    supabase.from('security_events').insert({
+      actor_id: adminUserId,
+      event_type: 'admin_member_left',
+      payload: { viewed_user_id: userId, viewed_name: name, dwell_seconds },
+    });
+    memberOpenTimeRef.current = null;
+  }
+
+  const filteredProfiles = profiles.filter(
+    p =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.email.toLowerCase().includes(search.toLowerCase()),
   );
 
   // ── Derived cohort stats ──────────────────────────────────────────────────
@@ -101,9 +282,7 @@ export function AdminDashboard() {
   }
 
   const membersWithSelections = profiles.filter(p => (selectionsByUser.get(p.id)?.size ?? 0) > 0).length;
-  const avgSelections = profiles.length
-    ? (selections.length / profiles.length).toFixed(1)
-    : '0';
+  const avgSelections = profiles.length ? (selections.length / profiles.length).toFixed(1) : '0';
 
   const specCounts: Record<SpecId, number> = { FIN: 0, OPS: 0, ENT: 0, ECOM: 0, MKT: 0, LSTR: 0 };
   for (const p of profiles) {
@@ -125,7 +304,9 @@ export function AdminDashboard() {
 
   // ── Member detail helpers ─────────────────────────────────────────────────
 
-  const memberCourseIds = selectedMember ? (selectionsByUser.get(selectedMember.id) ?? new Set<number>()) : new Set<number>();
+  const memberCourseIds = selectedMember
+    ? (selectionsByUser.get(selectedMember.id) ?? new Set<number>())
+    : new Set<number>();
 
   const memberCourses = ALL_COURSES
     .filter(c => memberCourseIds.has(c.id))
@@ -138,19 +319,15 @@ export function AdminDashboard() {
     return acc;
   }, new Map());
 
-  // Who else is taking a given course
   function whoElseTaking(courseId: number): Profile[] {
-    return profiles.filter(p =>
-      p.id !== selectedMember?.id &&
-      (selectionsByUser.get(p.id)?.has(courseId) ?? false)
+    return profiles.filter(
+      p => p.id !== selectedMember?.id && (selectionsByUser.get(p.id)?.has(courseId) ?? false),
     );
   }
 
   // ── Activity tab derived stats ────────────────────────────────────────────
 
-  const lastSignInMap = new Map<string, string>(
-    lastSignIns.map(r => [r.user_id, r.last_sign_in_at]),
-  );
+  const lastSignInMap = new Map<string, string>(lastSignIns.map(r => [r.user_id, r.last_sign_in_at]));
 
   const userSessionStats = new Map<string, { lastVisit: string; totalSessions: number; avgMinutes: number }>();
   for (const p of profiles) {
@@ -159,9 +336,8 @@ export function AdminDashboard() {
     const avgSecs = completed.length
       ? completed.reduce((sum, s) => sum + (s.duration_seconds ?? 0), 0) / completed.length
       : 0;
-    const lastVisit = lastSignInMap.get(p.id)
-      ?? userSessions.map(s => s.session_start).sort().at(-1)
-      ?? '';
+    const lastVisit =
+      lastSignInMap.get(p.id) ?? userSessions.map(s => s.session_start).sort().at(-1) ?? '';
     userSessionStats.set(p.id, {
       lastVisit,
       totalSessions: userSessions.length,
@@ -199,6 +375,248 @@ export function AdminDashboard() {
     .sort((a, b) => b.views - a.views)
     .slice(0, 10);
   const maxViews = Math.max(...topViewedCourses.map(x => x.views), 1);
+
+  // ── Per-member timeline ───────────────────────────────────────────────────
+
+  const timeline: TimelineItem[] = [
+    ...memberSessions.flatMap(s => [
+      { kind: 'session_start' as const, session: s, ts: s.session_start },
+      ...(s.session_end ? [{ kind: 'session_end' as const, session: s, ts: s.session_end }] : []),
+    ]),
+    ...memberEvents.map(e => ({ kind: 'event' as const, event: e, ts: e.occurred_at })),
+  ].sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+
+  // ── Security sub-tab ──────────────────────────────────────────────────────
+
+  const jsErrors = memberEvents.filter(e => e.event_type === 'js_error');
+  const rageClicks = memberEvents.filter(e => e.event_type === 'rage_click');
+
+  const sessionAnomalies = memberSessions.flatMap(s => {
+    const result: { label: string; session: SessionRow }[] = [];
+    if (s.duration_seconds !== null && s.duration_seconds < 30) {
+      result.push({ label: 'Bounce (<30s)', session: s });
+    } else if (s.duration_seconds !== null && s.duration_seconds > 180 * 60) {
+      result.push({ label: 'Very long session (>3h)', session: s });
+    } else if (
+      !s.session_end &&
+      Date.now() - new Date(s.session_start).getTime() > 2 * 60 * 60 * 1000
+    ) {
+      result.push({ label: 'Unclosed session', session: s });
+    }
+    return result;
+  });
+
+  // ── Per-member insights (member Insights sub-tab) ────────────────────────
+
+  const mDeviceCounts: Record<string, number> = {};
+  const mBrowserCounts: Record<string, number> = {};
+  const mOsCounts: Record<string, number> = {};
+  let mTotalPageLoadMs = 0;
+  let mPageLoadCount = 0;
+  for (const s of memberSessions) {
+    const meta = s.metadata as Record<string, unknown> | null;
+    if (!meta) continue;
+    const dt = String(meta.device_type ?? 'unknown');
+    mDeviceCounts[dt] = (mDeviceCounts[dt] ?? 0) + 1;
+    const br = String(meta.browser ?? 'Unknown');
+    mBrowserCounts[br] = (mBrowserCounts[br] ?? 0) + 1;
+    const os = String(meta.os ?? 'Unknown');
+    mOsCounts[os] = (mOsCounts[os] ?? 0) + 1;
+    if (typeof meta.page_load_ms === 'number' && meta.page_load_ms > 0) {
+      mTotalPageLoadMs += meta.page_load_ms;
+      mPageLoadCount++;
+    }
+  }
+  const mAvgPageLoadMs = mPageLoadCount > 0 ? Math.round(mTotalPageLoadMs / mPageLoadCount) : null;
+  const mMaxDevice = Math.max(...Object.values(mDeviceCounts), 1);
+  const mMaxBrowser = Math.max(...Object.values(mBrowserCounts), 1);
+  const mMaxOs = Math.max(...Object.values(mOsCounts), 1);
+
+  const mCompletedSessions = memberSessions.filter(s => s.duration_seconds !== null);
+  const mBounceSessions = mCompletedSessions.filter(s => (s.duration_seconds ?? 0) < 30);
+  const mAvgSessionSecs = mCompletedSessions.length
+    ? Math.round(
+        mCompletedSessions.reduce((sum, s) => sum + (s.duration_seconds ?? 0), 0) /
+          mCompletedSessions.length,
+      )
+    : 0;
+  const mBounceRate =
+    mCompletedSessions.length > 0
+      ? Math.round((mBounceSessions.length / mCompletedSessions.length) * 100)
+      : 0;
+
+  const mModalMap = new Map<number, { name: string; opens: number; totalMs: number }>();
+  for (const e of memberEvents.filter(ev => ev.event_type === 'modal_view_duration')) {
+    const p = e.payload as Record<string, unknown>;
+    const cid = p?.course_id as number;
+    if (!cid) continue;
+    const name = (p?.course_name as string) ?? courseNameById(cid);
+    const dur = (p?.duration_ms as number) ?? 0;
+    const entry = mModalMap.get(cid) ?? { name, opens: 0, totalMs: 0 };
+    entry.opens++;
+    entry.totalMs += dur;
+    mModalMap.set(cid, entry);
+  }
+  const mModalList = Array.from(mModalMap.entries())
+    .map(([, d]) => ({ ...d, avgSec: Math.round(d.totalMs / d.opens / 1000) }))
+    .sort((a, b) => b.avgSec - a.avgSec)
+    .slice(0, 8);
+  const mMaxModalSec = Math.max(...mModalList.map(m => m.avgSec), 1);
+
+  const mDeadEndMap = new Map<string, number>();
+  for (const e of memberEvents.filter(ev => ev.event_type === 'filter_dead_end')) {
+    const p = e.payload as Record<string, unknown>;
+    const parts: string[] = [];
+    if (Array.isArray(p?.specs) && p.specs.length > 0) parts.push(`Specs: ${(p.specs as string[]).join(', ')}`);
+    if (Array.isArray(p?.workloads) && p.workloads.length > 0) parts.push(`Workload: ${(p.workloads as string[]).join(', ')}`);
+    if (typeof p?.minDepth === 'number' && p.minDepth > 0) parts.push(`Depth ≥ ${p.minDepth}`);
+    if (typeof p?.minRelevance === 'number' && p.minRelevance > 0) parts.push(`Relevance ≥ ${p.minRelevance}`);
+    if (p?.selectedOnly) parts.push('Selected only');
+    const key = parts.length > 0 ? parts.join(' + ') : 'Unknown combo';
+    mDeadEndMap.set(key, (mDeadEndMap.get(key) ?? 0) + 1);
+  }
+  const mDeadEndList = Array.from(mDeadEndMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const mMaxDeadEnd = Math.max(...mDeadEndList.map(([, c]) => c), 1);
+
+  const mCalendarAccesses = memberEvents.filter(e => e.event_type === 'calendar_accessed').length;
+  const mExportCounts: Record<string, number> = {};
+  for (const e of memberEvents.filter(ev => ev.event_type === 'export_triggered')) {
+    const type = String((e.payload as Record<string, unknown>)?.type ?? 'other');
+    mExportCounts[type] = (mExportCounts[type] ?? 0) + 1;
+  }
+  const mMaxExport = Math.max(...Object.values(mExportCounts), 1);
+
+  const mLoginByHour = new Array(24).fill(0) as number[];
+  for (const e of memberEvents.filter(ev => ev.event_type === 'login_complete')) {
+    mLoginByHour[new Date(e.occurred_at).getHours()]++;
+  }
+  const mMaxLoginHour = Math.max(...mLoginByHour, 1);
+
+  // ── Insights tab derived data (cohort-wide) ───────────────────────────────
+
+  // Device/browser breakdown from session metadata
+  const deviceCounts: Record<string, number> = {};
+  const browserCounts: Record<string, number> = {};
+  const osCounts: Record<string, number> = {};
+  let totalPageLoadMs = 0;
+  let pageLoadCount = 0;
+  for (const s of sessions) {
+    const meta = s.metadata as Record<string, unknown> | null;
+    if (!meta) continue;
+    const dt = String(meta.device_type ?? 'unknown');
+    deviceCounts[dt] = (deviceCounts[dt] ?? 0) + 1;
+    const br = String(meta.browser ?? 'Unknown');
+    browserCounts[br] = (browserCounts[br] ?? 0) + 1;
+    const os = String(meta.os ?? 'Unknown');
+    osCounts[os] = (osCounts[os] ?? 0) + 1;
+    if (typeof meta.page_load_ms === 'number' && meta.page_load_ms > 0) {
+      totalPageLoadMs += meta.page_load_ms;
+      pageLoadCount++;
+    }
+  }
+  const avgPageLoadMs = pageLoadCount > 0 ? Math.round(totalPageLoadMs / pageLoadCount) : null;
+  const maxDevice = Math.max(...Object.values(deviceCounts), 1);
+  const maxBrowser = Math.max(...Object.values(browserCounts), 1);
+  const maxOs = Math.max(...Object.values(osCounts), 1);
+
+  // Session quality
+  const completedSessions = sessions.filter(s => s.duration_seconds !== null);
+  const bounceSessions = completedSessions.filter(s => (s.duration_seconds ?? 0) < 30);
+  const avgSessionSecs = completedSessions.length
+    ? Math.round(
+        completedSessions.reduce((sum, s) => sum + (s.duration_seconds ?? 0), 0) /
+          completedSessions.length,
+      )
+    : 0;
+  const bounceRate =
+    completedSessions.length > 0
+      ? Math.round((bounceSessions.length / completedSessions.length) * 100)
+      : 0;
+
+  // Modal read depth — which courses people actually spend time reading about
+  const modalMap = new Map<number, { name: string; opens: number; totalMs: number }>();
+  for (const e of events.filter(ev => ev.event_type === 'modal_view_duration')) {
+    const p = e.payload as Record<string, unknown>;
+    const cid = p?.course_id as number;
+    if (!cid) continue;
+    const name = (p?.course_name as string) ?? courseNameById(cid);
+    const dur = (p?.duration_ms as number) ?? 0;
+    const entry = modalMap.get(cid) ?? { name, opens: 0, totalMs: 0 };
+    entry.opens++;
+    entry.totalMs += dur;
+    modalMap.set(cid, entry);
+  }
+  const modalList = Array.from(modalMap.entries())
+    .map(([, d]) => ({ ...d, avgSec: Math.round(d.totalMs / d.opens / 1000) }))
+    .sort((a, b) => b.avgSec - a.avgSec)
+    .slice(0, 10);
+  const maxModalSec = Math.max(...modalList.map(m => m.avgSec), 1);
+
+  // Dead-end filter combos — UX pain points
+  const deadEndMap = new Map<string, number>();
+  for (const e of events.filter(ev => ev.event_type === 'filter_dead_end')) {
+    const p = e.payload as Record<string, unknown>;
+    const parts: string[] = [];
+    if (Array.isArray(p?.specs) && p.specs.length > 0) parts.push(`Specs: ${p.specs.join(', ')}`);
+    if (Array.isArray(p?.workloads) && p.workloads.length > 0) parts.push(`Workload: ${p.workloads.join(', ')}`);
+    if (typeof p?.minDepth === 'number' && p.minDepth > 0) parts.push(`Depth ≥ ${p.minDepth}`);
+    if (typeof p?.minRelevance === 'number' && p.minRelevance > 0) parts.push(`Relevance ≥ ${p.minRelevance}`);
+    if (p?.selectedOnly) parts.push('Selected only');
+    const key = parts.length > 0 ? parts.join(' + ') : 'Unknown combo';
+    deadEndMap.set(key, (deadEndMap.get(key) ?? 0) + 1);
+  }
+  const deadEndList = Array.from(deadEndMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+  const maxDeadEnd = Math.max(...deadEndList.map(([, c]) => c), 1);
+
+  // Calendar & export usage
+  const calendarAccessorIds = new Set(
+    events.filter(e => e.event_type === 'calendar_accessed').map(e => e.user_id),
+  );
+  const calendarTotalAccesses = events.filter(e => e.event_type === 'calendar_accessed').length;
+  const exportCounts: Record<string, number> = {};
+  for (const e of events.filter(ev => ev.event_type === 'export_triggered')) {
+    const type = String((e.payload as Record<string, unknown>)?.type ?? 'other');
+    exportCounts[type] = (exportCounts[type] ?? 0) + 1;
+  }
+  const maxExport = Math.max(...Object.values(exportCounts), 1);
+
+  // Rage click hotspots across all users
+  const rageClickMap = new Map<string, number>();
+  for (const e of events.filter(ev => ev.event_type === 'rage_click')) {
+    const p = e.payload as Record<string, unknown>;
+    const key = String(p?.element_text ?? '').slice(0, 40) || String(p?.element_tag ?? 'element');
+    rageClickMap.set(key, (rageClickMap.get(key) ?? 0) + 1);
+  }
+  const rageClickList = Array.from(rageClickMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+  const maxRageClick = Math.max(...rageClickList.map(([, c]) => c), 1);
+
+  // JS errors across all users (de-duplicated by message)
+  const jsErrorMap = new Map<string, { count: number; users: Set<string>; lastSeen: string }>();
+  for (const e of events.filter(ev => ev.event_type === 'js_error')) {
+    const p = e.payload as Record<string, unknown>;
+    const key = String(p?.message ?? '').slice(0, 100) || 'Unknown error';
+    const entry = jsErrorMap.get(key) ?? { count: 0, users: new Set(), lastSeen: e.occurred_at };
+    entry.count++;
+    entry.users.add(e.user_id);
+    if (e.occurred_at > entry.lastSeen) entry.lastSeen = e.occurred_at;
+    jsErrorMap.set(key, entry);
+  }
+  const jsErrorList = Array.from(jsErrorMap.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 10);
+
+  // Login timing — by hour of day (0–23)
+  const loginByHour = new Array(24).fill(0) as number[];
+  for (const e of events.filter(ev => ev.event_type === 'login_complete')) {
+    loginByHour[new Date(e.occurred_at).getHours()]++;
+  }
+  const maxLoginHour = Math.max(...loginByHour, 1);
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -250,13 +668,27 @@ export function AdminDashboard() {
             {filteredProfiles.map(p => (
               <button
                 key={p.id}
-                onClick={() => { setSelectedMember(p); setTab('member'); setExpandedCourse(null); }}
+                onClick={() => {
+                  fireMemberLeft();
+                  setSelectedMember(p);
+                  setTab('member');
+                  setExpandedCourse(null);
+                  setMemberSubTab('courses');
+                  supabase.from('security_events').insert({
+                    actor_id: adminUserId,
+                    event_type: 'admin_member_viewed',
+                    payload: { viewed_user_id: p.id, viewed_email: p.email, viewed_name: p.name },
+                  });
+                  memberOpenTimeRef.current = { userId: p.id, name: p.name, openedAt: Date.now() };
+                }}
                 className={`w-full text-left px-3 py-2.5 border-b border-white/5 hover:bg-slate-800 transition-colors ${
                   selectedMember?.id === p.id ? 'bg-slate-800 border-l-2 border-l-orange-500' : ''
                 }`}
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="text-slate-200 text-xs font-medium truncate">{p.name || p.email.split('@')[0]}</span>
+                  <span className="text-slate-200 text-xs font-medium truncate">
+                    {p.name || p.email.split('@')[0]}
+                  </span>
                   <span className="text-slate-500 text-[10px] shrink-0">
                     {selectionsByUser.get(p.id)?.size ?? 0}
                   </span>
@@ -284,10 +716,10 @@ export function AdminDashboard() {
 
         {/* Right — content panel */}
         <div className="flex-1 overflow-y-auto">
-          {/* Tabs */}
+          {/* Top-level tabs */}
           <div className="sticky top-0 z-10 flex gap-1 px-4 pt-4 pb-2 bg-slate-900 border-b border-white/5">
             <button
-              onClick={() => setTab('overview')}
+              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('overview'); }}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 tab === 'overview' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -303,22 +735,31 @@ export function AdminDashboard() {
                   : 'text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed'
               }`}
             >
-              {selectedMember ? `${selectedMember.name || selectedMember.email.split('@')[0]}` : 'Member Detail'}
+              {selectedMember
+                ? selectedMember.name || selectedMember.email.split('@')[0]
+                : 'Member Detail'}
             </button>
             <button
-              onClick={() => setTab('activity')}
+              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('activity'); }}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 tab === 'activity' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               Activity
             </button>
+            <button
+              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('insights'); }}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                tab === 'insights' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Insights
+            </button>
           </div>
 
           {/* ── OVERVIEW TAB ── */}
           {tab === 'overview' && (
             <div className="p-4 space-y-6">
-              {/* Stat cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
                   { icon: Users, label: 'Total Members', value: profiles.length, color: 'text-blue-400' },
@@ -334,7 +775,6 @@ export function AdminDashboard() {
                 ))}
               </div>
 
-              {/* Spec popularity */}
               <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                 <h3 className="text-sm font-semibold text-slate-200 mb-4">Specialization Popularity</h3>
                 <div className="space-y-2.5">
@@ -362,7 +802,7 @@ export function AdminDashboard() {
                           <span className="text-xs text-slate-300 w-6 text-right">{count}</span>
                         </div>
                         {isExpanded && (
-                          <div className="mt-1.5 mb-1 ml-0 bg-slate-700/40 rounded-lg p-3">
+                          <div className="mt-1.5 mb-1 bg-slate-700/40 rounded-lg p-3">
                             <p className="text-[10px] text-slate-400 font-semibold mb-2 uppercase tracking-wide">
                               {spec.label} members ({specMembers.length})
                             </p>
@@ -370,7 +810,13 @@ export function AdminDashboard() {
                               {specMembers.map(p => (
                                 <button
                                   key={p.id}
-                                  onClick={() => { setSelectedMember(p); setTab('member'); setOverviewExpandedSpec(null); setExpandedCourse(null); }}
+                                  onClick={() => {
+                                    setSelectedMember(p);
+                                    setTab('member');
+                                    setOverviewExpandedSpec(null);
+                                    setExpandedCourse(null);
+                                    setMemberSubTab('courses');
+                                  }}
                                   className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
                                 >
                                   {p.name || p.email.split('@')[0]}
@@ -386,7 +832,6 @@ export function AdminDashboard() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Top 10 most selected */}
                 <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                   <h3 className="text-sm font-semibold text-slate-200 mb-3">Most Selected Courses</h3>
                   <div className="space-y-2">
@@ -406,19 +851,16 @@ export function AdminDashboard() {
                               >
                                 {course.name}
                               </button>
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <div className="h-1 rounded-full flex-1 bg-slate-700">
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{
-                                      width: `${pct}%`,
-                                      backgroundColor: spec?.color ?? '#64748b',
-                                    }}
-                                  />
-                                </div>
+                              <div className="h-1 rounded-full flex-1 bg-slate-700 mt-0.5">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{ width: `${pct}%`, backgroundColor: spec?.color ?? '#64748b' }}
+                                />
                               </div>
                             </div>
-                            <span className="text-xs text-slate-300 shrink-0">{count} ({pct}%)</span>
+                            <span className="text-xs text-slate-300 shrink-0">
+                              {count} ({pct}%)
+                            </span>
                           </div>
                           {isExpanded && (
                             <div className="mt-1.5 mb-1 ml-6 bg-slate-700/40 rounded-lg p-3">
@@ -429,7 +871,13 @@ export function AdminDashboard() {
                                 {takers.map(p => (
                                   <button
                                     key={p.id}
-                                    onClick={() => { setSelectedMember(p); setTab('member'); setOverviewExpandedCourse(null); setExpandedCourse(null); }}
+                                    onClick={() => {
+                                      setSelectedMember(p);
+                                      setTab('member');
+                                      setOverviewExpandedCourse(null);
+                                      setExpandedCourse(null);
+                                      setMemberSubTab('courses');
+                                    }}
                                     className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
                                   >
                                     {p.name || p.email.split('@')[0]}
@@ -444,11 +892,12 @@ export function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Unpopular / zero selections */}
                 <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                   <h3 className="text-sm font-semibold text-slate-200 mb-3">
                     No Takers Yet
-                    <span className="ml-2 text-[10px] text-slate-500 font-normal">({unpopular.length} courses)</span>
+                    <span className="ml-2 text-[10px] text-slate-500 font-normal">
+                      ({unpopular.length} courses)
+                    </span>
                   </h3>
                   {unpopular.length === 0 ? (
                     <p className="text-xs text-slate-500">Every elective has at least one person interested.</p>
@@ -471,7 +920,6 @@ export function AdminDashboard() {
           {/* ── MEMBER DETAIL TAB ── */}
           {tab === 'member' && selectedMember && (
             <div className="p-4 space-y-4">
-              {/* Profile header */}
               <div className="bg-slate-800 rounded-xl p-4 border border-white/5 flex items-start justify-between gap-4">
                 <div>
                   <div className="text-white font-semibold text-base">{selectedMember.name}</div>
@@ -499,85 +947,449 @@ export function AdminDashboard() {
                     <div className="text-[10px] text-slate-400">courses</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">{selectedMember.specializations.length}</div>
+                    <div className="text-2xl font-bold text-white">
+                      {selectedMember.specializations.length}
+                    </div>
                     <div className="text-[10px] text-slate-400">specs</div>
                   </div>
                 </div>
               </div>
 
-              {memberCourses.length === 0 ? (
-                <div className="text-slate-500 text-sm text-center py-10">
-                  {selectedMember.name} hasn't selected any courses yet.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {Array.from(groupedByBlock.entries()).map(([blockLabel, courses]) => (
-                    <div key={blockLabel} className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
-                      <div className="px-4 py-2 bg-slate-700/50 border-b border-white/5">
-                        <span className="text-xs font-semibold text-slate-300">{blockLabel}</span>
-                      </div>
-                      <div className="divide-y divide-white/5">
-                        {courses.map(course => {
-                          const spec = SPECS.find(s => course.specs.includes(s.id));
-                          const accentColor = course.type === 'waw'
-                            ? '#d97706'
-                            : course.type === 'mandatory'
-                            ? '#2563eb'
-                            : spec?.color ?? '#64748b';
-                          const others = whoElseTaking(course.id);
-                          const isExpanded = expandedCourse === course.id;
+              <div className="flex gap-1">
+                {(['courses', 'activity', 'insights', 'security'] as MemberSubTab[]).map(sub => (
+                  <button
+                    key={sub}
+                    onClick={() => setMemberSubTab(sub)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all capitalize ${
+                      memberSubTab === sub
+                        ? 'bg-white text-slate-900'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
 
-                          return (
-                            <div key={course.id}>
-                              <div className="flex items-center gap-3 px-4 py-2.5">
-                                <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-xs font-medium text-slate-200">{course.name}</div>
-                                  <div className="text-[10px] text-slate-500 mt-0.5">
-                                    {course.faculty} · {course.type}
-                                    {course.code ? ` · ${course.code}` : ''}
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={() => setExpandedCourse(isExpanded ? null : course.id)}
-                                  className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200 transition-colors shrink-0 ml-2"
-                                >
-                                  <Users className="w-3 h-3" />
-                                  <span>{others.length} others</span>
-                                  {isExpanded ? <X className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                                </button>
-                              </div>
-
-                              {isExpanded && (
-                                <div className="px-4 pb-3 pt-0">
-                                  <div className="bg-slate-700/40 rounded-lg p-3">
-                                    <p className="text-[10px] text-slate-400 font-semibold mb-2 uppercase tracking-wide">
-                                      Also enrolled ({others.length})
-                                    </p>
-                                    {others.length === 0 ? (
-                                      <p className="text-[10px] text-slate-500">Nobody else selected this course.</p>
-                                    ) : (
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {others.map(o => (
-                                          <button
-                                            key={o.id}
-                                            onClick={() => { setSelectedMember(o); setExpandedCourse(null); }}
-                                            className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
-                                          >
-                                            {o.name || o.email.split('@')[0]}
-                                          </button>
-                                        ))}
+              {memberSubTab === 'courses' && (
+                <>
+                  {memberCourses.length === 0 ? (
+                    <div className="text-slate-500 text-sm text-center py-10">
+                      {selectedMember.name} hasn&apos;t selected any courses yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {Array.from(groupedByBlock.entries()).map(([blockLabel, courses]) => (
+                        <div
+                          key={blockLabel}
+                          className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden"
+                        >
+                          <div className="px-4 py-2 bg-slate-700/50 border-b border-white/5">
+                            <span className="text-xs font-semibold text-slate-300">{blockLabel}</span>
+                          </div>
+                          <div className="divide-y divide-white/5">
+                            {courses.map(course => {
+                              const spec = SPECS.find(s => course.specs.includes(s.id));
+                              const accentColor =
+                                course.type === 'waw'
+                                  ? '#d97706'
+                                  : course.type === 'mandatory'
+                                  ? '#2563eb'
+                                  : spec?.color ?? '#64748b';
+                              const others = whoElseTaking(course.id);
+                              const isExpanded = expandedCourse === course.id;
+                              return (
+                                <div key={course.id}>
+                                  <div className="flex items-center gap-3 px-4 py-2.5">
+                                    <div
+                                      className="w-1 h-8 rounded-full shrink-0"
+                                      style={{ backgroundColor: accentColor }}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-xs font-medium text-slate-200">
+                                        {course.name}
                                       </div>
-                                    )}
+                                      <div className="text-[10px] text-slate-500 mt-0.5">
+                                        {course.faculty} · {course.type}
+                                        {course.code ? ` · ${course.code}` : ''}
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => setExpandedCourse(isExpanded ? null : course.id)}
+                                      className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200 transition-colors shrink-0 ml-2"
+                                    >
+                                      <Users className="w-3 h-3" />
+                                      <span>{others.length} others</span>
+                                      {isExpanded ? (
+                                        <X className="w-3 h-3" />
+                                      ) : (
+                                        <ChevronRight className="w-3 h-3" />
+                                      )}
+                                    </button>
+                                  </div>
+                                  {isExpanded && (
+                                    <div className="px-4 pb-3 pt-0">
+                                      <div className="bg-slate-700/40 rounded-lg p-3">
+                                        <p className="text-[10px] text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                                          Also enrolled ({others.length})
+                                        </p>
+                                        {others.length === 0 ? (
+                                          <p className="text-[10px] text-slate-500">
+                                            Nobody else selected this course.
+                                          </p>
+                                        ) : (
+                                          <div className="flex flex-wrap gap-1.5">
+                                            {others.map(o => (
+                                              <button
+                                                key={o.id}
+                                                onClick={() => {
+                                                  fireMemberLeft();
+                                                  setSelectedMember(o);
+                                                  setExpandedCourse(null);
+                                                  setMemberSubTab('courses');
+                                                  supabase.from('security_events').insert({
+                                                    actor_id: adminUserId,
+                                                    event_type: 'admin_member_viewed',
+                                                    payload: { viewed_user_id: o.id, viewed_email: o.email, viewed_name: o.name },
+                                                  });
+                                                  memberOpenTimeRef.current = { userId: o.id, name: o.name, openedAt: Date.now() };
+                                                }}
+                                                className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
+                                              >
+                                                {o.name || o.email.split('@')[0]}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {memberSubTab === 'activity' && (
+                <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                  {memberDataLoading ? (
+                    <div className="py-8 text-center text-slate-500 text-xs animate-pulse">
+                      Loading activity...
+                    </div>
+                  ) : timeline.length === 0 ? (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      No activity recorded yet.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-white/5">
+                      {timeline.map((item, i) => {
+                        if (item.kind === 'session_start') {
+                          const meta = item.session.metadata as Record<string, unknown> | null;
+                          return (
+                            <div
+                              key={`ss-${i}`}
+                              className="bg-slate-700/60 px-3 py-2 text-xs font-semibold text-green-400 flex items-center gap-2"
+                            >
+                              <span>SESSION — {fmtTs(item.ts)}</span>
+                              {meta && (
+                                <span className="text-slate-500 font-normal">
+                                  {String(meta.browser ?? '')} · {String(meta.device_type ?? '')} ·{' '}
+                                  {String(meta.os ?? '')}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        }
+                        if (item.kind === 'session_end') {
+                          return (
+                            <div
+                              key={`se-${i}`}
+                              className="bg-slate-700/30 px-3 py-2 text-xs text-slate-500"
+                            >
+                              SESSION ENDED — {formatDuration(item.session.duration_seconds)}
+                            </div>
+                          );
+                        }
+                        const { icon, text } = describeEvent(item.event);
+                        return (
+                          <div
+                            key={`ev-${i}`}
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-300"
+                          >
+                            <span className="shrink-0 w-5 text-center">{icon}</span>
+                            <span className="flex-1">{text}</span>
+                            <span className="text-[10px] text-slate-500 shrink-0">
+                              {fmtRelative(item.ts)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {memberSubTab === 'insights' && (
+                <div className="space-y-4">
+                  {memberDataLoading ? (
+                    <div className="py-8 text-center text-slate-500 text-xs animate-pulse">
+                      Loading insights...
+                    </div>
+                  ) : memberSessions.length === 0 && memberEvents.length === 0 ? (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      No tracking data yet for this member.
+                    </div>
+                  ) : (
+                    <>
+                      {/* Session quality */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                          { label: 'Sessions', value: memberSessions.length, color: 'text-blue-400' },
+                          {
+                            label: 'Avg Duration',
+                            value: mAvgSessionSecs < 60 ? `${mAvgSessionSecs}s` : `${Math.round(mAvgSessionSecs / 60)}m`,
+                            color: 'text-green-400',
+                          },
+                          {
+                            label: 'Bounce Rate',
+                            value: `${mBounceRate}%`,
+                            color: mBounceRate > 30 ? 'text-red-400' : 'text-orange-400',
+                          },
+                          {
+                            label: 'Avg Page Load',
+                            value: mAvgPageLoadMs ? `${mAvgPageLoadMs}ms` : '—',
+                            color: mAvgPageLoadMs && mAvgPageLoadMs > 3000 ? 'text-red-400' : 'text-purple-400',
+                          },
+                        ].map(({ label, value, color }) => (
+                          <div key={label} className="bg-slate-700/50 rounded-xl p-3 border border-white/5">
+                            <div className={`text-xl font-bold ${color}`}>{value}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">{label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Device / Browser / OS */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                        {[
+                          { title: 'Device', counts: mDeviceCounts, max: mMaxDevice, color: '#3b82f6' },
+                          { title: 'Browser', counts: mBrowserCounts, max: mMaxBrowser, color: '#8b5cf6' },
+                          { title: 'OS', counts: mOsCounts, max: mMaxOs, color: '#10b981' },
+                        ].map(({ title, counts, max, color }) => (
+                          <div key={title} className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                            <h4 className="text-xs font-semibold text-slate-300 mb-2.5">{title}</h4>
+                            {Object.keys(counts).length === 0 ? (
+                              <p className="text-xs text-slate-500">No data.</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {Object.entries(counts)
+                                  .sort((a, b) => b[1] - a[1])
+                                  .map(([k, v]) => (
+                                    <BarRow
+                                      key={k}
+                                      label={k.charAt(0).toUpperCase() + k.slice(1)}
+                                      value={v}
+                                      max={max}
+                                      color={color}
+                                    />
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Login timing */}
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <h4 className="text-xs font-semibold text-slate-300 mb-3">Login Timing — by Hour of Day</h4>
+                        {mLoginByHour.every(c => c === 0) ? (
+                          <p className="text-xs text-slate-500">No login events yet.</p>
+                        ) : (
+                          <div className="flex items-end gap-0.5 h-12">
+                            {mLoginByHour.map((count, h) => (
+                              <div key={h} className="flex-1 flex flex-col items-center gap-0.5">
+                                <div
+                                  className="w-full bg-orange-500/70 rounded-sm transition-all"
+                                  style={{ height: `${(count / mMaxLoginHour) * 36}px` }}
+                                  title={`${h}:00 — ${count} logins`}
+                                />
+                                {h % 6 === 0 && (
+                                  <span className="text-[8px] text-slate-600">{h}h</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Course read depth */}
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <h4 className="text-xs font-semibold text-slate-300 mb-1">Course Read Depth</h4>
+                        <p className="text-[10px] text-slate-500 mb-3">
+                          Avg time spent reading each course detail modal.
+                        </p>
+                        {mModalList.length === 0 ? (
+                          <p className="text-xs text-slate-500">No modal duration data yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {mModalList.map((m, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-xs text-slate-200 truncate">{m.name}</div>
+                                  <div className="h-1 rounded-full bg-slate-700 mt-0.5">
+                                    <div
+                                      className="h-full rounded-full bg-cyan-500"
+                                      style={{ width: `${(m.avgSec / mMaxModalSec) * 100}%` }}
+                                    />
                                   </div>
                                 </div>
-                              )}
+                                <div className="text-right shrink-0">
+                                  <div className="text-xs text-slate-300">{m.avgSec}s avg</div>
+                                  <div className="text-[10px] text-slate-500">{m.opens} opens</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Dead-end filters + Calendar/Export */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                          <h4 className="text-xs font-semibold text-slate-300 mb-1">Dead-end Filters</h4>
+                          <p className="text-[10px] text-slate-500 mb-3">Filter combos that returned zero courses.</p>
+                          {mDeadEndList.length === 0 ? (
+                            <p className="text-xs text-slate-500">None hit.</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {mDeadEndList.map(([combo, count]) => (
+                                <BarRow key={combo} label={combo} value={count} max={mMaxDeadEnd} color="#ef4444" />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                          <h4 className="text-xs font-semibold text-slate-300 mb-3">Calendar & Exports</h4>
+                          <div className="space-y-2.5">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-slate-400">Calendar fetches</span>
+                              <span className="text-slate-200 font-semibold">{mCalendarAccesses}</span>
+                            </div>
+                            {Object.keys(mExportCounts).length > 0 && (
+                              <div className="pt-2 border-t border-white/5 space-y-2">
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold">
+                                  Export type
+                                </p>
+                                {Object.entries(mExportCounts)
+                                  .sort((a, b) => b[1] - a[1])
+                                  .map(([type, count]) => (
+                                    <BarRow key={type} label={type} value={count} max={mMaxExport} color="#f97316" />
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {memberSubTab === 'security' && (
+                <div className="space-y-4">
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <h4 className="text-xs font-semibold text-slate-300 mb-3">JS Errors</h4>
+                    {jsErrors.length === 0 ? (
+                      <p className="text-xs text-slate-500">None detected.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {jsErrors.map((e, i) => {
+                          const p = e.payload as Record<string, unknown>;
+                          return (
+                            <div key={i} className="bg-slate-700/40 rounded-lg px-3 py-2 text-xs">
+                              <div className="text-red-400 font-medium truncate">
+                                {String(p?.message ?? '').slice(0, 120)}
+                              </div>
+                              <div className="text-slate-500 mt-0.5 text-[10px]">
+                                {String(p?.filename ?? '')} · {fmtTs(e.occurred_at)}
+                              </div>
                             </div>
                           );
                         })}
                       </div>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <h4 className="text-xs font-semibold text-slate-300 mb-3">Rage Clicks</h4>
+                    {rageClicks.length === 0 ? (
+                      <p className="text-xs text-slate-500">None detected.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {rageClicks.map((e, i) => {
+                          const p = e.payload as Record<string, unknown>;
+                          return (
+                            <div key={i} className="flex items-center gap-3 text-xs text-slate-300">
+                              <span className="text-orange-400 font-medium">
+                                {String(p?.element_text ?? '').slice(0, 40)}
+                              </span>
+                              <span className="text-slate-500">{String(p?.click_count ?? '')}x clicks</span>
+                              <span className="ml-auto text-[10px] text-slate-500">
+                                {fmtTs(e.occurred_at)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <h4 className="text-xs font-semibold text-slate-300 mb-3">Session Anomalies</h4>
+                    {sessionAnomalies.length === 0 ? (
+                      <p className="text-xs text-slate-500">None detected.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {sessionAnomalies.map(({ label, session }, i) => (
+                          <div key={i} className="flex items-center gap-3 text-xs">
+                            <span className="text-yellow-400 font-medium">{label}</span>
+                            <span className="text-slate-500">{fmtTs(session.session_start)}</span>
+                            {session.duration_seconds !== null && (
+                              <span className="text-slate-500">
+                                {formatDuration(session.duration_seconds)}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {isSuperAdmin && (
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h4 className="text-xs font-semibold text-slate-300 mb-3">Viewed by Admins</h4>
+                      {adminViewLogs.length === 0 ? (
+                        <p className="text-xs text-slate-500">No admin views recorded.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {adminViewLogs.map((log, i) => (
+                            <div key={i} className="flex items-center gap-3 text-xs text-slate-300">
+                              <span className="font-medium">{log.actor_name}</span>
+                              <span className="ml-auto text-[10px] text-slate-500">
+                                {fmtTs(log.occurred_at)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>
@@ -586,7 +1398,6 @@ export function AdminDashboard() {
           {/* ── ACTIVITY TAB ── */}
           {tab === 'activity' && (
             <div className="p-4 space-y-6">
-              {/* DAU Trend */}
               <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                 <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-blue-400" />
@@ -599,7 +1410,10 @@ export function AdminDashboard() {
                     {dauData.map(({ date, count }) => (
                       <div key={date} className="flex items-center gap-3">
                         <span className="text-[10px] text-slate-500 w-20 shrink-0">
-                          {new Date(date + 'T12:00:00').toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+                          {new Date(date + 'T12:00:00').toLocaleDateString('en', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
                         </span>
                         <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
                           <div
@@ -614,7 +1428,6 @@ export function AdminDashboard() {
                 )}
               </div>
 
-              {/* Feature Usage + Top Viewed Courses */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                   <h3 className="text-sm font-semibold text-slate-200 mb-4">Feature Usage</h3>
@@ -656,7 +1469,10 @@ export function AdminDashboard() {
                               <div className="h-1 rounded-full bg-slate-700 mt-0.5">
                                 <div
                                   className="h-full rounded-full"
-                                  style={{ width: `${(views / maxViews) * 100}%`, backgroundColor: spec?.color ?? '#64748b' }}
+                                  style={{
+                                    width: `${(views / maxViews) * 100}%`,
+                                    backgroundColor: spec?.color ?? '#64748b',
+                                  }}
                                 />
                               </div>
                             </div>
@@ -669,7 +1485,6 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Per-User Engagement */}
               <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                 <h3 className="text-sm font-semibold text-slate-200 mb-4">Member Engagement</h3>
                 <div className="overflow-x-auto">
@@ -685,12 +1500,19 @@ export function AdminDashboard() {
                     <tbody className="divide-y divide-white/5">
                       {profiles
                         .map(p => ({ p, stats: userSessionStats.get(p.id) }))
-                        .sort((a, b) => (b.stats?.lastVisit ?? '').localeCompare(a.stats?.lastVisit ?? ''))
+                        .sort((a, b) =>
+                          (b.stats?.lastVisit ?? '').localeCompare(a.stats?.lastVisit ?? ''),
+                        )
                         .map(({ p, stats }) => (
                           <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
                             <td className="py-2 pr-4">
                               <button
-                                onClick={() => { setSelectedMember(p); setTab('member'); setExpandedCourse(null); }}
+                                onClick={() => {
+                                  setSelectedMember(p);
+                                  setTab('member');
+                                  setExpandedCourse(null);
+                                  setMemberSubTab('courses');
+                                }}
                                 className="text-slate-200 hover:text-orange-300 transition-colors text-left"
                               >
                                 {p.name || p.email.split('@')[0]}
@@ -698,10 +1520,17 @@ export function AdminDashboard() {
                             </td>
                             <td className="py-2 pr-4 text-slate-400">
                               {stats?.lastVisit
-                                ? new Date(stats.lastVisit).toLocaleDateString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                ? new Date(stats.lastVisit).toLocaleDateString('en', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })
                                 : '—'}
                             </td>
-                            <td className="py-2 pr-4 text-right text-slate-300">{stats?.totalSessions ?? 0}</td>
+                            <td className="py-2 pr-4 text-right text-slate-300">
+                              {stats?.totalSessions ?? 0}
+                            </td>
                             <td className="py-2 text-right text-slate-300">
                               {stats?.avgMinutes ? `${stats.avgMinutes}m` : '—'}
                             </td>
@@ -714,7 +1543,277 @@ export function AdminDashboard() {
             </div>
           )}
 
-          {/* Placeholder when member tab selected but no member */}
+          {/* ── INSIGHTS TAB ── */}
+          {tab === 'insights' && (
+            <div className="p-4 space-y-6">
+              {sessions.length === 0 && events.length === 0 ? (
+                <div className="text-center py-16 text-slate-500 text-sm">
+                  No tracking data collected yet — come back once students have used the planner.
+                </div>
+              ) : (
+                <>
+                  {/* Session quality stats */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-200 mb-3">Session Quality</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        { label: 'Total Sessions', value: sessions.length, color: 'text-blue-400' },
+                        {
+                          label: 'Avg Duration',
+                          value: avgSessionSecs < 60
+                            ? `${avgSessionSecs}s`
+                            : `${Math.round(avgSessionSecs / 60)}m`,
+                          color: 'text-green-400',
+                        },
+                        { label: 'Bounce Rate', value: `${bounceRate}%`, color: bounceRate > 30 ? 'text-red-400' : 'text-orange-400' },
+                        {
+                          label: 'Avg Page Load',
+                          value: avgPageLoadMs ? `${avgPageLoadMs}ms` : '—',
+                          color: avgPageLoadMs && avgPageLoadMs > 3000 ? 'text-red-400' : 'text-purple-400',
+                        },
+                      ].map(({ label, value, color }) => (
+                        <div key={label} className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                          <div className={`text-2xl font-bold ${color}`}>{value}</div>
+                          <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Device, Browser, OS breakdown */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h4 className="text-xs font-semibold text-slate-300 mb-3">Device Type</h4>
+                      {Object.keys(deviceCounts).length === 0 ? (
+                        <p className="text-xs text-slate-500">No data yet.</p>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {Object.entries(deviceCounts)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([type, count]) => (
+                              <BarRow
+                                key={type}
+                                label={type.charAt(0).toUpperCase() + type.slice(1)}
+                                value={count}
+                                max={maxDevice}
+                                color="#3b82f6"
+                              />
+                            ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h4 className="text-xs font-semibold text-slate-300 mb-3">Browser</h4>
+                      {Object.keys(browserCounts).length === 0 ? (
+                        <p className="text-xs text-slate-500">No data yet.</p>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {Object.entries(browserCounts)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([browser, count]) => (
+                              <BarRow key={browser} label={browser} value={count} max={maxBrowser} color="#8b5cf6" />
+                            ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h4 className="text-xs font-semibold text-slate-300 mb-3">Operating System</h4>
+                      {Object.keys(osCounts).length === 0 ? (
+                        <p className="text-xs text-slate-500">No data yet.</p>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {Object.entries(osCounts)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([os, count]) => (
+                              <BarRow key={os} label={os} value={count} max={maxOs} color="#10b981" />
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Login timing by hour */}
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <h3 className="text-sm font-semibold text-slate-200 mb-4">
+                      Login Timing — by Hour of Day
+                    </h3>
+                    {loginByHour.every(c => c === 0) ? (
+                      <p className="text-xs text-slate-500">No login events yet.</p>
+                    ) : (
+                      <div className="flex items-end gap-0.5 h-16">
+                        {loginByHour.map((count, h) => (
+                          <div key={h} className="flex-1 flex flex-col items-center gap-0.5">
+                            <div
+                              className="w-full bg-orange-500/70 rounded-sm transition-all"
+                              style={{ height: `${(count / maxLoginHour) * 48}px` }}
+                              title={`${h}:00 — ${count} logins`}
+                            />
+                            {h % 6 === 0 && (
+                              <span className="text-[8px] text-slate-600">{h}h</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Course read depth vs quick glance */}
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <h3 className="text-sm font-semibold text-slate-200 mb-1">
+                      Course Read Depth
+                    </h3>
+                    <p className="text-[10px] text-slate-500 mb-4">
+                      Average time spent reading each course detail modal — shows genuine interest beyond just opening it.
+                    </p>
+                    {modalList.length === 0 ? (
+                      <p className="text-xs text-slate-500">No modal duration data yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {modalList.map((m, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-slate-200 truncate">{m.name}</div>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <div className="h-1 rounded-full flex-1 bg-slate-700">
+                                  <div
+                                    className="h-full rounded-full bg-cyan-500"
+                                    style={{ width: `${(m.avgSec / maxModalSec) * 100}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="text-xs text-slate-300">{m.avgSec}s avg</div>
+                              <div className="text-[10px] text-slate-500">{m.opens} opens</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dead-end filter combos + Calendar/Export */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h3 className="text-sm font-semibold text-slate-200 mb-1">
+                        Dead-end Filter Combos
+                      </h3>
+                      <p className="text-[10px] text-slate-500 mb-4">
+                        Filter combinations that returned zero courses — potential UX issues.
+                      </p>
+                      {deadEndList.length === 0 ? (
+                        <p className="text-xs text-slate-500">No dead-end filters hit yet.</p>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {deadEndList.map(([combo, count]) => (
+                            <BarRow
+                              key={combo}
+                              label={combo}
+                              value={count}
+                              max={maxDeadEnd}
+                              color="#ef4444"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h3 className="text-sm font-semibold text-slate-200 mb-4">
+                        Calendar & Export Usage
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400">Calendar subscribers</span>
+                          <span className="text-slate-200 font-semibold">
+                            {calendarAccessorIds.size} / {profiles.length} members
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400">Total calendar fetches</span>
+                          <span className="text-slate-200 font-semibold">{calendarTotalAccesses}</span>
+                        </div>
+                        {Object.keys(exportCounts).length > 0 && (
+                          <div className="pt-2 border-t border-white/5 space-y-2.5">
+                            <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold">
+                              Export type breakdown
+                            </p>
+                            {Object.entries(exportCounts)
+                              .sort((a, b) => b[1] - a[1])
+                              .map(([type, count]) => (
+                                <BarRow
+                                  key={type}
+                                  label={type}
+                                  value={count}
+                                  max={maxExport}
+                                  color="#f97316"
+                                />
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rage click hotspots + JS errors across cohort */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h3 className="text-sm font-semibold text-slate-200 mb-1">
+                        Rage Click Hotspots
+                      </h3>
+                      <p className="text-[10px] text-slate-500 mb-4">
+                        UI elements that frustrate users across the whole cohort.
+                      </p>
+                      {rageClickList.length === 0 ? (
+                        <p className="text-xs text-slate-500">No rage clicks detected — good UX!</p>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {rageClickList.map(([element, count]) => (
+                            <BarRow
+                              key={element}
+                              label={element || '(empty)'}
+                              value={count}
+                              max={maxRageClick}
+                              color="#f59e0b"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h3 className="text-sm font-semibold text-slate-200 mb-1">
+                        JS Error Log
+                      </h3>
+                      <p className="text-[10px] text-slate-500 mb-4">
+                        Errors across all users, de-duplicated by message.
+                      </p>
+                      {jsErrorList.length === 0 ? (
+                        <p className="text-xs text-slate-500">No JS errors recorded — great!</p>
+                      ) : (
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {jsErrorList.map(([msg, { count, users, lastSeen }]) => (
+                            <div key={msg} className="bg-slate-700/40 rounded-lg px-3 py-2 text-xs">
+                              <div className="text-red-400 font-medium truncate">{msg}</div>
+                              <div className="flex items-center gap-3 mt-0.5 text-[10px] text-slate-500">
+                                <span>{count}× total</span>
+                                <span>{users.size} user{users.size !== 1 ? 's' : ''}</span>
+                                <span>last: {fmtRelative(lastSeen)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {tab === 'member' && !selectedMember && (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-slate-500 text-sm gap-2">
               <Users className="w-10 h-10 text-slate-700" />

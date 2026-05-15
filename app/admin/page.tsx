@@ -12,17 +12,24 @@ const ADMIN_EMAILS = new Set([
   'apoorv.sharma2027@bitsom.edu.in',
 ]);
 
+const SUPER_ADMIN_EMAIL = 'tarun.shekhawat2027@bitsom.edu.in';
+
 export default function AdminPage() {
   const supabase = createClient();
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [adminUserId, setAdminUserId] = useState('');
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.replace('/'); return; }
-      if (!ADMIN_EMAILS.has(user.email?.toLowerCase() ?? '')) {
+      const email = user.email?.toLowerCase() ?? '';
+      if (!ADMIN_EMAILS.has(email)) {
         router.replace('/planner');
       } else {
+        setAdminUserId(user.id);
+        setIsSuperAdmin(email === SUPER_ADMIN_EMAIL);
         setReady(true);
       }
     });
@@ -36,5 +43,5 @@ export default function AdminPage() {
     );
   }
 
-  return <AdminDashboard />;
+  return <AdminDashboard adminUserId={adminUserId} isSuperAdmin={isSuperAdmin} />;
 }

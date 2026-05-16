@@ -201,7 +201,6 @@ export function AdminDashboard({
     browser: string | null;
   }
   const [landingSessions, setLandingSessions] = useState<LandingSession[]>([]);
-  const landingLoadedRef = useRef(false);
 
   // Per-member detail data
   const [memberSubTab, setMemberSubTab] = useState<MemberSubTab>('courses');
@@ -226,10 +225,9 @@ export function AdminDashboard({
     });
   }, []);
 
-  // Lazy-load landing funnel data when Insights tab first opens
+  // Reload landing funnel data every time Insights tab opens
   useEffect(() => {
-    if (tab !== 'insights' || landingLoadedRef.current) return;
-    landingLoadedRef.current = true;
+    if (tab !== 'insights') return;
     supabase
       .from('landing_sessions')
       .select('id, user_id, landed_at, first_ring_interaction_at, ring_interaction_ms, login_attempted, login_succeeded, abandoned, device_type, browser')
@@ -1639,14 +1637,14 @@ export function AdminDashboard({
           {tab === 'insights' && (
             <div className="p-4 space-y-6">
               {/* Landing page funnel */}
-              {landingSessions.length > 0 && (() => {
+              {(() => {
                 const total = landingSessions.length;
                 const ringTouched = landingSessions.filter(s => s.first_ring_interaction_at).length;
                 const attempted = landingSessions.filter(s => s.login_attempted).length;
                 const converted = landingSessions.filter(s => s.login_succeeded).length;
-                const ringRate = Math.round((ringTouched / total) * 100);
-                const attemptRate = Math.round((attempted / total) * 100);
-                const conversionRate = Math.round((converted / total) * 100);
+                const ringRate = total > 0 ? Math.round((ringTouched / total) * 100) : 0;
+                const attemptRate = total > 0 ? Math.round((attempted / total) * 100) : 0;
+                const conversionRate = total > 0 ? Math.round((converted / total) * 100) : 0;
 
                 const converterMs = landingSessions.filter(s => s.login_succeeded && s.ring_interaction_ms > 0);
                 const abandonderMs = landingSessions.filter(s => !s.login_succeeded && s.ring_interaction_ms > 0);
@@ -1663,9 +1661,9 @@ export function AdminDashboard({
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                       {[
                         { label: 'Total Visits', value: total, color: 'text-blue-400' },
-                        { label: 'Touched Ring', value: `${ringTouched} (${ringRate}%)`, color: 'text-orange-400' },
-                        { label: 'Entered Email', value: `${attempted} (${attemptRate}%)`, color: 'text-yellow-400' },
-                        { label: 'Logged In', value: `${converted} (${conversionRate}%)`, color: converted / total > 0.5 ? 'text-green-400' : 'text-red-400' },
+                        { label: 'Touched Ring', value: total > 0 ? `${ringTouched} (${ringRate}%)` : '—', color: 'text-orange-400' },
+                        { label: 'Entered Email', value: total > 0 ? `${attempted} (${attemptRate}%)` : '—', color: 'text-yellow-400' },
+                        { label: 'Logged In', value: total > 0 ? `${converted} (${conversionRate}%)` : '—', color: total > 0 && converted / total > 0.5 ? 'text-green-400' : 'text-red-400' },
                       ].map(({ label, value, color }) => (
                         <div key={label} className="bg-slate-800 rounded-xl p-4 border border-white/5">
                           <div className={`text-2xl font-bold ${color}`}>{value}</div>

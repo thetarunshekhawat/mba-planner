@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { PROFESSORS } from '@/data/professors';
 import { ProfessorRing } from './ProfessorRing';
 import { FactTicker } from './FactTicker';
+import { useLandingAnalytics } from '@/hooks/useLandingAnalytics';
 
 const ANGLE_PER = 360 / PROFESSORS.length;
 
@@ -37,6 +38,8 @@ export function LoginForm() {
   const [courseKey, setCourseKey] = useState(0);
   const prevActiveIdx = useRef(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const { trackRingTouch, trackDragState, trackLoginAttempted, linkToUser } = useLandingAnalytics();
 
   // Update displayed text whenever active professor changes.
   // While dragging: update immediately so course name flips live.
@@ -149,7 +152,11 @@ export function LoginForm() {
 
   const handleAngleChange = useCallback((a: number) => setRingAngle(a), []);
   const handleActiveChange = useCallback((i: number) => setActiveIdx(i), []);
-  const handleDragChange = useCallback((d: boolean) => setIsDragging(d), []);
+  const handleDragChange = useCallback((d: boolean) => {
+    setIsDragging(d);
+    if (d) trackRingTouch();       // fires only on first touch (hook guards internally)
+    trackDragState(d);             // accumulates ring interaction time
+  }, [trackRingTouch, trackDragState]);
   const handleIntroComplete = useCallback(() => setIntroComplete(true), []);
 
   async function handleEmailSubmit(e: React.FormEvent) {
@@ -180,6 +187,7 @@ export function LoginForm() {
       if (!msg || msg === '{}') msg = 'Failed to send code. Check Supabase SMTP settings.';
       setErrorMsg(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } else {
+      trackLoginAttempted();
       setStatus('idle');
       setStep('otp');
     }
@@ -191,7 +199,7 @@ export function LoginForm() {
     setStatus('loading');
     setErrorMsg('');
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       email: email.toLowerCase().trim(),
       token: otp,
       type: 'email',
@@ -201,6 +209,7 @@ export function LoginForm() {
       setStatus('error');
       setErrorMsg('Invalid or expired code.');
     } else {
+      if (data.user?.id) linkToUser(data.user.id);
       setStatus('idle');
       setDispersing(true);
       setTimeout(() => router.push('/planner'), 850);

@@ -187,6 +187,22 @@ export function AdminDashboard({
   const [lastSignIns, setLastSignIns] = useState<LastSignInRow[]>([]);
   const analyticsLoadedRef = useRef(false);
 
+  // Landing page funnel data
+  interface LandingSession {
+    id: string;
+    user_id: string | null;
+    landed_at: string;
+    first_ring_interaction_at: string | null;
+    ring_interaction_ms: number;
+    login_attempted: boolean;
+    login_succeeded: boolean;
+    abandoned: boolean;
+    device_type: string | null;
+    browser: string | null;
+  }
+  const [landingSessions, setLandingSessions] = useState<LandingSession[]>([]);
+  const landingLoadedRef = useRef(false);
+
   // Per-member detail data
   const [memberSubTab, setMemberSubTab] = useState<MemberSubTab>('courses');
   const [memberSessions, setMemberSessions] = useState<SessionRow[]>([]);
@@ -209,6 +225,17 @@ export function AdminDashboard({
       setLoading(false);
     });
   }, []);
+
+  // Lazy-load landing funnel data when Insights tab first opens
+  useEffect(() => {
+    if (tab !== 'insights' || landingLoadedRef.current) return;
+    landingLoadedRef.current = true;
+    supabase
+      .from('landing_sessions')
+      .select('id, user_id, landed_at, first_ring_interaction_at, ring_interaction_ms, login_attempted, login_succeeded, abandoned, device_type, browser')
+      .order('landed_at', { ascending: false })
+      .then(({ data }) => setLandingSessions((data ?? []) as LandingSession[]));
+  }, [tab]);
 
   // Lazy-load analytics data when Activity or Insights tab first opens
   useEffect(() => {
@@ -1611,6 +1638,64 @@ export function AdminDashboard({
           {/* ── INSIGHTS TAB ── */}
           {tab === 'insights' && (
             <div className="p-4 space-y-6">
+              {/* Landing page funnel */}
+              {landingSessions.length > 0 && (() => {
+                const total = landingSessions.length;
+                const ringTouched = landingSessions.filter(s => s.first_ring_interaction_at).length;
+                const attempted = landingSessions.filter(s => s.login_attempted).length;
+                const converted = landingSessions.filter(s => s.login_succeeded).length;
+                const ringRate = Math.round((ringTouched / total) * 100);
+                const attemptRate = Math.round((attempted / total) * 100);
+                const conversionRate = Math.round((converted / total) * 100);
+
+                const converterMs = landingSessions.filter(s => s.login_succeeded && s.ring_interaction_ms > 0);
+                const abandonderMs = landingSessions.filter(s => !s.login_succeeded && s.ring_interaction_ms > 0);
+                const avgConverterSec = converterMs.length
+                  ? Math.round(converterMs.reduce((a, s) => a + s.ring_interaction_ms, 0) / converterMs.length / 1000)
+                  : null;
+                const avgAbandonerSec = abandonderMs.length
+                  ? Math.round(abandonderMs.reduce((a, s) => a + s.ring_interaction_ms, 0) / abandonderMs.length / 1000)
+                  : null;
+
+                return (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-200 mb-3">Landing Page Funnel</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                      {[
+                        { label: 'Total Visits', value: total, color: 'text-blue-400' },
+                        { label: 'Touched Ring', value: `${ringTouched} (${ringRate}%)`, color: 'text-orange-400' },
+                        { label: 'Entered Email', value: `${attempted} (${attemptRate}%)`, color: 'text-yellow-400' },
+                        { label: 'Logged In', value: `${converted} (${conversionRate}%)`, color: converted / total > 0.5 ? 'text-green-400' : 'text-red-400' },
+                      ].map(({ label, value, color }) => (
+                        <div key={label} className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                          <div className={`text-2xl font-bold ${color}`}>{value}</div>
+                          <div className="text-[11px] text-slate-500 mt-1">{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {(avgConverterSec !== null || avgAbandonerSec !== null) && (
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <p className="text-[11px] text-slate-400 mb-3 font-medium">Avg ring play time</p>
+                        <div className="flex gap-6">
+                          {avgConverterSec !== null && (
+                            <div>
+                              <span className="text-green-400 font-bold text-lg">{avgConverterSec}s</span>
+                              <span className="text-slate-500 text-[11px] ml-1.5">converters</span>
+                            </div>
+                          )}
+                          {avgAbandonerSec !== null && (
+                            <div>
+                              <span className="text-red-400 font-bold text-lg">{avgAbandonerSec}s</span>
+                              <span className="text-slate-500 text-[11px] ml-1.5">abandoners</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               {sessions.length === 0 && events.length === 0 ? (
                 <div className="text-center py-16 text-slate-500 text-sm">
                   No tracking data collected yet — come back once students have used the planner.

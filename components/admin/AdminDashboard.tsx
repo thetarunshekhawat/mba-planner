@@ -58,6 +58,9 @@ const EVENT_LABELS: Record<string, string> = {
   rage_click: 'Rage Click',
   js_error: 'JS Error',
   calendar_accessed: 'Calendar Access',
+  export_dialog_opened: 'Export Dialog Opened',
+  calendar_panel_opened: 'Calendar Panel Opened',
+  sidebar_toggled: 'Filter Sidebar Toggled',
 };
 
 function courseNameById(id: number): string {
@@ -89,8 +92,11 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'user_signed_out':     return { icon: '🔒', text: 'Signed out' };
     case 'rage_click':          return { icon: '😤', text: `Rage-clicked "${String(p?.element_text ?? '').slice(0, 30)}"` };
     case 'js_error':            return { icon: '🔴', text: `JS error: ${String(p?.message ?? '').slice(0, 60)}` };
-    case 'calendar_accessed':   return { icon: '📅', text: 'Accessed calendar subscription' };
-    default:                    return { icon: '•', text: e.event_type };
+    case 'calendar_accessed':      return { icon: '📅', text: 'Accessed calendar subscription' };
+    case 'export_dialog_opened':   return { icon: '📂', text: 'Opened export options' };
+    case 'calendar_panel_opened':  return { icon: '🗓', text: 'Opened calendar panel' };
+    case 'sidebar_toggled':        return { icon: '☰', text: `${p?.open ? 'Opened' : 'Closed'} filter sidebar (mobile)` };
+    default:                       return { icon: '•', text: e.event_type };
   }
 }
 

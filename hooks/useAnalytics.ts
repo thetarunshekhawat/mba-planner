@@ -18,7 +18,10 @@ export type EventType =
   | 'modal_view_duration'
   | 'filter_dead_end'
   | 'admin_member_viewed'
-  | 'calendar_accessed';
+  | 'calendar_accessed'
+  | 'export_dialog_opened'
+  | 'calendar_panel_opened'
+  | 'sidebar_toggled';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

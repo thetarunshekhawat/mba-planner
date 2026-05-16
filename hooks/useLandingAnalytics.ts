@@ -18,6 +18,15 @@ export function useLandingAnalytics() {
       sessionStorage.setItem('landing_anon_id', anonId);
     }
 
+    // Generate the row ID client-side so rowIdRef is set synchronously —
+    // avoids a race where ring interactions fire before the async upsert returns.
+    let rowId = sessionStorage.getItem('landing_row_id');
+    if (!rowId) {
+      rowId = crypto.randomUUID();
+      sessionStorage.setItem('landing_row_id', rowId);
+    }
+    rowIdRef.current = rowId;
+
     const deviceType = /Mobi|Android/i.test(navigator.userAgent)
       ? 'mobile'
       : /Tablet|iPad/i.test(navigator.userAgent)
@@ -33,14 +42,11 @@ export function useLandingAnalytics() {
       ? 'Edge'
       : 'Other';
 
+    // Fire-and-forget: anon role only needs INSERT/UPDATE, not SELECT.
     supabase
       .from('landing_sessions')
-      .upsert({ anon_id: anonId, device_type: deviceType, browser }, { onConflict: 'anon_id' })
-      .select('id')
-      .single()
-      .then(({ data }) => {
-        if (data?.id) rowIdRef.current = data.id as string;
-      });
+      .upsert({ id: rowId, anon_id: anonId, device_type: deviceType, browser }, { onConflict: 'anon_id' })
+      .then();
 
     // Mark abandoned on tab close / navigation (keepalive fetch works without custom headers issues)
     function handlePageHide() {

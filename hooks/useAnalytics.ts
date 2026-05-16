@@ -65,7 +65,7 @@ export function useAnalytics(userId: string | null) {
             ? performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart
             : null,
         };
-        supabase.from('user_sessions').update({ metadata }).eq('id', sid);
+        supabase.from('user_sessions').update({ metadata }).eq('id', sid).then();
         trackEventRef.current('login_complete');
       });
   }, [userId]);
@@ -149,7 +149,7 @@ export function useAnalytics(userId: string | null) {
         event_type: eventType,
         payload: payload ?? null,
         occurred_at: new Date().toISOString(),
-      });
+      }).then();
     },
     [userId],
   );

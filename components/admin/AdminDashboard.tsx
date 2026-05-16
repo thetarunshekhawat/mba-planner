@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ArrowLeft, X, Clock } from 'lucide-react';
+import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface MemberSelection {
@@ -34,13 +34,14 @@ interface LastSignInRow {
   last_sign_in_at: string;
 }
 
+interface GroupedSession {
+  session: SessionRow;
+  events: EventRow[];
+}
+
 type Tab = 'overview' | 'member' | 'activity' | 'insights';
 type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
 
-type TimelineItem =
-  | { kind: 'session_start'; session: SessionRow; ts: string }
-  | { kind: 'session_end'; session: SessionRow; ts: string }
-  | { kind: 'event'; event: EventRow; ts: string };
 
 const EVENT_LABELS: Record<string, string> = {
   course_viewed: 'Course Detail Views',
@@ -72,7 +73,16 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'spec_toggled':        return { icon: '🎓', text: `${p?.action === 'added' ? 'Added' : 'Removed'} spec: ${p?.spec}` };
     case 'export_triggered':    return { icon: '📤', text: `Exported schedule (${p?.type})` };
     case 'view_changed':        return { icon: '🔀', text: `Switched to ${p?.to} view` };
-    case 'filters_applied':     return { icon: '🔧', text: 'Applied filters' };
+    case 'filters_applied': {
+      const parts: string[] = [];
+      if (Array.isArray(p?.specs) && (p.specs as string[]).length > 0) parts.push((p.specs as string[]).join(', '));
+      if (Array.isArray(p?.workloads) && (p.workloads as string[]).length > 0) parts.push((p.workloads as string[]).join(', '));
+      if (typeof p?.minDepth === 'number' && p.minDepth > 0) parts.push(`Depth ≥ ${p.minDepth}`);
+      if (typeof p?.minRelevance === 'number' && p.minRelevance > 0) parts.push(`Relevance ≥ ${p.minRelevance}`);
+      if (p?.selectedOnly) parts.push('Selected only');
+      const detail = parts.length > 0 ? ` · ${parts.join(' · ')}` : '';
+      return { icon: '🔧', text: `Applied filters${detail}` };
+    }
     case 'filter_dead_end':     return { icon: '⚠', text: 'Filter returned zero results' };
     case 'modal_view_duration': return { icon: '⏱', text: `Spent ${Math.round((p?.duration_ms as number) / 1000)}s on "${p?.course_name}"` };
     case 'login_complete':      return { icon: '🔓', text: 'Logged in' };
@@ -106,6 +116,14 @@ function fmtRelative(ts: string): string {
   const diffH = Math.floor(diffMin / 60);
   if (diffH < 24) return `${diffH}h ago`;
   return `${Math.floor(diffH / 24)}d ago`;
+}
+
+function fmtExactTime(ts: string): string {
+  return new Date(ts).toLocaleTimeString('en', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
 function BarRow({
@@ -170,6 +188,7 @@ export function AdminDashboard({
   const [memberDataLoading, setMemberDataLoading] = useState(false);
   const [adminViewLogs, setAdminViewLogs] = useState<{ actor_name: string; occurred_at: string }[]>([]);
   const adminViewLogsLoadedRef = useRef(false);
+  const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
 
   // Dwell time tracking — records when the current member profile was opened
   const memberOpenTimeRef = useRef<{ userId: string; name: string; openedAt: number } | null>(null);
@@ -378,13 +397,19 @@ export function AdminDashboard({
 
   // ── Per-member timeline ───────────────────────────────────────────────────
 
-  const timeline: TimelineItem[] = [
-    ...memberSessions.flatMap(s => [
-      { kind: 'session_start' as const, session: s, ts: s.session_start },
-      ...(s.session_end ? [{ kind: 'session_end' as const, session: s, ts: s.session_end }] : []),
-    ]),
-    ...memberEvents.map(e => ({ kind: 'event' as const, event: e, ts: e.occurred_at })),
-  ].sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+  // Group events into their parent session by timestamp range
+  const groupedSessions: GroupedSession[] = memberSessions.map(session => {
+    const start = new Date(session.session_start).getTime();
+    const end = session.session_end ? new Date(session.session_end).getTime() : Date.now();
+    const sessionEvents = memberEvents
+      .filter(e => {
+        const t = new Date(e.occurred_at).getTime();
+        return t >= start && t <= end;
+      })
+      .sort((a, b) => new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime());
+    return { session, events: sessionEvents };
+  });
+  // memberSessions is already ordered DESC by session_start from the query
 
   // ── Security sub-tab ──────────────────────────────────────────────────────
 
@@ -1076,60 +1101,94 @@ export function AdminDashboard({
               )}
 
               {memberSubTab === 'activity' && (
-                <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                <div className="space-y-2">
                   {memberDataLoading ? (
                     <div className="py-8 text-center text-slate-500 text-xs animate-pulse">
                       Loading activity...
                     </div>
-                  ) : timeline.length === 0 ? (
+                  ) : groupedSessions.length === 0 ? (
                     <div className="py-8 text-center text-slate-500 text-xs">
                       No activity recorded yet.
                     </div>
                   ) : (
-                    <div className="divide-y divide-white/5">
-                      {timeline.map((item, i) => {
-                        if (item.kind === 'session_start') {
-                          const meta = item.session.metadata as Record<string, unknown> | null;
-                          return (
-                            <div
-                              key={`ss-${i}`}
-                              className="bg-slate-700/60 px-3 py-2 text-xs font-semibold text-green-400 flex items-center gap-2"
-                            >
-                              <span>SESSION — {fmtTs(item.ts)}</span>
-                              {meta && (
-                                <span className="text-slate-500 font-normal">
-                                  {String(meta.browser ?? '')} · {String(meta.device_type ?? '')} ·{' '}
-                                  {String(meta.os ?? '')}
-                                </span>
+                    groupedSessions.map((group, i) => {
+                      const { session, events: sessionEvents } = group;
+                      const sessionId = session.id ?? `session-${i}`;
+                      const isExpanded = !!expandedSessions[sessionId];
+                      const meta = session.metadata as Record<string, unknown> | null;
+                      const isActive = !session.session_end;
+
+                      return (
+                        <div
+                          key={sessionId}
+                          className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden"
+                        >
+                          {/* Session header — clickable to expand */}
+                          <button
+                            onClick={() =>
+                              setExpandedSessions(prev => ({
+                                ...prev,
+                                [sessionId]: !prev[sessionId],
+                              }))
+                            }
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-white/5 transition-colors"
+                          >
+                            <ChevronDown
+                              className={`w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+                            />
+                            <span className="text-xs font-semibold text-green-400">
+                              SESSION — {fmtTs(session.session_start)}
+                            </span>
+                            {isActive ? (
+                              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">
+                                ACTIVE
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-500">
+                                {formatDuration(session.duration_seconds)}
+                              </span>
+                            )}
+                            {meta && (
+                              <span className="text-[10px] text-slate-500 font-normal ml-auto">
+                                {String(meta.browser ?? '')} · {String(meta.device_type ?? '')} · {String(meta.os ?? '')}
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-600 shrink-0">
+                              {sessionEvents.length} event{sessionEvents.length !== 1 ? 's' : ''}
+                            </span>
+                          </button>
+
+                          {/* Expanded event list */}
+                          {isExpanded && (
+                            <div className="border-t border-white/5 divide-y divide-white/5">
+                              {sessionEvents.length === 0 ? (
+                                <div className="px-3 py-3 text-[11px] text-slate-500 italic">
+                                  No events recorded in this session.
+                                </div>
+                              ) : (
+                                sessionEvents.map((event, j) => {
+                                  const { icon, text } = describeEvent(event);
+                                  return (
+                                    <div
+                                      key={event.id ?? `ev-${i}-${j}`}
+                                      className="flex items-center gap-2.5 px-4 py-1.5 text-xs text-slate-300"
+                                    >
+                                      <span className="shrink-0 w-5 text-center text-base leading-none">
+                                        {icon}
+                                      </span>
+                                      <span className="text-[10px] text-slate-500 shrink-0 font-mono">
+                                        {fmtExactTime(event.occurred_at)}
+                                      </span>
+                                      <span className="flex-1">{text}</span>
+                                    </div>
+                                  );
+                                })
                               )}
                             </div>
-                          );
-                        }
-                        if (item.kind === 'session_end') {
-                          return (
-                            <div
-                              key={`se-${i}`}
-                              className="bg-slate-700/30 px-3 py-2 text-xs text-slate-500"
-                            >
-                              SESSION ENDED — {formatDuration(item.session.duration_seconds)}
-                            </div>
-                          );
-                        }
-                        const { icon, text } = describeEvent(item.event);
-                        return (
-                          <div
-                            key={`ev-${i}`}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-300"
-                          >
-                            <span className="shrink-0 w-5 text-center">{icon}</span>
-                            <span className="flex-1">{text}</span>
-                            <span className="text-[10px] text-slate-500 shrink-0">
-                              {fmtRelative(item.ts)}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          )}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               )}

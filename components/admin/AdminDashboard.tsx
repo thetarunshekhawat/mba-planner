@@ -201,6 +201,7 @@ export function AdminDashboard({
     browser: string | null;
   }
   const [landingSessions, setLandingSessions] = useState<LandingSession[]>([]);
+  const [expandedFunnelCard, setExpandedFunnelCard] = useState<'total' | 'ring' | 'email' | 'converted' | null>(null);
 
   // Per-member detail data
   const [memberSubTab, setMemberSubTab] = useState<MemberSubTab>('courses');
@@ -1639,14 +1640,14 @@ export function AdminDashboard({
               {/* Landing page funnel */}
               {(() => {
                 const total = landingSessions.length;
-                const ringTouched = landingSessions.filter(s => s.first_ring_interaction_at).length;
-                const attempted = landingSessions.filter(s => s.login_attempted).length;
-                const converted = landingSessions.filter(s => s.login_succeeded).length;
-                const ringRate = total > 0 ? Math.round((ringTouched / total) * 100) : 0;
-                const attemptRate = total > 0 ? Math.round((attempted / total) * 100) : 0;
-                const conversionRate = total > 0 ? Math.round((converted / total) * 100) : 0;
+                const ringSessions = landingSessions.filter(s => s.first_ring_interaction_at);
+                const emailSessions = landingSessions.filter(s => s.login_attempted);
+                const convertedSessions = landingSessions.filter(s => s.login_succeeded);
+                const ringRate = total > 0 ? Math.round((ringSessions.length / total) * 100) : 0;
+                const attemptRate = total > 0 ? Math.round((emailSessions.length / total) * 100) : 0;
+                const conversionRate = total > 0 ? Math.round((convertedSessions.length / total) * 100) : 0;
 
-                const converterMs = landingSessions.filter(s => s.login_succeeded && s.ring_interaction_ms > 0);
+                const converterMs = convertedSessions.filter(s => s.ring_interaction_ms > 0);
                 const abandonderMs = landingSessions.filter(s => !s.login_succeeded && s.ring_interaction_ms > 0);
                 const avgConverterSec = converterMs.length
                   ? Math.round(converterMs.reduce((a, s) => a + s.ring_interaction_ms, 0) / converterMs.length / 1000)
@@ -1655,22 +1656,113 @@ export function AdminDashboard({
                   ? Math.round(abandonderMs.reduce((a, s) => a + s.ring_interaction_ms, 0) / abandonderMs.length / 1000)
                   : null;
 
+                // Build profile lookup from already-loaded profiles state
+                const profileMap = new Map(profiles.map(p => [p.id, p]));
+
+                const funnelCards: { key: 'total' | 'ring' | 'email' | 'converted'; label: string; value: string | number; color: string; sessions: LandingSession[] }[] = [
+                  { key: 'total', label: 'Total Visits', value: total, color: 'text-blue-400', sessions: landingSessions },
+                  { key: 'ring', label: 'Touched Ring', value: total > 0 ? `${ringSessions.length} (${ringRate}%)` : '—', color: 'text-orange-400', sessions: ringSessions },
+                  { key: 'email', label: 'Entered Email', value: total > 0 ? `${emailSessions.length} (${attemptRate}%)` : '—', color: 'text-yellow-400', sessions: emailSessions },
+                  { key: 'converted', label: 'Logged In', value: total > 0 ? `${convertedSessions.length} (${conversionRate}%)` : '—', color: total > 0 && convertedSessions.length / total > 0.5 ? 'text-green-400' : 'text-red-400', sessions: convertedSessions },
+                ];
+
+                const expandedSessions = funnelCards.find(c => c.key === expandedFunnelCard)?.sessions ?? [];
+
+                function fmtAgo(ts: string) {
+                  const diff = Date.now() - new Date(ts).getTime();
+                  const m = Math.floor(diff / 60000);
+                  if (m < 60) return `${m}m ago`;
+                  const h = Math.floor(m / 60);
+                  if (h < 24) return `${h}h ago`;
+                  return `${Math.floor(h / 24)}d ago`;
+                }
+
                 return (
                   <div>
                     <h3 className="text-sm font-semibold text-slate-200 mb-3">Landing Page Funnel</h3>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-                      {[
-                        { label: 'Total Visits', value: total, color: 'text-blue-400' },
-                        { label: 'Touched Ring', value: total > 0 ? `${ringTouched} (${ringRate}%)` : '—', color: 'text-orange-400' },
-                        { label: 'Entered Email', value: total > 0 ? `${attempted} (${attemptRate}%)` : '—', color: 'text-yellow-400' },
-                        { label: 'Logged In', value: total > 0 ? `${converted} (${conversionRate}%)` : '—', color: total > 0 && converted / total > 0.5 ? 'text-green-400' : 'text-red-400' },
-                      ].map(({ label, value, color }) => (
-                        <div key={label} className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                          <div className={`text-2xl font-bold ${color}`}>{value}</div>
-                          <div className="text-[11px] text-slate-500 mt-1">{label}</div>
-                        </div>
-                      ))}
+                      {funnelCards.map(({ key, label, value, color }) => {
+                        const isExpanded = expandedFunnelCard === key;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => setExpandedFunnelCard(isExpanded ? null : key)}
+                            className={`bg-slate-800 rounded-xl p-4 border text-left transition-all ${isExpanded ? 'border-white/20 ring-1 ring-white/10' : 'border-white/5 hover:border-white/10'}`}
+                          >
+                            <div className={`text-2xl font-bold ${color}`}>{value}</div>
+                            <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+                              {label}
+                              <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
+
+                    {/* Expanded session list */}
+                    {expandedFunnelCard && (
+                      <div className="bg-slate-800/60 rounded-xl border border-white/5 overflow-hidden mb-3">
+                        <div className="px-4 py-2.5 border-b border-white/5 flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+                            {funnelCards.find(c => c.key === expandedFunnelCard)?.label} — {expandedSessions.length} {expandedSessions.length === 1 ? 'session' : 'sessions'}
+                          </span>
+                          <button onClick={() => setExpandedFunnelCard(null)} className="text-slate-500 hover:text-slate-300">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        {expandedSessions.length === 0 ? (
+                          <p className="text-slate-500 text-xs p-4">No sessions in this stage yet.</p>
+                        ) : (
+                          <div className="divide-y divide-white/5 max-h-80 overflow-y-auto">
+                            {expandedSessions.map(s => {
+                              const profile = s.user_id ? profileMap.get(s.user_id) : null;
+                              const ringSec = s.ring_interaction_ms > 0 ? Math.round(s.ring_interaction_ms / 1000) : null;
+                              const statusBadge = s.login_succeeded
+                                ? { label: 'Converted', cls: 'bg-green-500/15 text-green-400' }
+                                : s.login_attempted
+                                ? { label: 'Entered email', cls: 'bg-yellow-500/15 text-yellow-400' }
+                                : s.first_ring_interaction_at
+                                ? { label: 'Played ring', cls: 'bg-orange-500/15 text-orange-400' }
+                                : { label: 'Browsed', cls: 'bg-slate-700 text-slate-400' };
+
+                              return (
+                                <div key={s.id} className="px-4 py-3 flex items-center gap-3">
+                                  {/* Avatar */}
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold ${profile ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-700 text-slate-500'}`}>
+                                    {profile ? profile.name.charAt(0).toUpperCase() : '?'}
+                                  </div>
+
+                                  {/* Main info */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="text-[13px] font-medium text-slate-200 truncate">
+                                        {profile ? profile.name : 'Anonymous visitor'}
+                                      </span>
+                                      {profile && (
+                                        <span className="text-[11px] text-slate-500 truncate">{profile.email}</span>
+                                      )}
+                                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${statusBadge.cls}`}>
+                                        {statusBadge.label}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                      {ringSec !== null && (
+                                        <span className="text-[11px] text-slate-500">Ring {ringSec}s</span>
+                                      )}
+                                      {s.device_type && (
+                                        <span className="text-[11px] text-slate-600">{s.browser} · {s.device_type}</span>
+                                      )}
+                                      <span className="text-[11px] text-slate-600">{fmtAgo(s.landed_at)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {(avgConverterSec !== null || avgAbandonerSec !== null) && (
                       <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                         <p className="text-[11px] text-slate-400 mb-3 font-medium">Avg ring play time</p>

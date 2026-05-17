@@ -24,6 +24,10 @@ CREATE POLICY "landing_insert_anon" ON landing_sessions
 CREATE POLICY "landing_update_anon" ON landing_sessions
   FOR UPDATE USING (true);
 
+-- Anon users can read rows (required for PostgREST to apply WHERE filter on PATCH)
+CREATE POLICY "landing_select_anon" ON landing_sessions
+  FOR SELECT USING (true);
+
 -- Authenticated users can read all (for admin dashboard)
 CREATE POLICY "landing_read_auth" ON landing_sessions
   FOR SELECT USING (auth.role() = 'authenticated');

@@ -33,19 +33,27 @@ export function useSelections(userId: string | null, onEvent?: OnEvent) {
     if (next.has(courseId)) {
       next.delete(courseId);
       setSelected(next);
-      onEventRef.current?.('course_removed', courseId);
-      await supabase
+      const { error } = await supabase
         .from('course_selections')
         .delete()
         .eq('user_id', userId)
         .eq('course_id', courseId);
+      if (error) {
+        setSelected(new Set(selected));
+      } else {
+        onEventRef.current?.('course_removed', courseId);
+      }
     } else {
       next.add(courseId);
       setSelected(next);
-      onEventRef.current?.('course_selected', courseId);
-      await supabase
+      const { error } = await supabase
         .from('course_selections')
         .insert({ user_id: userId, course_id: courseId });
+      if (error) {
+        setSelected(new Set(selected));
+      } else {
+        onEventRef.current?.('course_selected', courseId);
+      }
     }
   }, [userId, selected]);
 

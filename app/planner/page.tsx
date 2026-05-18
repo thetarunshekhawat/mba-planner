@@ -7,9 +7,10 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { TimetableView } from '@/components/planner/TimetableView';
 import { PlannerListView } from '@/components/planner/PlannerListView';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
+import { MobileDrawer } from '@/components/planner/MobileDrawer';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
 import { generateScheduleICS } from '@/lib/calendar';
-import { GraduationCap, LayoutList, CalendarDays, Menu, X, CalendarPlus, CalendarHeart, Download, ShieldCheck } from 'lucide-react';
+import { GraduationCap, LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -59,7 +60,6 @@ export default function PlannerPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [activeModal, setActiveModal] = useState<Course | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('plan');
   const [selectedTerms, setSelectedTerms] = useState<Set<4 | 5 | 6>>(() => new Set([getCurrentTerm()]));
 
@@ -257,10 +257,6 @@ export default function PlannerPage() {
       {/* Top bar */}
       <header className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 bg-slate-900/95 backdrop-blur border-b border-white/10 sticky top-0 z-30 print:hidden">
         <div className="flex-1 flex items-center gap-3">
-          <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => { const next = !sidebarOpen; trackEvent('sidebar_toggled', { open: next }); setSidebarOpen(next); }}>
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
               <GraduationCap className="w-4 h-4 text-white" />
@@ -482,13 +478,8 @@ export default function PlannerPage() {
           On mobile (<lg) it becomes a fixed overlay that slides in/out.
           Avoids hidden/lg:block toggling which has CSS-order issues in Tailwind v4.
         */}
-        <div className={`
-          max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-20 max-lg:pt-[53px]
-          flex-shrink-0 h-full
-          transition-transform duration-200
-          ${sidebarOpen ? '' : 'max-lg:-translate-x-full'}
-          print:hidden
-        `}>
+        {/* Desktop sidebar — hidden on mobile, always visible on lg+ */}
+        <div className="hidden lg:block flex-shrink-0 h-full print:hidden">
           <FilterSidebar
             filters={filters}
             onFiltersChange={handleFiltersChange}
@@ -501,12 +492,8 @@ export default function PlannerPage() {
           />
         </div>
 
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-10 bg-black/50 lg:hidden print:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
-
-        {/* Main content area */}
-        <main className="flex-1 overflow-y-auto min-h-0 print:overflow-visible print:h-auto">
+        {/* Main content area — bottom padding on mobile so content clears the drawer */}
+        <main className="flex-1 overflow-y-auto min-h-0 max-lg:pb-20 print:overflow-visible print:h-auto">
           {viewMode === 'plan' ? (
             <PlannerListView
               selected={selected}
@@ -543,6 +530,19 @@ export default function PlannerPage() {
             </>
           )}
         </main>
+
+        {/* Mobile bottom drawer — only renders on <lg */}
+        <MobileDrawer
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          selected={selected}
+          userSpecs={profile.specializations}
+          onSpecToggle={handleSpecToggle}
+          userName={profile.name}
+          userEmail={profile.email}
+          onSignOut={handleSignOut}
+          trackEvent={trackEvent}
+        />
       </div>
 
       <CourseDetailModal

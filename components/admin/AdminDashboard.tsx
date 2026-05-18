@@ -5,6 +5,10 @@ import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
 import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
+import {
+  AreaChart, Area, LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
 import { useRouter } from 'next/navigation';
 
 interface MemberSelection {
@@ -39,7 +43,7 @@ interface GroupedSession {
   events: EventRow[];
 }
 
-type Tab = 'overview' | 'member' | 'activity' | 'insights';
+type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth';
 type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
 
 
@@ -61,6 +65,8 @@ const EVENT_LABELS: Record<string, string> = {
   export_dialog_opened: 'Export Dialog Opened',
   calendar_panel_opened: 'Calendar Panel Opened',
   sidebar_toggled: 'Filter Sidebar Toggled',
+  mobile_drawer_toggled: 'Mobile Drawer Toggled',
+  mobile_drawer_spec_tapped: 'Mobile Drawer Spec Tapped',
 };
 
 function courseNameById(id: number): string {
@@ -95,8 +101,10 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'calendar_accessed':      return { icon: '📅', text: 'Accessed calendar subscription' };
     case 'export_dialog_opened':   return { icon: '📂', text: 'Opened export options' };
     case 'calendar_panel_opened':  return { icon: '🗓', text: 'Opened calendar panel' };
-    case 'sidebar_toggled':        return { icon: '☰', text: `${p?.open ? 'Opened' : 'Closed'} filter sidebar (mobile)` };
-    default:                       return { icon: '•', text: e.event_type };
+    case 'sidebar_toggled':           return { icon: '☰', text: `${p?.open ? 'Opened' : 'Closed'} filter sidebar (mobile)` };
+    case 'mobile_drawer_toggled':     return { icon: '📱', text: `${p?.open ? 'Opened' : 'Closed'} mobile drawer${!p?.has_specs ? ' (no specs yet)' : ''}` };
+    case 'mobile_drawer_spec_tapped': return { icon: '🎯', text: `Tapped ${p?.spec} spec in mobile drawer` };
+    default:                          return { icon: '•', text: e.event_type };
   }
 }
 
@@ -130,6 +138,96 @@ function fmtExactTime(ts: string): string {
     minute: '2-digit',
     second: '2-digit',
   });
+}
+
+const CHART_TOOLTIP_STYLE = {
+  contentStyle: {
+    backgroundColor: '#0f172a',
+    border: '1px solid #1e293b',
+    borderRadius: '8px',
+    fontSize: '12px',
+  },
+  labelStyle: { color: '#94a3b8' },
+  itemStyle: { color: '#e2e8f0' },
+};
+
+function LoginTimingChart({ byHour }: { byHour: number[] }) {
+  const data = byHour.map((logins, h) => ({
+    hour: `${String(h).padStart(2, '0')}:00`,
+    logins,
+  }));
+  const total = byHour.reduce((a, b) => a + b, 0);
+  const peakHour = byHour.indexOf(Math.max(...byHour));
+  const blocks = [
+    { label: 'Night (0–6)', range: [0, 6], color: '#6366f1' },
+    { label: 'Morning (6–12)', range: [6, 12], color: '#f97316' },
+    { label: 'Afternoon (12–18)', range: [12, 18], color: '#eab308' },
+    { label: 'Evening (18–24)', range: [18, 24], color: '#8b5cf6' },
+  ];
+  return (
+    <div className="space-y-4">
+      <ResponsiveContainer width="100%" height={160}>
+        <LineChart data={data} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <XAxis
+            dataKey="hour"
+            tick={{ fill: '#64748b', fontSize: 10 }}
+            tickLine={false}
+            axisLine={{ stroke: '#334155' }}
+            interval={5}
+          />
+          <YAxis
+            tick={{ fill: '#64748b', fontSize: 10 }}
+            tickLine={false}
+            axisLine={false}
+            allowDecimals={false}
+            width={24}
+          />
+          <Tooltip
+            {...CHART_TOOLTIP_STYLE}
+            formatter={(v: unknown) => [`${v} login${Number(v) !== 1 ? 's' : ''}`, '']}
+          />
+          <Line
+            type="monotone"
+            dataKey="logins"
+            stroke="#f97316"
+            strokeWidth={2}
+            dot={{ fill: '#f97316', r: 3, strokeWidth: 0 }}
+            activeDot={{ fill: '#fb923c', r: 5, strokeWidth: 0 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+
+      {total > 0 && (
+        <div className="flex flex-wrap gap-4 text-[10px] text-slate-500">
+          <span>
+            Peak:{' '}
+            <span className="text-orange-400 font-semibold">
+              {String(peakHour).padStart(2, '0')}:00–{String(peakHour + 1).padStart(2, '0')}:00
+            </span>{' '}
+            ({byHour[peakHour]} logins)
+          </span>
+          <span>Total: <span className="text-slate-300 font-semibold">{total}</span></span>
+        </div>
+      )}
+
+      {total > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          {blocks.map(({ label, range, color }) => {
+            const cnt = byHour.slice(range[0], range[1]).reduce((a, b) => a + b, 0);
+            const pct = Math.round((cnt / total) * 100);
+            return (
+              <div key={label} className="bg-slate-700/40 rounded-lg p-2">
+                <div className="text-[9px] text-slate-400 mb-1">{label}</div>
+                <div className="text-sm font-bold" style={{ color }}>{pct}%</div>
+                <div className="text-[9px] text-slate-500">{cnt} logins</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function BarRow({
@@ -215,6 +313,21 @@ export function AdminDashboard({
   type EngagementSortCol = 'member' | 'lastVisit' | 'lastActivity' | 'sessions' | 'avgDuration';
   const [engagementSort, setEngagementSort] = useState<{ col: EngagementSortCol; dir: 'asc' | 'desc' }>({ col: 'lastVisit', dir: 'desc' });
 
+  const [specSort, setSpecSort] = useState<'count' | 'alpha'>('count');
+  const [showAllCourses, setShowAllCourses] = useState(false);
+  const [courseListSort, setCourseListSort] = useState<'popular' | 'alpha'>('popular');
+
+  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer';
+  const [inDepthSection, setInDepthSection] = useState<InDepthSection | null>(null);
+  const [whitelistEmails, setWhitelistEmails] = useState<{ email: string; display_name: string }[]>([]);
+  const [memberEngagementFilter, setMemberEngagementFilter] = useState<'all' | '7d' | '30d' | 'never'>('all');
+  const [drawerSpecFilter, setDrawerSpecFilter] = useState<string>('all');
+  const [drawerDateFilter, setDrawerDateFilter] = useState<'all' | '7d' | '30d'>('all');
+
+  type DauDrillType = 'today' | 'total' | 'avg7' | 'avg30' | 'peak';
+  const [dauDrill, setDauDrill] = useState<DauDrillType | null>(null);
+  const [loginTimingDate, setLoginTimingDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+
   // Dwell time tracking — records when the current member profile was opened
   const memberOpenTimeRef = useRef<{ userId: string; name: string; openedAt: number } | null>(null);
 
@@ -222,9 +335,13 @@ export function AdminDashboard({
     Promise.all([
       supabase.from('profiles').select('*'),
       supabase.from('course_selections').select('user_id, course_id').limit(10000),
-    ]).then(([{ data: p }, { data: s }]) => {
+      supabase.from('cohort_whitelist').select('email, display_name'),
+      supabase.rpc('get_user_last_sign_in'),
+    ]).then(([{ data: p }, { data: s }, { data: w }, { data: l }]) => {
       setProfiles((p ?? []) as Profile[]);
       setSelections((s ?? []) as MemberSelection[]);
+      setWhitelistEmails((w ?? []) as { email: string; display_name: string }[]);
+      setLastSignIns((l ?? []) as LastSignInRow[]);
       setLoading(false);
     });
   }, []);
@@ -239,20 +356,18 @@ export function AdminDashboard({
       .then(({ data }) => setLandingSessions((data ?? []) as LandingSession[]));
   }, [tab]);
 
-  // Lazy-load analytics data when Activity or Insights tab first opens
+  // Lazy-load analytics data when Activity, Insights, or In-Depth tab first opens
   useEffect(() => {
-    if ((tab !== 'activity' && tab !== 'insights') || analyticsLoadedRef.current) return;
+    if ((tab !== 'activity' && tab !== 'insights' && tab !== 'in-depth') || analyticsLoadedRef.current) return;
     analyticsLoadedRef.current = true;
     Promise.all([
       supabase
         .from('user_sessions')
         .select('user_id, session_start, session_end, duration_seconds, metadata'),
       supabase.from('user_events').select('user_id, event_type, payload, occurred_at'),
-      supabase.rpc('get_user_last_sign_in'),
-    ]).then(([{ data: s }, { data: e }, { data: l }]) => {
+    ]).then(([{ data: s }, { data: e }]) => {
       setSessions((s ?? []) as SessionRow[]);
       setEvents((e ?? []) as EventRow[]);
-      setLastSignIns((l ?? []) as LastSignInRow[]);
     });
   }, [tab]);
 
@@ -273,9 +388,17 @@ export function AdminDashboard({
         .select('id, user_id, event_type, payload, occurred_at')
         .eq('user_id', selectedMember.id)
         .order('occurred_at', { ascending: false }),
-    ]).then(([{ data: s }, { data: e }]) => {
+      supabase
+        .from('course_selections')
+        .select('user_id, course_id')
+        .eq('user_id', selectedMember.id),
+    ]).then(([{ data: s }, { data: e }, { data: cs }]) => {
       setMemberSessions((s ?? []) as SessionRow[]);
       setMemberEvents((e ?? []) as EventRow[]);
+      setSelections(prev => [
+        ...prev.filter(r => r.user_id !== selectedMember.id),
+        ...((cs ?? []) as MemberSelection[]),
+      ]);
       setMemberDataLoading(false);
     });
   }, [selectedMember?.id]);
@@ -380,9 +503,9 @@ export function AdminDashboard({
   }, new Map());
 
   function whoElseTaking(courseId: number): Profile[] {
-    return profiles.filter(
-      p => p.id !== selectedMember?.id && (selectionsByUser.get(p.id)?.has(courseId) ?? false),
-    );
+    return profiles
+      .filter(p => p.id !== selectedMember?.id && (selectionsByUser.get(p.id)?.has(courseId) ?? false))
+      .sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email));
   }
 
   // ── Activity tab derived stats ────────────────────────────────────────────
@@ -413,7 +536,21 @@ export function AdminDashboard({
     });
   }
 
+  // ── Never-logged-in + recently active ────────────────────────────────────────
+  const profileEmails = new Set(profiles.map(p => p.email.toLowerCase()));
+  const neverLoggedIn = whitelistEmails.filter(w => !profileEmails.has(w.email.toLowerCase()));
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const firstTimeLogins = profiles.filter(p => {
+    const signIn = lastSignInMap.get(p.id);
+    if (!signIn || signIn < sevenDaysAgo) return false;
+    const userSessions = sessions.filter(s => s.user_id === p.id);
+    if (userSessions.length === 0) return true; // has sign-in but no sessions yet
+    const firstSession = userSessions.map(s => s.session_start).sort()[0];
+    return firstSession > sevenDaysAgo;
+  });
+
   const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
   const dauData = Array.from({ length: 7 }, (_, i) => {
     const day = new Date(today);
     day.setDate(today.getDate() - (6 - i));
@@ -424,6 +561,40 @@ export function AdminDashboard({
     return { date: dateStr, count };
   });
   const maxDau = Math.max(...dauData.map(d => d.count), 1);
+
+  // ── In-Depth: 30-day DAU + day-of-week pattern ────────────────────────────
+  const dauData30 = Array.from({ length: 30 }, (_, i) => {
+    const day = new Date(today);
+    day.setDate(today.getDate() - (29 - i));
+    const dateStr = day.toISOString().slice(0, 10);
+    const count = new Set(
+      sessions.filter(s => s.session_start.slice(0, 10) === dateStr).map(s => s.user_id),
+    ).size;
+    return { date: dateStr, count };
+  });
+  const maxDau30 = Math.max(...dauData30.map(d => d.count), 1);
+
+  const dowLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dowBuckets: Record<number, { total: number; days: number }> = {};
+  {
+    const dateDowUsers = new Map<string, Set<string>>();
+    for (const s of sessions) {
+      const dateStr = s.session_start.slice(0, 10);
+      if (!dateDowUsers.has(dateStr)) dateDowUsers.set(dateStr, new Set());
+      dateDowUsers.get(dateStr)!.add(s.user_id);
+    }
+    for (const [dateStr, users] of dateDowUsers) {
+      const dow = new Date(dateStr + 'T12:00').getDay();
+      if (!dowBuckets[dow]) dowBuckets[dow] = { total: 0, days: 0 };
+      dowBuckets[dow].total += users.size;
+      dowBuckets[dow].days++;
+    }
+  }
+  const dowAvgData = [1, 2, 3, 4, 5, 6, 0].map(dow => ({
+    label: dowLabels[dow],
+    avg: dowBuckets[dow] ? Math.round(dowBuckets[dow].total / dowBuckets[dow].days) : 0,
+  }));
+  const maxDowAvg = Math.max(...dowAvgData.map(d => d.avg), 1);
 
   const eventTypeCounts = new Map<string, number>();
   for (const e of events) {
@@ -829,6 +1000,14 @@ export function AdminDashboard({
             >
               Insights
             </button>
+            <button
+              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('in-depth'); }}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                tab === 'in-depth' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              In-Depth
+            </button>
           </div>
 
           {/* ── OVERVIEW TAB ── */}
@@ -850,13 +1029,36 @@ export function AdminDashboard({
               </div>
 
               <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                <h3 className="text-sm font-semibold text-slate-200 mb-4">Specialization Popularity</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-slate-200">Specialization Popularity</h3>
+                  <div className="flex gap-1">
+                    {(['count', 'alpha'] as const).map(s => (
+                      <button
+                        key={s}
+                        onClick={() => setSpecSort(s)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
+                          specSort === s ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200 bg-slate-700'
+                        }`}
+                      >
+                        {s === 'count' ? 'Most Popular' : 'A–Z'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-2.5">
-                  {SPECS.map(spec => {
+                  {[...SPECS]
+                    .sort((a, b) =>
+                      specSort === 'count'
+                        ? specCounts[b.id] - specCounts[a.id]
+                        : a.label.localeCompare(b.label),
+                    )
+                    .map(spec => {
                     const count = specCounts[spec.id];
                     const pct = (count / maxSpecCount) * 100;
                     const isExpanded = overviewExpandedSpec === spec.id;
-                    const specMembers = profiles.filter(p => p.specializations.includes(spec.id));
+                    const specMembers = profiles
+                      .filter(p => p.specializations.includes(spec.id))
+                      .sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email));
                     return (
                       <div key={spec.id}>
                         <div className="flex items-center gap-3">
@@ -907,23 +1109,63 @@ export function AdminDashboard({
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                  <h3 className="text-sm font-semibold text-slate-200 mb-3">Most Selected Courses</h3>
+                  <div className="flex items-center justify-between mb-3 gap-2">
+                    <h3 className="text-sm font-semibold text-slate-200">
+                      {showAllCourses ? 'All Elective Courses' : 'Most Selected Courses'}
+                    </h3>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {showAllCourses && (
+                        <>
+                          <button
+                            onClick={() => setCourseListSort('popular')}
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
+                              courseListSort === 'popular' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200 bg-slate-700'
+                            }`}
+                          >
+                            Most Popular
+                          </button>
+                          <button
+                            onClick={() => setCourseListSort('alpha')}
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
+                              courseListSort === 'alpha' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200 bg-slate-700'
+                            }`}
+                          >
+                            A–Z
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => { setShowAllCourses(v => !v); setOverviewExpandedCourse(null); }}
+                        className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-700 text-slate-300 hover:text-white transition-all"
+                      >
+                        {showAllCourses ? 'Top 10' : 'View All'}
+                      </button>
+                    </div>
+                  </div>
                   <div className="space-y-2">
-                    {top10.map(({ course, count }, i) => {
+                    {(showAllCourses
+                      ? courseListSort === 'alpha'
+                        ? [...courseRanking].sort((a, b) => a.course.name.localeCompare(b.course.name))
+                        : courseRanking
+                      : top10
+                    ).map(({ course, count }, i) => {
                       const pct = profiles.length ? Math.round((count / profiles.length) * 100) : 0;
                       const spec = SPECS.find(s => course.specs.includes(s.id));
                       const isExpanded = overviewExpandedCourse === course.id;
-                      const takers = profiles.filter(p => selectionsByUser.get(p.id)?.has(course.id) ?? false);
+                      const takers = profiles
+                        .filter(p => selectionsByUser.get(p.id)?.has(course.id) ?? false)
+                        .sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email));
                       return (
                         <div key={course.id}>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>
+                            {!showAllCourses && <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>}
                             <div className="flex-1 min-w-0">
                               <button
                                 onClick={() => setOverviewExpandedCourse(isExpanded ? null : course.id)}
                                 className="text-xs text-slate-200 truncate hover:text-orange-300 transition-colors text-left w-full"
                               >
                                 {course.name}
+                                <span className="text-slate-500 ml-1 font-normal">· T{course.term}</span>
                               </button>
                               <div className="h-1 rounded-full flex-1 bg-slate-700 mt-0.5">
                                 <div
@@ -1317,20 +1559,7 @@ export function AdminDashboard({
                         {mLoginByHour.every(c => c === 0) ? (
                           <p className="text-xs text-slate-500">No login events yet.</p>
                         ) : (
-                          <div className="flex items-end gap-0.5 h-12">
-                            {mLoginByHour.map((count, h) => (
-                              <div key={h} className="flex-1 flex flex-col items-center gap-0.5">
-                                <div
-                                  className="w-full bg-orange-500/70 rounded-sm transition-all"
-                                  style={{ height: `${(count / mMaxLoginHour) * 36}px` }}
-                                  title={`${h}:00 — ${count} logins`}
-                                />
-                                {h % 6 === 0 && (
-                                  <span className="text-[8px] text-slate-600">{h}h</span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
+                          <LoginTimingChart byHour={mLoginByHour} />
                         )}
                       </div>
 
@@ -1507,32 +1736,42 @@ export function AdminDashboard({
           {tab === 'activity' && (
             <div className="p-4 space-y-6">
               <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-400" />
-                  Daily Active Users — Last 7 Days
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-400" />
+                    Daily Active Users — Last 7 Days
+                  </h3>
+                  <button
+                    onClick={() => { setInDepthSection('dau'); setTab('in-depth'); }}
+                    className="text-[10px] text-slate-400 hover:text-orange-300 flex items-center gap-1 transition-colors"
+                  >
+                    In-Depth <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
                 {sessions.length === 0 ? (
                   <p className="text-xs text-slate-500">No session data yet.</p>
                 ) : (
-                  <div className="space-y-2">
-                    {dauData.map(({ date, count }) => (
-                      <div key={date} className="flex items-center gap-3">
-                        <span className="text-[10px] text-slate-500 w-20 shrink-0">
-                          {new Date(date + 'T12:00:00').toLocaleDateString('en', {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </span>
-                        <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-blue-500 transition-all"
-                            style={{ width: `${(count / maxDau) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-slate-300 w-4 text-right">{count}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <AreaChart
+                      data={dauData.map(d => ({
+                        date: new Date(d.date + 'T12:00').toLocaleDateString('en', { month: 'short', day: 'numeric' }),
+                        users: d.count,
+                      }))}
+                      margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="dauGrad7" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} axisLine={{ stroke: '#334155' }} />
+                      <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} width={24} />
+                      <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(v: unknown) => [`${v} users`, 'Active Users']} />
+                      <Area type="monotone" dataKey="users" stroke="#3b82f6" strokeWidth={2} fill="url(#dauGrad7)" dot={{ fill: '#3b82f6', r: 3, strokeWidth: 0 }} activeDot={{ fill: '#60a5fa', r: 5, strokeWidth: 0 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 )}
               </div>
 
@@ -1573,7 +1812,10 @@ export function AdminDashboard({
                           <div key={course.id} className="flex items-center gap-2">
                             <span className="text-[10px] text-slate-500 w-4">{i + 1}</span>
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs text-slate-200 truncate">{course.name}</div>
+                              <div className="text-xs text-slate-200 truncate">
+                                {course.name}
+                                <span className="text-slate-500 ml-1 font-normal">· T{course.term}</span>
+                              </div>
                               <div className="h-1 rounded-full bg-slate-700 mt-0.5">
                                 <div
                                   className="h-full rounded-full"
@@ -1637,7 +1879,15 @@ export function AdminDashboard({
                   });
                 return (
                   <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                    <h3 className="text-sm font-semibold text-slate-200 mb-4">Member Engagement</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-slate-200">Member Engagement</h3>
+                      <button
+                        onClick={() => { setInDepthSection('member-engagement'); setTab('in-depth'); }}
+                        className="text-[10px] text-slate-400 hover:text-orange-300 flex items-center gap-1 transition-colors"
+                      >
+                        In-Depth <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
@@ -1950,26 +2200,19 @@ export function AdminDashboard({
 
                   {/* Login timing by hour */}
                   <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                    <h3 className="text-sm font-semibold text-slate-200 mb-4">
-                      Login Timing — by Hour of Day
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-slate-200">Login Timing — by Hour of Day</h3>
+                      <button
+                        onClick={() => { setInDepthSection('login-timing'); setTab('in-depth' as Tab); }}
+                        className="text-[10px] text-slate-400 hover:text-orange-300 flex items-center gap-1 transition-colors"
+                      >
+                        In-Depth <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
                     {loginByHour.every(c => c === 0) ? (
                       <p className="text-xs text-slate-500">No login events yet.</p>
                     ) : (
-                      <div className="flex items-end gap-0.5 h-16">
-                        {loginByHour.map((count, h) => (
-                          <div key={h} className="flex-1 flex flex-col items-center gap-0.5">
-                            <div
-                              className="w-full bg-orange-500/70 rounded-sm transition-all"
-                              style={{ height: `${(count / maxLoginHour) * 48}px` }}
-                              title={`${h}:00 — ${count} logins`}
-                            />
-                            {h % 6 === 0 && (
-                              <span className="text-[8px] text-slate-600">{h}h</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                      <LoginTimingChart byHour={loginByHour} />
                     )}
                   </div>
 
@@ -2125,6 +2368,831 @@ export function AdminDashboard({
                   </div>
                 </>
               )}
+
+              {/* ── Mobile Drawer Insights ── */}
+              {(() => {
+                const drawerEvents = events.filter(e => e.event_type === 'mobile_drawer_toggled' || e.event_type === 'mobile_drawer_spec_tapped');
+                const openEvents = events.filter(e => e.event_type === 'mobile_drawer_toggled' && (e.payload as Record<string, unknown>)?.open === true);
+                const specTapEvents = events.filter(e => e.event_type === 'mobile_drawer_spec_tapped');
+                const uniqueDrawerUsers = new Set(drawerEvents.map(e => e.user_id));
+                const mobileSessions = sessions.filter(s => (s.metadata as Record<string, unknown>)?.device_type === 'mobile');
+                const mobileUserIds = new Set(mobileSessions.map(s => s.user_id));
+                const drawerAdoptionPct = mobileUserIds.size > 0
+                  ? Math.round((uniqueDrawerUsers.size / mobileUserIds.size) * 100)
+                  : 0;
+
+                const specTapCounts: Record<string, number> = {};
+                specTapEvents.forEach(e => {
+                  const spec = String((e.payload as Record<string, unknown>)?.spec ?? 'unknown');
+                  specTapCounts[spec] = (specTapCounts[spec] ?? 0) + 1;
+                });
+                const topSpec = Object.entries(specTapCounts).sort((a, b) => b[1] - a[1])[0];
+
+                return (
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-200">📱 Mobile Drawer</h3>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Interactions with the mobile bottom drawer</p>
+                      </div>
+                      <button
+                        onClick={() => { setInDepthSection('mobile-drawer'); setTab('in-depth'); }}
+                        className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white transition-colors"
+                      >
+                        In-Depth <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    {drawerEvents.length === 0 ? (
+                      <p className="text-xs text-slate-500">No mobile drawer interactions recorded yet.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="bg-slate-700/40 rounded-lg p-3">
+                          <div className="text-xl font-bold text-cyan-400">{uniqueDrawerUsers.size}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">Unique users</div>
+                        </div>
+                        <div className="bg-slate-700/40 rounded-lg p-3">
+                          <div className="text-xl font-bold text-orange-400">{openEvents.length}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">Total opens</div>
+                        </div>
+                        <div className="bg-slate-700/40 rounded-lg p-3">
+                          <div className="text-xl font-bold text-purple-400">{drawerAdoptionPct}%</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">Mobile adoption</div>
+                        </div>
+                        <div className="bg-slate-700/40 rounded-lg p-3">
+                          <div className="text-xl font-bold text-green-400">{topSpec ? topSpec[0] : '—'}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">Most tapped spec{topSpec ? ` (${topSpec[1]}×)` : ''}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ── IN-DEPTH TAB ── */}
+          {tab === 'in-depth' && (
+            <div className="p-4 space-y-6">
+              {/* Section picker if nothing is selected */}
+              {!inDepthSection && (
+                <div>
+                  <p className="text-slate-400 text-sm mb-4">Select a section to explore in depth:</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                    {[
+                      { key: 'dau' as InDepthSection, label: 'Daily Active Users', desc: '30-day trend, weekly patterns, peak days', color: 'text-blue-400', border: 'border-blue-500/30 hover:border-blue-500/60' },
+                      { key: 'login-timing' as InDepthSection, label: 'Login Timing', desc: 'Peak hours, time-of-day breakdown, patterns', color: 'text-orange-400', border: 'border-orange-500/30 hover:border-orange-500/60' },
+                      { key: 'member-engagement' as InDepthSection, label: 'Member Engagement', desc: 'Full table with filters, recently active, never active', color: 'text-purple-400', border: 'border-purple-500/30 hover:border-purple-500/60' },
+                      { key: 'user-status' as InDepthSection, label: 'User Status', desc: 'New this week, yet to log in from cohort whitelist', color: 'text-green-400', border: 'border-green-500/30 hover:border-green-500/60' },
+                      { key: 'mobile-drawer' as InDepthSection, label: 'Mobile Drawer', desc: 'All members who used the drawer, sessions, specs tapped, filters', color: 'text-cyan-400', border: 'border-cyan-500/30 hover:border-cyan-500/60' },
+                    ].map(({ key, label, desc, color, border }) => (
+                      <button
+                        key={key}
+                        onClick={() => setInDepthSection(key)}
+                        className={`bg-slate-800 rounded-xl p-4 border text-left transition-all ${border}`}
+                      >
+                        <div className={`text-sm font-semibold mb-1 ${color}`}>{label}</div>
+                        <div className="text-[11px] text-slate-400">{desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Breadcrumb */}
+              {inDepthSection && (
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    onClick={() => setInDepthSection(null)}
+                    className="text-slate-400 hover:text-white transition-colors flex items-center gap-1"
+                  >
+                    <ArrowLeft className="w-3 h-3" /> In-Depth
+                  </button>
+                  <span className="text-slate-600">/</span>
+                  <span className="text-white font-semibold">
+                    {inDepthSection === 'dau' && 'Daily Active Users'}
+                    {inDepthSection === 'login-timing' && 'Login Timing'}
+                    {inDepthSection === 'member-engagement' && 'Member Engagement'}
+                    {inDepthSection === 'user-status' && 'User Status'}
+                    {inDepthSection === 'mobile-drawer' && 'Mobile Drawer'}
+                  </span>
+                </div>
+              )}
+
+              {/* ── DAU In-Depth ── */}
+              {inDepthSection === 'dau' && (
+                <div className="space-y-6">
+                  {sessions.length === 0 ? (
+                    <div className="bg-slate-800 rounded-xl p-6 border border-white/5 text-center">
+                      <p className="text-slate-400 text-sm">No session data loaded yet.</p>
+                      <p className="text-slate-500 text-xs mt-1">Visit the Activity tab first to load analytics data.</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Summary stats + drill-down */}
+                      {(() => {
+                        const peakDay = dauData30.reduce((a, b) => b.count > a.count ? b : a, dauData30[0]);
+                        const avg7 = Math.round(dauData.reduce((s, d) => s + d.count, 0) / 7);
+                        const avg30 = Math.round(dauData30.reduce((s, d) => s + d.count, 0) / 30);
+                        const sevenDaysAgoStr = dauData[0]?.date ?? '';
+                        const thirtyDaysAgoStr = dauData30[0]?.date ?? '';
+                        const todayActiveIds = new Set(sessions.filter(s => s.session_start.slice(0, 10) === todayStr).map(s => s.user_id));
+                        const totalUniqueIds = new Set(sessions.map(s => s.user_id));
+                        const avg7ActiveIds = new Set(sessions.filter(s => s.session_start.slice(0, 10) >= sevenDaysAgoStr).map(s => s.user_id));
+                        const avg30ActiveIds = new Set(sessions.filter(s => s.session_start.slice(0, 10) >= thirtyDaysAgoStr).map(s => s.user_id));
+                        const peakDayActiveIds = peakDay ? new Set(sessions.filter(s => s.session_start.slice(0, 10) === peakDay.date).map(s => s.user_id)) : new Set<string>();
+
+                        const cards: { type: DauDrillType; label: string; value: string | number; sub?: string; color: string; ids: Set<string> }[] = [
+                          { type: 'today', label: "Today's Active", value: todayActiveIds.size, color: 'text-cyan-400', ids: todayActiveIds },
+                          { type: 'total', label: 'Total Unique Users', value: totalUniqueIds.size, color: 'text-blue-400', ids: totalUniqueIds },
+                          { type: 'avg7', label: 'Active (7d)', value: avg7ActiveIds.size, sub: `avg ${avg7}/day`, color: 'text-green-400', ids: avg7ActiveIds },
+                          { type: 'avg30', label: 'Active (30d)', value: avg30ActiveIds.size, sub: `avg ${avg30}/day`, color: 'text-orange-400', ids: avg30ActiveIds },
+                          { type: 'peak', label: 'Peak Day', value: peakDay?.count ?? 0, sub: peakDay ? new Date(peakDay.date + 'T12:00').toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '—', color: 'text-purple-400', ids: peakDayActiveIds },
+                        ];
+
+                        const drillCard = dauDrill ? cards.find(c => c.type === dauDrill) : null;
+                        const drillProfiles = drillCard
+                          ? profiles.filter(p => drillCard.ids.has(p.id)).sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email))
+                          : [];
+
+                        return (
+                          <>
+                            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                              {cards.map(({ type, label, value, sub, color }) => {
+                                const isActive = dauDrill === type;
+                                return (
+                                  <button
+                                    key={type}
+                                    onClick={() => setDauDrill(isActive ? null : type)}
+                                    className={`bg-slate-800 rounded-xl p-4 border text-left transition-all ${isActive ? 'border-white/30 ring-1 ring-white/10' : 'border-white/5 hover:border-white/15'}`}
+                                  >
+                                    <div className={`text-2xl font-bold ${color}`}>{value}</div>
+                                    {sub && <div className="text-[10px] text-slate-500">{sub}</div>}
+                                    <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                                      {label}
+                                      <ChevronDown className={`w-3 h-3 transition-transform ${isActive ? 'rotate-180' : ''}`} />
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {dauDrill && drillCard && (
+                              <div className="bg-slate-800/60 rounded-xl border border-white/10 overflow-hidden">
+                                <div className="px-4 py-2.5 border-b border-white/5 flex items-center justify-between">
+                                  <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+                                    {drillCard.label} — {drillProfiles.length} member{drillProfiles.length !== 1 ? 's' : ''}
+                                  </span>
+                                  <button onClick={() => setDauDrill(null)} className="text-slate-500 hover:text-slate-300">
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                                {drillProfiles.length === 0 ? (
+                                  <p className="text-slate-500 text-xs p-4">No members for this metric{dauDrill === 'today' ? ' — no one has visited today yet' : ''}.</p>
+                                ) : (
+                                  <div className="p-3 flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+                                    {drillProfiles.map(p => (
+                                      <button
+                                        key={p.id}
+                                        onClick={() => { setSelectedMember(p); setTab('member'); setExpandedCourse(null); setMemberSubTab('courses'); }}
+                                        className="text-[11px] px-2.5 py-1 rounded-full bg-slate-700 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
+                                      >
+                                        {p.name || p.email.split('@')[0]}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+
+                      {/* 30-day chart */}
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h3 className="text-sm font-semibold text-slate-200 mb-4">30-Day Active Users</h3>
+                        <ResponsiveContainer width="100%" height={220}>
+                          <AreaChart
+                            data={dauData30.map(d => ({
+                              date: new Date(d.date + 'T12:00').toLocaleDateString('en', { month: 'short', day: 'numeric' }),
+                              users: d.count,
+                            }))}
+                            margin={{ top: 8, right: 12, left: -8, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient id="dauGrad30" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                            <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} axisLine={{ stroke: '#334155' }} interval={4} />
+                            <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} width={28} />
+                            <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(v: unknown) => [`${v} users`, 'Active Users']} />
+                            <Area type="monotone" dataKey="users" stroke="#3b82f6" strokeWidth={2} fill="url(#dauGrad30)" dot={{ fill: '#3b82f6', r: 3, strokeWidth: 0 }} activeDot={{ fill: '#60a5fa', r: 5, strokeWidth: 0 }} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Day-of-week pattern */}
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h3 className="text-sm font-semibold text-slate-200 mb-1">Day-of-Week Pattern</h3>
+                        <p className="text-[10px] text-slate-500 mb-4">Average unique active users per day of week (all-time)</p>
+                        <ResponsiveContainer width="100%" height={160}>
+                          <BarChart data={dowAvgData} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                            <XAxis dataKey="label" tick={{ fill: '#94a3b8', fontSize: 11 }} tickLine={false} axisLine={{ stroke: '#334155' }} />
+                            <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} width={28} />
+                            <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(v: unknown) => [`${v} users`, 'Avg DAU']} cursor={{ fill: '#1e293b' }} />
+                            <Bar dataKey="avg" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={52} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Peak days chart */}
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h3 className="text-sm font-semibold text-slate-200 mb-4">Top 10 Peak Days</h3>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart
+                            layout="vertical"
+                            data={[...dauData30]
+                              .sort((a, b) => b.count - a.count)
+                              .slice(0, 10)
+                              .map(d => ({
+                                date: new Date(d.date + 'T12:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }),
+                                users: d.count,
+                              }))}
+                            margin={{ top: 0, right: 48, left: 96, bottom: 0 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                            <XAxis type="number" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                            <YAxis type="category" dataKey="date" tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} axisLine={false} width={96} />
+                            <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(v: unknown) => [`${v} users`, 'Active Users']} cursor={{ fill: '#1e293b' }} />
+                            <Bar dataKey="users" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── Login Timing In-Depth ── */}
+              {inDepthSection === 'login-timing' && (() => {
+                const isToday = loginTimingDate === todayStr;
+                const loginByHourForDate = new Array(24).fill(0) as number[];
+                const isAllTime = loginTimingDate === '__all__';
+                const sourceEvents = isAllTime
+                  ? events.filter(ev => ev.event_type === 'login_complete')
+                  : events.filter(ev => ev.event_type === 'login_complete' && ev.occurred_at.slice(0, 10) === loginTimingDate);
+                for (const e of sourceEvents) {
+                  loginByHourForDate[new Date(e.occurred_at).getHours()]++;
+                }
+                const maxLoginHourForDate = Math.max(...loginByHourForDate, 1);
+
+                function shiftDay(delta: number) {
+                  if (isAllTime) return;
+                  const d = new Date(loginTimingDate + 'T12:00');
+                  d.setDate(d.getDate() + delta);
+                  const next = d.toISOString().slice(0, 10);
+                  if (next <= todayStr) setLoginTimingDate(next);
+                }
+
+                const displayLabel = isAllTime
+                  ? 'All Time'
+                  : isToday
+                  ? 'Today'
+                  : new Date(loginTimingDate + 'T12:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
+
+                return (
+                  <div className="space-y-6">
+                    {events.length === 0 ? (
+                      <div className="bg-slate-800 rounded-xl p-6 border border-white/5 text-center">
+                        <p className="text-slate-400 text-sm">No event data loaded yet.</p>
+                        <p className="text-slate-500 text-xs mt-1">Visit the Activity tab first to load analytics data.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Day navigation */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            onClick={() => shiftDay(-1)}
+                            disabled={isAllTime}
+                            className="p-1.5 rounded-lg bg-slate-800 border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronRight className="w-4 h-4 rotate-180" />
+                          </button>
+                          <span className="text-sm font-semibold text-white min-w-[120px] text-center">{displayLabel}</span>
+                          <button
+                            onClick={() => shiftDay(1)}
+                            disabled={isAllTime || isToday}
+                            className="p-1.5 rounded-lg bg-slate-800 border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                          <div className="w-px h-4 bg-white/10 mx-1" />
+                          <button
+                            onClick={() => setLoginTimingDate(todayStr)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${isToday ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300 hover:text-white'}`}
+                          >
+                            Today
+                          </button>
+                          <button
+                            onClick={() => setLoginTimingDate('__all__')}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${isAllTime ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300 hover:text-white'}`}
+                          >
+                            All Time
+                          </button>
+                        </div>
+
+                        <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                          <h3 className="text-sm font-semibold text-slate-200 mb-4">
+                            Login Timing — {displayLabel}
+                          </h3>
+                          {loginByHourForDate.every(c => c === 0) ? (
+                            <p className="text-xs text-slate-500">No logins on this day.</p>
+                          ) : (
+                            <LoginTimingChart byHour={loginByHourForDate} />
+                          )}
+                        </div>
+
+                        {/* Top hours table */}
+                        <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                          <h3 className="text-sm font-semibold text-slate-200 mb-3">Busiest Hours</h3>
+                          {loginByHourForDate.every(c => c === 0) ? (
+                            <p className="text-xs text-slate-500">No data for this day.</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {loginByHourForDate
+                                .map((count, h) => ({ h, count }))
+                                .filter(x => x.count > 0)
+                                .sort((a, b) => b.count - a.count)
+                                .slice(0, 8)
+                                .map(({ h, count }, i) => (
+                                  <div key={h} className="flex items-center gap-3 text-xs">
+                                    <span className="text-slate-500 w-4">{i + 1}</span>
+                                    <span className="text-slate-300 w-24 font-mono">
+                                      {String(h).padStart(2,'0')}:00 – {String(h+1).padStart(2,'0')}:00
+                                    </span>
+                                    <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full bg-orange-500"
+                                        style={{ width: `${(count / maxLoginHourForDate) * 100}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-slate-300 w-16 text-right shrink-0">{count} logins</span>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* ── Member Engagement In-Depth ── */}
+              {inDepthSection === 'member-engagement' && (() => {
+                function handleEngagementSort2(col: EngagementSortCol) {
+                  setEngagementSort(prev =>
+                    prev.col === col
+                      ? { col, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+                      : { col, dir: col === 'member' ? 'asc' : 'desc' },
+                  );
+                }
+                function SortIcon2({ col }: { col: EngagementSortCol }) {
+                  if (engagementSort.col !== col) return <ChevronsUpDown className="w-3 h-3 ml-1 opacity-40" />;
+                  return engagementSort.dir === 'asc'
+                    ? <ArrowUp className="w-3 h-3 ml-1 text-orange-400" />
+                    : <ArrowDown className="w-3 h-3 ml-1 text-orange-400" />;
+                }
+                function fmtVisitDate2(ts: string) {
+                  return new Date(ts).toLocaleDateString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                }
+
+                const now = Date.now();
+                const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+                const filteredForEngagement = profiles.filter(p => {
+                  const stats = userSessionStats.get(p.id);
+                  if (memberEngagementFilter === '7d') return stats?.lastVisit ? stats.lastVisit > sevenDaysAgo : false;
+                  if (memberEngagementFilter === '30d') return stats?.lastVisit ? stats.lastVisit > thirtyDaysAgo : false;
+                  if (memberEngagementFilter === 'never') return !stats?.lastVisit && !stats?.lastActivity;
+                  return true;
+                });
+
+                const sorted2 = filteredForEngagement
+                  .map(p => ({ p, stats: userSessionStats.get(p.id) }))
+                  .sort((a, b) => {
+                    const { col, dir } = engagementSort;
+                    let cmp = 0;
+                    if (col === 'member') {
+                      const na = (a.p.name || a.p.email.split('@')[0]).toLowerCase();
+                      const nb = (b.p.name || b.p.email.split('@')[0]).toLowerCase();
+                      cmp = na.localeCompare(nb);
+                    } else if (col === 'lastVisit') {
+                      cmp = (a.stats?.lastVisit ?? '').localeCompare(b.stats?.lastVisit ?? '');
+                    } else if (col === 'lastActivity') {
+                      cmp = (a.stats?.lastActivity ?? '').localeCompare(b.stats?.lastActivity ?? '');
+                    } else if (col === 'sessions') {
+                      cmp = (a.stats?.totalSessions ?? 0) - (b.stats?.totalSessions ?? 0);
+                    } else if (col === 'avgDuration') {
+                      cmp = (a.stats?.avgMinutes ?? 0) - (b.stats?.avgMinutes ?? 0);
+                    }
+                    return dir === 'asc' ? cmp : -cmp;
+                  });
+
+                return (
+                  <div className="space-y-4">
+                    {/* Filters */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-slate-400">Filter:</span>
+                      {([
+                        { key: 'all', label: `All (${profiles.length})` },
+                        { key: '7d', label: 'Active last 7 days' },
+                        { key: '30d', label: 'Active last 30 days' },
+                        { key: 'never', label: 'Never active' },
+                      ] as const).map(f => (
+                        <button
+                          key={f.key}
+                          onClick={() => setMemberEngagementFilter(f.key)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                            memberEngagementFilter === f.key
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:text-white'
+                          }`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {sessions.length === 0 && (
+                      <p className="text-[11px] text-slate-500 italic">
+                        Visit the Activity tab first to load session data for accurate filtering.
+                      </p>
+                    )}
+
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h3 className="text-sm font-semibold text-slate-200 mb-4">
+                        Member Engagement
+                        <span className="ml-2 text-[10px] font-normal text-slate-500">
+                          ({sorted2.length} member{sorted2.length !== 1 ? 's' : ''})
+                        </span>
+                      </h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-slate-500 border-b border-white/5">
+                              <th className="text-left py-2 pr-4 font-medium">
+                                <button onClick={() => handleEngagementSort2('member')} className="flex items-center hover:text-slate-300 transition-colors">
+                                  Member<SortIcon2 col="member" />
+                                </button>
+                              </th>
+                              <th className="text-left py-2 pr-4 font-medium">
+                                <button onClick={() => handleEngagementSort2('lastVisit')} className="flex items-center hover:text-slate-300 transition-colors">
+                                  Last Visit<SortIcon2 col="lastVisit" />
+                                </button>
+                              </th>
+                              <th className="text-left py-2 pr-4 font-medium">
+                                <button onClick={() => handleEngagementSort2('lastActivity')} className="flex items-center hover:text-slate-300 transition-colors">
+                                  Last Activity<SortIcon2 col="lastActivity" />
+                                </button>
+                              </th>
+                              <th className="text-right py-2 pr-4 font-medium">
+                                <button onClick={() => handleEngagementSort2('sessions')} className="flex items-center justify-end w-full hover:text-slate-300 transition-colors">
+                                  Sessions<SortIcon2 col="sessions" />
+                                </button>
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                <button onClick={() => handleEngagementSort2('avgDuration')} className="flex items-center justify-end w-full hover:text-slate-300 transition-colors">
+                                  Avg Duration<SortIcon2 col="avgDuration" />
+                                </button>
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {sorted2.map(({ p, stats }) => (
+                              <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
+                                <td className="py-2 pr-4">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedMember(p);
+                                      setTab('member');
+                                      setExpandedCourse(null);
+                                      setMemberSubTab('courses');
+                                    }}
+                                    className="text-slate-200 hover:text-orange-300 transition-colors text-left"
+                                  >
+                                    {p.name || p.email.split('@')[0]}
+                                  </button>
+                                </td>
+                                <td className="py-2 pr-4 text-slate-400">
+                                  {stats?.lastVisit ? fmtVisitDate2(stats.lastVisit) : '—'}
+                                </td>
+                                <td className="py-2 pr-4 text-slate-400">
+                                  {stats?.lastActivity ? fmtVisitDate2(stats.lastActivity) : '—'}
+                                </td>
+                                <td className="py-2 pr-4 text-right text-slate-300">
+                                  {stats?.totalSessions ?? 0}
+                                </td>
+                                <td className="py-2 text-right text-slate-300">
+                                  {stats?.avgMinutes ? `${stats.avgMinutes}m` : '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* ── User Status In-Depth ── */}
+              {inDepthSection === 'user-status' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* New this week */}
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-slate-200">
+                          New This Week
+                          <span className="ml-2 text-[10px] font-normal text-slate-500">first login in last 7 days</span>
+                        </h3>
+                        <span className="text-xl font-bold text-green-400">{firstTimeLogins.length}</span>
+                      </div>
+                      {sessions.length === 0 && lastSignIns.length === 0 ? (
+                        <p className="text-[11px] text-slate-500 italic">Open Activity tab first to load login data.</p>
+                      ) : firstTimeLogins.length === 0 ? (
+                        <p className="text-[11px] text-slate-500">No new logins in the last 7 days.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5">
+                          {firstTimeLogins.map(p => (
+                            <button
+                              key={p.id}
+                              onClick={() => { setSelectedMember(p); setTab('member'); setMemberSubTab('courses'); setExpandedCourse(null); }}
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors"
+                            >
+                              {p.name || p.email.split('@')[0]}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Yet to log in */}
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-slate-200">
+                          Yet to Log In
+                          <span className="ml-2 text-[10px] font-normal text-slate-500">in cohort, no account yet</span>
+                        </h3>
+                        <span className="text-xl font-bold text-amber-400">{neverLoggedIn.length}</span>
+                      </div>
+                      {neverLoggedIn.length === 0 ? (
+                        <p className="text-[11px] text-slate-500">Everyone in the whitelist has logged in.</p>
+                      ) : (
+                        <div className="max-h-64 overflow-y-auto space-y-1">
+                          {neverLoggedIn
+                            .sort((a, b) => (a.display_name || a.email).localeCompare(b.display_name || b.email))
+                            .map(w => (
+                              <div key={w.email} className="flex items-center gap-2 text-[11px]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 shrink-0" />
+                                <span className="text-slate-300 font-medium">{w.display_name || w.email.split('@')[0]}</span>
+                                <span className="text-slate-600 truncate">{w.email}</span>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* All profiles with last sign-in */}
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <h3 className="text-sm font-semibold text-slate-200 mb-3">All Members — Login Status</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-slate-500 border-b border-white/5">
+                            <th className="text-left py-2 pr-4 font-medium">Member</th>
+                            <th className="text-left py-2 pr-4 font-medium">Email</th>
+                            <th className="text-left py-2 font-medium">Last Sign In</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {[...profiles]
+                            .sort((a, b) => {
+                              const la = lastSignInMap.get(a.id) ?? '';
+                              const lb = lastSignInMap.get(b.id) ?? '';
+                              return lb.localeCompare(la);
+                            })
+                            .map(p => {
+                              const signIn = lastSignInMap.get(p.id);
+                              const isNew = signIn && signIn > sevenDaysAgo;
+                              return (
+                                <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
+                                  <td className="py-2 pr-4">
+                                    <button
+                                      onClick={() => { setSelectedMember(p); setTab('member'); setExpandedCourse(null); setMemberSubTab('courses'); }}
+                                      className="text-slate-200 hover:text-orange-300 transition-colors"
+                                    >
+                                      {p.name || p.email.split('@')[0]}
+                                    </button>
+                                  </td>
+                                  <td className="py-2 pr-4 text-slate-500">{p.email}</td>
+                                  <td className="py-2">
+                                    {signIn ? (
+                                      <span className={isNew ? 'text-green-400 font-semibold' : 'text-slate-400'}>
+                                        {new Date(signIn).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        {isNew && <span className="ml-1.5 text-[9px] bg-green-500/15 px-1.5 py-0.5 rounded-full">new</span>}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-600">Never</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Mobile Drawer In-Depth ── */}
+              {inDepthSection === 'mobile-drawer' && (() => {
+                const drawerOpenEvents = events.filter(e =>
+                  e.event_type === 'mobile_drawer_toggled' &&
+                  (e.payload as Record<string, unknown>)?.open === true
+                );
+                const specTapEvents = events.filter(e => e.event_type === 'mobile_drawer_spec_tapped');
+
+                // Per-member stats
+                const memberMap = new Map<string, {
+                  firstInteraction: string;
+                  lastInteraction: string;
+                  totalOpens: number;
+                  specsTapped: Record<string, number>;
+                  sessionIds: Set<string>;
+                }>();
+
+                [...drawerOpenEvents, ...specTapEvents].forEach(e => {
+                  const existing = memberMap.get(e.user_id);
+                  if (!existing) {
+                    memberMap.set(e.user_id, {
+                      firstInteraction: e.occurred_at,
+                      lastInteraction: e.occurred_at,
+                      totalOpens: e.event_type === 'mobile_drawer_toggled' ? 1 : 0,
+                      specsTapped: {},
+                      sessionIds: new Set(),
+                    });
+                  } else {
+                    if (e.occurred_at < existing.firstInteraction) existing.firstInteraction = e.occurred_at;
+                    if (e.occurred_at > existing.lastInteraction) existing.lastInteraction = e.occurred_at;
+                    if (e.event_type === 'mobile_drawer_toggled') existing.totalOpens++;
+                  }
+                  const entry = memberMap.get(e.user_id)!;
+                  if (e.event_type === 'mobile_drawer_spec_tapped') {
+                    const spec = String((e.payload as Record<string, unknown>)?.spec ?? 'unknown');
+                    entry.specsTapped[spec] = (entry.specsTapped[spec] ?? 0) + 1;
+                  }
+                });
+
+                // Attach session counts from user_sessions
+                sessions.forEach(s => {
+                  const entry = memberMap.get(s.user_id);
+                  if (entry) entry.sessionIds.add(s.id ?? s.session_start);
+                });
+
+                const rows = [...memberMap.entries()]
+                  .map(([userId, stats]) => ({
+                    profile: profiles.find(p => p.id === userId),
+                    userId,
+                    ...stats,
+                    sessionCount: stats.sessionIds.size,
+                  }))
+                  .filter(r => r.profile)
+                  .sort((a, b) => b.lastInteraction.localeCompare(a.lastInteraction));
+
+                const cutoff = drawerDateFilter === '7d'
+                  ? new Date(Date.now() - 7 * 86400000).toISOString()
+                  : drawerDateFilter === '30d'
+                  ? new Date(Date.now() - 30 * 86400000).toISOString()
+                  : null;
+
+                const filtered = rows.filter(r => {
+                  if (cutoff && r.lastInteraction < cutoff) return false;
+                  if (drawerSpecFilter !== 'all' && !r.specsTapped[drawerSpecFilter]) return false;
+                  return true;
+                });
+
+                const allSpecs = [...new Set(specTapEvents.map(e => String((e.payload as Record<string, unknown>)?.spec ?? '')).filter(Boolean))];
+
+                return (
+                  <div className="space-y-4">
+                    {/* Summary row */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <div className="text-xl font-bold text-cyan-400">{rows.length}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Unique users</div>
+                      </div>
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <div className="text-xl font-bold text-orange-400">{drawerOpenEvents.length}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Total opens</div>
+                      </div>
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <div className="text-xl font-bold text-purple-400">{specTapEvents.length}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Spec taps</div>
+                      </div>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <span className="text-xs text-slate-500">Filter:</span>
+                      {(['all', '7d', '30d'] as const).map(f => (
+                        <button
+                          key={f}
+                          onClick={() => setDrawerDateFilter(f)}
+                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${drawerDateFilter === f ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'border-white/10 text-slate-400 hover:text-slate-200'}`}
+                        >
+                          {f === 'all' ? 'All time' : `Last ${f}`}
+                        </button>
+                      ))}
+                      <span className="text-slate-600">·</span>
+                      <button
+                        onClick={() => setDrawerSpecFilter('all')}
+                        className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${drawerSpecFilter === 'all' ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'border-white/10 text-slate-400 hover:text-slate-200'}`}
+                      >
+                        All specs
+                      </button>
+                      {allSpecs.map(spec => (
+                        <button
+                          key={spec}
+                          onClick={() => setDrawerSpecFilter(spec)}
+                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${drawerSpecFilter === spec ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'border-white/10 text-slate-400 hover:text-slate-200'}`}
+                        >
+                          {spec}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Table */}
+                    {filtered.length === 0 ? (
+                      <p className="text-xs text-slate-500 py-4">No interactions match the selected filters.</p>
+                    ) : (
+                      <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="border-b border-white/10 text-slate-500 text-left">
+                                <th className="py-2.5 px-4 font-medium">Member</th>
+                                <th className="py-2.5 px-4 font-medium">Sessions</th>
+                                <th className="py-2.5 px-4 font-medium">Drawer opens</th>
+                                <th className="py-2.5 px-4 font-medium">Specs tapped</th>
+                                <th className="py-2.5 px-4 font-medium">First used</th>
+                                <th className="py-2.5 px-4 font-medium">Last used</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {filtered.map(r => (
+                                <tr key={r.userId} className="hover:bg-slate-700/30 transition-colors">
+                                  <td className="py-2.5 px-4">
+                                    <button
+                                      onClick={() => { setSelectedMember(r.profile!); setTab('member'); setMemberSubTab('activity'); }}
+                                      className="text-slate-200 hover:text-cyan-300 transition-colors text-left"
+                                    >
+                                      {r.profile!.name || r.profile!.email.split('@')[0]}
+                                    </button>
+                                  </td>
+                                  <td className="py-2.5 px-4 text-slate-400">{r.sessionCount}</td>
+                                  <td className="py-2.5 px-4 text-orange-400 font-semibold">{r.totalOpens}</td>
+                                  <td className="py-2.5 px-4">
+                                    {Object.entries(r.specsTapped).length === 0 ? (
+                                      <span className="text-slate-600">—</span>
+                                    ) : (
+                                      <span className="text-slate-300">
+                                        {Object.entries(r.specsTapped)
+                                          .sort((a, b) => b[1] - a[1])
+                                          .map(([spec, count]) => `${spec} (${count}×)`)
+                                          .join(', ')}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="py-2.5 px-4 text-slate-400">{fmtTs(r.firstInteraction)}</td>
+                                  <td className="py-2.5 px-4 text-slate-400">{fmtRelative(r.lastInteraction)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
 

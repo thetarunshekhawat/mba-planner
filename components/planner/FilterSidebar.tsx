@@ -31,6 +31,7 @@ interface Props {
   userName: string;
   userEmail: string;
   onSignOut: () => void;
+  mobile?: boolean;
 }
 
 function SpecButton({
@@ -66,6 +67,7 @@ export function FilterSidebar({
   userName,
   userEmail,
   onSignOut,
+  mobile = false,
 }: Props) {
   const electives = ALL_COURSES.filter(c => c.type === 'elective');
   const selectedElectives = electives.filter(c => selected.has(c.id));
@@ -89,8 +91,13 @@ export function FilterSidebar({
     set({ workloads: next });
   }
 
+  const Wrapper = mobile ? 'div' : 'aside';
+  const wrapperClass = mobile
+    ? 'w-full flex flex-col bg-slate-900'
+    : 'w-64 flex-shrink-0 bg-slate-900/80 border-r border-white/10 flex flex-col h-full overflow-y-auto';
+
   return (
-    <aside className="w-64 flex-shrink-0 bg-slate-900/80 border-r border-white/10 flex flex-col h-full overflow-y-auto">
+    <Wrapper className={wrapperClass}>
       {/* User header */}
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -287,6 +294,6 @@ export function FilterSidebar({
           </label>
         </div>
       </div>
-    </aside>
+    </Wrapper>
   );
 }

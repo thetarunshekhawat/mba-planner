@@ -21,7 +21,9 @@ export type EventType =
   | 'calendar_accessed'
   | 'export_dialog_opened'
   | 'calendar_panel_opened'
-  | 'sidebar_toggled';
+  | 'sidebar_toggled'
+  | 'mobile_drawer_toggled'
+  | 'mobile_drawer_spec_tapped';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

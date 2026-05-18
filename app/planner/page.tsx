@@ -17,6 +17,21 @@ import { ALL_COURSES } from '@/data/courses';
 import type { Course, SpecId, Profile } from '@/types';
 import { useRouter } from 'next/navigation';
 
+const TERM_DATES = [
+  { term: 4 as const, label: 'Term 4', dates: 'Jun 29 – Sep 27, 2026', start: new Date('2026-06-29'), end: new Date('2026-09-27') },
+  { term: 5 as const, label: 'Term 5', dates: 'Sep 28 – Dec 27, 2026', start: new Date('2026-09-28'), end: new Date('2026-12-27') },
+  { term: 6 as const, label: 'Term 6', dates: 'Jan 4 – Apr 4, 2027',   start: new Date('2027-01-04'), end: new Date('2027-04-04') },
+];
+
+function getCurrentTerm(): 4 | 5 | 6 {
+  const today = new Date();
+  for (const t of TERM_DATES) {
+    if (today >= t.start && today <= t.end) return t.term;
+  }
+  if (today < TERM_DATES[0].start) return 4;
+  return 6;
+}
+
 const ADMIN_EMAILS = new Set([
   'tarun.shekhawat2027@bitsom.edu.in',
   'varad.dharap2027@bitsom.edu.in',
@@ -46,6 +61,7 @@ export default function PlannerPage() {
   const [activeModal, setActiveModal] = useState<Course | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('plan');
+  const [selectedTerms, setSelectedTerms] = useState<Set<4 | 5 | 6>>(() => new Set([getCurrentTerm()]));
 
   const { trackEvent } = useAnalytics(userId);
   const filtersDirtyRef = useRef(false);
@@ -105,6 +121,14 @@ export default function PlannerPage() {
   function handleFiltersChange(newFilters: Filters) {
     filtersDirtyRef.current = true;
     setFilters(newFilters);
+  }
+
+  function toggleTerm(term: 4 | 5 | 6) {
+    setSelectedTerms(prev => {
+      const next = new Set(prev);
+      if (next.has(term)) { next.delete(term); } else { next.add(term); }
+      return next;
+    });
   }
 
   async function handleSignOut() {
@@ -178,7 +202,7 @@ export default function PlannerPage() {
   );
 
   const handleExportCalendar = () => {
-    const coursesToExport = ALL_COURSES.filter(c => scheduleVisibleIds.has(c.id));
+    const coursesToExport = ALL_COURSES.filter(c => scheduleVisibleIds.has(c.id) && selectedTerms.has(c.term));
     if (coursesToExport.length === 0) return;
     trackEvent('export_triggered', { type: 'ics' });
     
@@ -195,7 +219,9 @@ export default function PlannerPage() {
   };
 
   const getSubscriptionUrl = () => {
-    const courseIds = Array.from(selected).join(',');
+    const courseIds = ALL_COURSES
+      .filter(c => selected.has(c.id) && selectedTerms.has(c.term))
+      .map(c => c.id).join(',');
     if (!courseIds) return '';
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     return `${baseUrl}/api/calendar?courses=${courseIds}`;
@@ -308,6 +334,27 @@ export default function PlannerPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col gap-6 mt-4">
+                    {/* Term selector */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-300 mb-3 px-1">Terms to Include</h4>
+                      <div className="flex gap-2">
+                        {TERM_DATES.map(({ term, label, dates }) => (
+                          <button
+                            key={term}
+                            onClick={() => toggleTerm(term)}
+                            className={`flex-1 flex flex-col items-center gap-0.5 p-3 rounded-lg border text-center transition-colors ${
+                              selectedTerms.has(term)
+                                ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
+                                : 'bg-slate-800 border-white/5 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
+                            }`}
+                          >
+                            <span className="font-semibold text-sm">{label}</span>
+                            <span className="text-[10px] opacity-70 leading-tight">{dates}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <hr className="border-slate-800" />
                     {/* PDF Section */}
                     <div>
                       <h4 className="text-sm font-semibold text-slate-300 mb-3 px-1">Document</h4>
@@ -331,11 +378,12 @@ export default function PlannerPage() {
                       <div className="flex flex-col gap-2">
                         {/* Google Calendar */}
                         <a
-                          href={getGoogleCalendarUrl()}
+                          href={selectedTerms.size === 0 ? undefined : getGoogleCalendarUrl()}
                           target="_blank"
                           rel="noopener noreferrer"
-                          onClick={() => trackEvent('export_triggered', { type: 'google' })}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5"
+                          onClick={() => { if (selectedTerms.size > 0) trackEvent('export_triggered', { type: 'google' }); }}
+                          aria-disabled={selectedTerms.size === 0}
+                          className={`flex items-center gap-3 p-3 rounded-lg bg-slate-800 border border-white/5 transition-colors ${selectedTerms.size === 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'hover:bg-slate-700'}`}
                         >
                           <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
                             <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
@@ -350,9 +398,10 @@ export default function PlannerPage() {
 
                         {/* Apple Calendar */}
                         <a
-                          href={getAppleCalendarUrl()}
-                          onClick={() => trackEvent('export_triggered', { type: 'apple' })}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5"
+                          href={selectedTerms.size === 0 ? undefined : getAppleCalendarUrl()}
+                          onClick={() => { if (selectedTerms.size > 0) trackEvent('export_triggered', { type: 'apple' }); }}
+                          aria-disabled={selectedTerms.size === 0}
+                          className={`flex items-center gap-3 p-3 rounded-lg bg-slate-800 border border-white/5 transition-colors ${selectedTerms.size === 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'hover:bg-slate-700'}`}
                         >
                           <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
                             <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="currentColor">
@@ -368,7 +417,8 @@ export default function PlannerPage() {
                         {/* Download ICS */}
                         <button
                           onClick={handleExportCalendar}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5 w-full"
+                          disabled={selectedTerms.size === 0}
+                          className={`flex items-center gap-3 p-3 rounded-lg bg-slate-800 border border-white/5 transition-colors w-full ${selectedTerms.size === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-700'}`}
                         >
                           <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
                             <CalendarHeart className="w-4 h-4 text-slate-300" />
@@ -394,6 +444,25 @@ export default function PlannerPage() {
                   <SheetHeader className="px-0">
                     <SheetTitle className="text-white">Monthly Calendar</SheetTitle>
                   </SheetHeader>
+                  <div className="mt-4">
+                    <h4 className="text-sm font-semibold text-slate-300 mb-3">Terms to Include</h4>
+                    <div className="flex gap-2">
+                      {TERM_DATES.map(({ term, label, dates }) => (
+                        <button
+                          key={term}
+                          onClick={() => toggleTerm(term)}
+                          className={`flex-1 flex flex-col items-center gap-0.5 p-3 rounded-lg border text-center transition-colors ${
+                            selectedTerms.has(term)
+                              ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
+                              : 'bg-slate-800 border-white/5 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
+                          }`}
+                        >
+                          <span className="font-semibold text-sm">{label}</span>
+                          <span className="text-[10px] opacity-70 leading-tight">{dates}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="mt-6 flex justify-center">
                     <Calendar
                       mode="single"
@@ -467,6 +536,7 @@ export default function PlannerPage() {
                   selected={selected}
                   visibleIds={scheduleVisibleIds}
                   userSpecs={profile.specializations}
+                  selectedTerms={selectedTerms}
                   onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
                 />
               )}

@@ -21,10 +21,11 @@ export interface CourseReview {
 }
 
 export interface SessionSlot {
-  slot: string;     // e.g. "09:00–12:00"
-  room: string;     // e.g. "S04"
-  days: string[];   // e.g. ['Mon','Tue','Wed','Thu','Fri']
-  part?: string;    // 'A' | 'B' for two-session courses
+  slot: string;       // e.g. "09:00–12:00"
+  room: string;       // e.g. "S04"
+  days: string[];     // Week 1 days (or all weeks if identical)
+  part?: string;      // 'A' | 'B' for two-section courses
+  week2Days?: string[]; // Week 2 days if different from week 1
 }
 
 export interface Course {

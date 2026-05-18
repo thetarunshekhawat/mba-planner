@@ -68,7 +68,7 @@ export const ALL_COURSES: Course[] = [
     code: 'IFIN',
     faculty: 'Prof. Prachi Mishra',
     seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] }],
+    timings: [{ slot: '13:30–16:30', room: 'S04', days: ['Wed', 'Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
     review: null,
   },
 
@@ -81,7 +81,7 @@ export const ALL_COURSES: Course[] = [
     code: 'STOP',
     faculty: 'Prof. Vinayak Deshpande',
     seats: 60, specs: ['LSTR', 'OPS'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] }],
+    timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'] }],
     review: {
       learningDepth: 5, workload: 'Moderate-Low', careerRelevance: 3,
       whatYouLearn: ['Sustainable ops setup', 'Environmental factors', 'Lean and green ops', 'Sustainability across ops'],
@@ -175,8 +175,8 @@ export const ALL_COURSES: Course[] = [
     name: 'Financial Statement Analysis',
     code: 'FSAT',
     faculty: 'Prof. Prabhu Venkatachalam',
-    seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: 'T4FSA',
-    timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Wed', 'Fri'] }],
+    seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Wed', 'Fri'], week2Days: ['Tue', 'Thu'] }],
     review: {
       learningDepth: 5, workload: 'High', careerRelevance: 5,
       whatYouLearn: ['Ratio Analysis', 'Structured forecasting', 'Cash Flow & Earnings Analysis', 'Equity Valuation Models'],
@@ -201,7 +201,7 @@ export const ALL_COURSES: Course[] = [
     name: 'Building an E-Commerce Business',
     code: 'BECB',
     faculty: 'Prof. Lil Mohan',
-    seats: 120, specs: ['ENT', 'ECOM'], type: 'elective', conflictGroup: 'T4W7',
+    seats: 120, specs: ['ENT', 'ECOM'], type: 'elective', conflictGroup: null,
     timings: [
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '17:00–20:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
@@ -228,7 +228,7 @@ export const ALL_COURSES: Course[] = [
     name: 'Machine Learning',
     code: 'MHLG',
     faculty: 'Prof. Meenakshi Balakrishna',
-    seats: 60, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: 'T4W7',
+    seats: 60, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
     review: {
       learningDepth: 3, workload: 'Moderate', careerRelevance: 2,
@@ -242,32 +242,6 @@ export const ALL_COURSES: Course[] = [
         'Due to Gen AI & lack of practical projects, you don\'t really internalise these concepts',
       ],
       summary: 'Prof teaches decently well. Can skip if not actively working on these concepts.',
-    },
-  },
-
-  // Block 19 Week 2 — Aug 17
-  {
-    id: 10, term: 4, week: 8,
-    startDate: '2026-08-17', endDate: '2026-08-21',
-    dates: 'Aug 17–21', block: null,
-    name: 'Financial Statement Analysis (Run 2)',
-    code: 'FSAT',
-    faculty: 'Prof. Prabhu Venkatachalam',
-    seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: 'T4FSA',
-    timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Wed', 'Fri'] }],
-    review: {
-      learningDepth: 5, workload: 'High', careerRelevance: 5,
-      whatYouLearn: ['Ratio Analysis', 'Structured forecasting', 'Cash Flow & Earnings Analysis', 'Equity Valuation Models'],
-      highlights: [
-        'End-to-end analysis of a business with daily in-class numericals; small cases',
-        'Concept-first teaching style, slow-paced, and structured',
-        'Covers equity research, fundamental analysis with respect to career in finance',
-      ],
-      lowlights: [
-        'Exam, Quiz, Heavy Final Project with regular check-ins, No CP',
-        'Avoid Double Block with this',
-      ],
-      summary: 'Would recommend. Covers everything needed to analyze a business fundamentally.',
     },
   },
 
@@ -424,7 +398,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 17, term: 5, week: 15,
     startDate: '2026-10-05', endDate: '2026-10-09',
-    dates: 'Oct 5–9', block: null,
+    dates: 'Oct 5–9', block: 22,
     name: 'Valuation',
     faculty: 'Sughosh M',
     seats: null, specs: ['FIN'], type: 'elective', conflictGroup: null,
@@ -458,7 +432,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 19, term: 5, week: 17,
     startDate: '2026-10-19', endDate: '2026-10-23',
-    dates: 'Oct 19–23', block: null,
+    dates: 'Oct 19–23', block: 23,
     name: 'Corporate Law',
     faculty: 'Kishu Daswani',
     seats: null, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: 'T5W17',
@@ -467,7 +441,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 20, term: 5, week: 17,
     startDate: '2026-10-19', endDate: '2026-10-23',
-    dates: 'Oct 19–23', block: null,
+    dates: 'Oct 19–23', block: 23,
     name: 'Corporate Innovation & Venture Building',
     faculty: 'Srikant Sastri',
     seats: null, specs: ['ENT'], type: 'elective', conflictGroup: 'T5W17',
@@ -521,7 +495,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 22, term: 5, week: 19,
     startDate: '2026-11-02', endDate: '2026-11-06',
-    dates: 'Nov 2–6', block: null,
+    dates: 'Nov 2–6', block: 24,
     name: 'First Principles of Consulting',
     faculty: 'TBD',
     seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null,
@@ -617,7 +591,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 27, term: 5, week: 23,
     startDate: '2026-11-30', endDate: '2026-12-04',
-    dates: 'Nov 30–Dec 4', block: null,
+    dates: 'Nov 30–Dec 4', block: 25,
     name: 'Corp Innovation & Venture Building (Staggered)',
     faculty: 'Srikant Sastri',
     seats: null, specs: ['ENT'], type: 'elective', conflictGroup: null,
@@ -686,7 +660,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 30, term: 5, week: 25,
     startDate: '2026-12-14', endDate: '2026-12-18',
-    dates: 'Dec 14–18', block: null,
+    dates: 'Dec 14–18', block: 26,
     name: 'Service Operations',
     faculty: 'Prof. Vishal Ahuja',
     seats: null, specs: ['ECOM', 'OPS'], type: 'elective', conflictGroup: null,
@@ -762,7 +736,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 34, term: 6, week: 29,
     startDate: '2027-01-11', endDate: '2027-01-15',
-    dates: 'Jan 11–15', block: null,
+    dates: 'Jan 11–15', block: 27,
     name: 'Advanced Corporate Finance',
     faculty: 'N Prabhala',
     seats: null, specs: ['FIN'], type: 'elective', conflictGroup: 'T6W29',
@@ -771,7 +745,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 35, term: 6, week: 29,
     startDate: '2027-01-11', endDate: '2027-01-15',
-    dates: 'Jan 11–15', block: null,
+    dates: 'Jan 11–15', block: 27,
     name: 'Pricing & Revenue Optimisation',
     faculty: 'Prof. Andrew Gershoff',
     seats: null, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: 'T6W29',
@@ -817,7 +791,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 37, term: 6, week: 31,
     startDate: '2027-01-25', endDate: '2027-01-29',
-    dates: 'Jan 25–29', block: null,
+    dates: 'Jan 25–29', block: 28,
     name: 'Organisation Change Management',
     faculty: 'Prof. Ranjeet Nambudiri',
     seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W31',
@@ -838,7 +812,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 38, term: 6, week: 31,
     startDate: '2027-01-25', endDate: '2027-01-29',
-    dates: 'Jan 25–29', block: null,
+    dates: 'Jan 25–29', block: 28,
     name: 'New Product & Service Development',
     faculty: 'Prof. Rohit Verma',
     seats: null, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: 'T6W31',
@@ -882,7 +856,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 40, term: 6, week: 33,
     startDate: '2027-02-08', endDate: '2027-02-12',
-    dates: 'Feb 8–12', block: null,
+    dates: 'Feb 8–12', block: 29,
     name: 'Private Markets, Equities & Hedge Funds',
     faculty: 'Prof. Vikram Kuriyan',
     seats: null, specs: ['FIN'], type: 'elective', conflictGroup: null,
@@ -937,7 +911,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 43, term: 6, week: 36,
     startDate: '2027-03-01', endDate: '2027-03-05',
-    dates: 'Mar 1–5', block: null,
+    dates: 'Mar 1–5', block: 30,
     name: 'Economics of Strategy',
     faculty: 'Prof. Parasuram Balasubramanian',
     seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null,
@@ -1015,7 +989,7 @@ export const ALL_COURSES: Course[] = [
   {
     id: 47, term: 6, week: 40,
     startDate: '2027-03-29', endDate: '2027-04-02',
-    dates: 'Mar 29–Apr 2', block: null,
+    dates: 'Mar 29–Apr 2', block: 32,
     name: 'ML OPS',
     faculty: 'Prof. Shankar Prakash',
     seats: null, specs: ['OPS'], type: 'elective', conflictGroup: null,

@@ -1,8 +1,9 @@
 'use client';
 
-import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap } from 'lucide-react';
+import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
+import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 
 interface Props {
   selected: Set<number>;
@@ -29,6 +30,7 @@ function CourseCard({
   isSelected,
   isDimmed,
   hasConflict,
+  sectionAdvisory,
   userSpecs,
   onToggle,
   onClick,
@@ -37,6 +39,7 @@ function CourseCard({
   isSelected: boolean;
   isDimmed: boolean;
   hasConflict: boolean;
+  sectionAdvisory: SectionAdvisory | undefined;
   userSpecs: SpecId[];
   onToggle: () => void;
   onClick: () => void;
@@ -59,6 +62,8 @@ function CourseCard({
 
   const resolvedBorderColor = hasConflict
     ? '#f87171'
+    : sectionAdvisory
+    ? '#fbbf24'
     : isMandatoryForUserSpec
     ? '#dc2626'
     : isSelected && !isFixed
@@ -77,6 +82,8 @@ function CourseCard({
 
   const resolvedBackground = hasConflict
     ? undefined
+    : sectionAdvisory
+    ? '#fffbeb'
     : isMandatoryForUserSpec
     ? `linear-gradient(135deg, #fee2e2 0%, #fff5f5 60%, ${accentColor}10 100%)`
     : isWaw
@@ -102,10 +109,16 @@ function CourseCard({
       }}
       onClick={isFixed ? onClick : undefined}
     >
-      {/* Conflict indicator */}
+      {/* Conflict / section advisory indicator */}
       {hasConflict && (
         <div className="flex items-center gap-1 text-red-500 text-xs font-semibold mb-2">
           <AlertTriangle className="w-3 h-3" /> Conflict
+        </div>
+      )}
+      {sectionAdvisory && !hasConflict && (
+        <div className="flex items-start gap-1 text-amber-600 text-xs font-semibold mb-2" title={sectionAdvisory.message}>
+          <Info className="w-3 h-3 mt-px flex-shrink-0" />
+          <span>Section B likely ({sectionAdvisory.sectionBSlot})</span>
         </div>
       )}
 
@@ -236,11 +249,10 @@ function WeekGroup({
     );
   }
 
-  // Build conflict map for this week
   const weekElectives = courses.filter(c => c.type === 'elective' || c.type === 'mandatory');
   const wawCourses = courses.filter(c => c.type === 'waw');
 
-  // Detect conflicts (multiple selected in same conflictGroup)
+  // Genuine conflict detection (conflictGroup-based)
   const conflictGroups = new Set<string>();
   const groupMap: Record<string, number[]> = {};
   weekElectives.forEach(c => {
@@ -253,9 +265,11 @@ function WeekGroup({
     if (ids.filter(id => selected.has(id)).length > 1) conflictGroups.add(grp);
   });
 
+  // Section advisory detection (section-resolvable overlaps)
+  const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
+
   const blockLabel = courses.find(c => c.block)?.block;
 
-  // Count selected electives this week for double/triple block detection
   const selectedElectivesCount = weekElectives.filter(
     c => c.type === 'elective' && selected.has(c.id)
   ).length;
@@ -291,6 +305,7 @@ function WeekGroup({
                 isSelected={selected.has(c.id)}
                 isDimmed={isDimmed}
                 hasConflict={hasConflict}
+                sectionAdvisory={selected.has(c.id) ? advisories.get(c.id) : undefined}
                 userSpecs={userSpecs}
                 onToggle={() => onToggle(c.id)}
                 onClick={() => onClick(c)}

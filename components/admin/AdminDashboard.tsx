@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock } from 'lucide-react';
+import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface MemberSelection {
@@ -212,13 +212,16 @@ export function AdminDashboard({
   const adminViewLogsLoadedRef = useRef(false);
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
 
+  type EngagementSortCol = 'member' | 'lastVisit' | 'lastActivity' | 'sessions' | 'avgDuration';
+  const [engagementSort, setEngagementSort] = useState<{ col: EngagementSortCol; dir: 'asc' | 'desc' }>({ col: 'lastVisit', dir: 'desc' });
+
   // Dwell time tracking — records when the current member profile was opened
   const memberOpenTimeRef = useRef<{ userId: string; name: string; openedAt: number } | null>(null);
 
   useEffect(() => {
     Promise.all([
       supabase.from('profiles').select('*'),
-      supabase.from('course_selections').select('user_id, course_id'),
+      supabase.from('course_selections').select('user_id, course_id').limit(10000),
     ]).then(([{ data: p }, { data: s }]) => {
       setProfiles((p ?? []) as Profile[]);
       setSelections((s ?? []) as MemberSelection[]);
@@ -318,11 +321,17 @@ export function AdminDashboard({
     memberOpenTimeRef.current = null;
   }
 
-  const filteredProfiles = profiles.filter(
-    p =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.email.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredProfiles = profiles
+    .filter(
+      p =>
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.email.toLowerCase().includes(search.toLowerCase()),
+    )
+    .sort((a, b) => {
+      const nameA = (a.name || a.email.split('@')[0]).toLowerCase();
+      const nameB = (b.name || b.email.split('@')[0]).toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
 
   // ── Derived cohort stats ──────────────────────────────────────────────────
 
@@ -380,7 +389,13 @@ export function AdminDashboard({
 
   const lastSignInMap = new Map<string, string>(lastSignIns.map(r => [r.user_id, r.last_sign_in_at]));
 
-  const userSessionStats = new Map<string, { lastVisit: string; totalSessions: number; avgMinutes: number }>();
+  const lastActivityMap = new Map<string, string>();
+  for (const e of events) {
+    const cur = lastActivityMap.get(e.user_id);
+    if (!cur || e.occurred_at > cur) lastActivityMap.set(e.user_id, e.occurred_at);
+  }
+
+  const userSessionStats = new Map<string, { lastVisit: string; lastActivity: string; totalSessions: number; avgMinutes: number }>();
   for (const p of profiles) {
     const userSessions = sessions.filter(s => s.user_id === p.id);
     const completed = userSessions.filter(s => s.duration_seconds != null);
@@ -389,8 +404,10 @@ export function AdminDashboard({
       : 0;
     const lastVisit =
       lastSignInMap.get(p.id) ?? userSessions.map(s => s.session_start).sort().at(-1) ?? '';
+    const lastActivity = lastActivityMap.get(p.id) ?? '';
     userSessionStats.set(p.id, {
       lastVisit,
+      lastActivity,
       totalSessions: userSessions.length,
       avgMinutes: Math.round(avgSecs / 60),
     });
@@ -1576,61 +1593,118 @@ export function AdminDashboard({
                 </div>
               </div>
 
-              <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                <h3 className="text-sm font-semibold text-slate-200 mb-4">Member Engagement</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="text-slate-500 border-b border-white/5">
-                        <th className="text-left py-2 pr-4 font-medium">Member</th>
-                        <th className="text-left py-2 pr-4 font-medium">Last Visit</th>
-                        <th className="text-right py-2 pr-4 font-medium">Sessions</th>
-                        <th className="text-right py-2 font-medium">Avg Duration</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {profiles
-                        .map(p => ({ p, stats: userSessionStats.get(p.id) }))
-                        .sort((a, b) =>
-                          (b.stats?.lastVisit ?? '').localeCompare(a.stats?.lastVisit ?? ''),
-                        )
-                        .map(({ p, stats }) => (
-                          <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
-                            <td className="py-2 pr-4">
-                              <button
-                                onClick={() => {
-                                  setSelectedMember(p);
-                                  setTab('member');
-                                  setExpandedCourse(null);
-                                  setMemberSubTab('courses');
-                                }}
-                                className="text-slate-200 hover:text-orange-300 transition-colors text-left"
-                              >
-                                {p.name || p.email.split('@')[0]}
+              {(() => {
+                function handleEngagementSort(col: EngagementSortCol) {
+                  setEngagementSort(prev =>
+                    prev.col === col
+                      ? { col, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+                      : { col, dir: col === 'member' ? 'asc' : 'desc' },
+                  );
+                }
+                function SortIcon({ col }: { col: EngagementSortCol }) {
+                  if (engagementSort.col !== col) return <ChevronsUpDown className="w-3 h-3 ml-1 opacity-40" />;
+                  return engagementSort.dir === 'asc'
+                    ? <ArrowUp className="w-3 h-3 ml-1 text-orange-400" />
+                    : <ArrowDown className="w-3 h-3 ml-1 text-orange-400" />;
+                }
+                function fmtVisitDate(ts: string) {
+                  return new Date(ts).toLocaleDateString('en', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                }
+                const sorted = profiles
+                  .map(p => ({ p, stats: userSessionStats.get(p.id) }))
+                  .sort((a, b) => {
+                    const { col, dir } = engagementSort;
+                    let cmp = 0;
+                    if (col === 'member') {
+                      const na = (a.p.name || a.p.email.split('@')[0]).toLowerCase();
+                      const nb = (b.p.name || b.p.email.split('@')[0]).toLowerCase();
+                      cmp = na.localeCompare(nb);
+                    } else if (col === 'lastVisit') {
+                      cmp = (a.stats?.lastVisit ?? '').localeCompare(b.stats?.lastVisit ?? '');
+                    } else if (col === 'lastActivity') {
+                      cmp = (a.stats?.lastActivity ?? '').localeCompare(b.stats?.lastActivity ?? '');
+                    } else if (col === 'sessions') {
+                      cmp = (a.stats?.totalSessions ?? 0) - (b.stats?.totalSessions ?? 0);
+                    } else if (col === 'avgDuration') {
+                      cmp = (a.stats?.avgMinutes ?? 0) - (b.stats?.avgMinutes ?? 0);
+                    }
+                    return dir === 'asc' ? cmp : -cmp;
+                  });
+                return (
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <h3 className="text-sm font-semibold text-slate-200 mb-4">Member Engagement</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-slate-500 border-b border-white/5">
+                            <th className="text-left py-2 pr-4 font-medium">
+                              <button onClick={() => handleEngagementSort('member')} className="flex items-center hover:text-slate-300 transition-colors">
+                                Member<SortIcon col="member" />
                               </button>
-                            </td>
-                            <td className="py-2 pr-4 text-slate-400">
-                              {stats?.lastVisit
-                                ? new Date(stats.lastVisit).toLocaleDateString('en', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })
-                                : '—'}
-                            </td>
-                            <td className="py-2 pr-4 text-right text-slate-300">
-                              {stats?.totalSessions ?? 0}
-                            </td>
-                            <td className="py-2 text-right text-slate-300">
-                              {stats?.avgMinutes ? `${stats.avgMinutes}m` : '—'}
-                            </td>
+                            </th>
+                            <th className="text-left py-2 pr-4 font-medium">
+                              <button onClick={() => handleEngagementSort('lastVisit')} className="flex items-center hover:text-slate-300 transition-colors">
+                                Last Visit<SortIcon col="lastVisit" />
+                              </button>
+                            </th>
+                            <th className="text-left py-2 pr-4 font-medium">
+                              <button onClick={() => handleEngagementSort('lastActivity')} className="flex items-center hover:text-slate-300 transition-colors">
+                                Last Activity<SortIcon col="lastActivity" />
+                              </button>
+                            </th>
+                            <th className="text-right py-2 pr-4 font-medium">
+                              <button onClick={() => handleEngagementSort('sessions')} className="flex items-center justify-end w-full hover:text-slate-300 transition-colors">
+                                Sessions<SortIcon col="sessions" />
+                              </button>
+                            </th>
+                            <th className="text-right py-2 font-medium">
+                              <button onClick={() => handleEngagementSort('avgDuration')} className="flex items-center justify-end w-full hover:text-slate-300 transition-colors">
+                                Avg Duration<SortIcon col="avgDuration" />
+                              </button>
+                            </th>
                           </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {sorted.map(({ p, stats }) => (
+                            <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
+                              <td className="py-2 pr-4">
+                                <button
+                                  onClick={() => {
+                                    setSelectedMember(p);
+                                    setTab('member');
+                                    setExpandedCourse(null);
+                                    setMemberSubTab('courses');
+                                  }}
+                                  className="text-slate-200 hover:text-orange-300 transition-colors text-left"
+                                >
+                                  {p.name || p.email.split('@')[0]}
+                                </button>
+                              </td>
+                              <td className="py-2 pr-4 text-slate-400">
+                                {stats?.lastVisit ? fmtVisitDate(stats.lastVisit) : '—'}
+                              </td>
+                              <td className="py-2 pr-4 text-slate-400">
+                                {stats?.lastActivity ? fmtVisitDate(stats.lastActivity) : '—'}
+                              </td>
+                              <td className="py-2 pr-4 text-right text-slate-300">
+                                {stats?.totalSessions ?? 0}
+                              </td>
+                              <td className="py-2 text-right text-slate-300">
+                                {stats?.avgMinutes ? `${stats.avgMinutes}m` : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 

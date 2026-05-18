@@ -1,25 +1,33 @@
 'use client';
 
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
+import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 
 interface Props {
   selected: Set<number>;
   visibleIds: Set<number>;
   userSpecs: SpecId[];
   onCourseClick: (course: Course) => void;
+  selectedTerms: Set<4 | 5 | 6>;
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const TERM4_BLOCKS: { block: number; dates: string; start: string; end: string }[] = [
-  { block: 16, dates: 'Jun 29 – Jul 12', start: '2026-06-29', end: '2026-07-12' },
-  { block: 17, dates: 'Jul 13 – 26',     start: '2026-07-13', end: '2026-07-26' },
-  { block: 18, dates: 'Jul 27 – Aug 9',  start: '2026-07-27', end: '2026-08-09' },
-  { block: 19, dates: 'Aug 10 – 23',     start: '2026-08-10', end: '2026-08-23' },
-  { block: 20, dates: 'Aug 31 – Sep 13', start: '2026-08-31', end: '2026-09-13' },
-  { block: 21, dates: 'Sep 14 – 27',     start: '2026-09-14', end: '2026-09-27' },
+const TERM4_BLOCKS: { block: number; weekNum: 1 | 2; dates: string; start: string; end: string }[] = [
+  { block: 16, weekNum: 1, dates: 'Jun 29 – Jul 5',  start: '2026-06-29', end: '2026-07-05' },
+  { block: 16, weekNum: 2, dates: 'Jul 6 – Jul 12',  start: '2026-07-06', end: '2026-07-12' },
+  { block: 17, weekNum: 1, dates: 'Jul 13 – Jul 19', start: '2026-07-13', end: '2026-07-19' },
+  { block: 17, weekNum: 2, dates: 'Jul 20 – Jul 26', start: '2026-07-20', end: '2026-07-26' },
+  { block: 18, weekNum: 1, dates: 'Jul 27 – Aug 2',  start: '2026-07-27', end: '2026-08-02' },
+  { block: 18, weekNum: 2, dates: 'Aug 3 – Aug 9',   start: '2026-08-03', end: '2026-08-09' },
+  { block: 19, weekNum: 1, dates: 'Aug 10 – Aug 16', start: '2026-08-10', end: '2026-08-16' },
+  { block: 19, weekNum: 2, dates: 'Aug 17 – Aug 23', start: '2026-08-17', end: '2026-08-23' },
+  { block: 20, weekNum: 1, dates: 'Aug 31 – Sep 6',  start: '2026-08-31', end: '2026-09-06' },
+  { block: 20, weekNum: 2, dates: 'Sep 7 – Sep 13',  start: '2026-09-07', end: '2026-09-13' },
+  { block: 21, weekNum: 1, dates: 'Sep 14 – Sep 20', start: '2026-09-14', end: '2026-09-20' },
+  { block: 21, weekNum: 2, dates: 'Sep 21 – Sep 27', start: '2026-09-21', end: '2026-09-27' },
 ];
 
 function parseTs(iso: string) { return new Date(iso).getTime(); }
@@ -28,9 +36,12 @@ function courseInBlock(c: Course, start: string, end: string) {
   return parseTs(c.startDate) <= parseTs(end) && parseTs(c.endDate) >= parseTs(start);
 }
 
-function getUniqueSlots(courses: Course[]): string[] {
+function getUniqueSlots(courses: Course[], advisories?: Map<number, SectionAdvisory>): string[] {
   const set = new Set<string>();
-  courses.forEach(c => c.timings?.forEach(t => set.add(t.slot)));
+  courses.forEach(c => c.timings?.forEach(t => {
+    if (advisories?.has(c.id) && t.part === 'A') return;
+    set.add(t.slot);
+  }));
   return [...set].sort((a, b) => {
     const ta = parseInt(a.split('–')[0].replace(':', ''), 10);
     const tb = parseInt(b.split('–')[0].replace(':', ''), 10);
@@ -68,10 +79,11 @@ function getConflictIds(courses: Course[], visibleIds: Set<number>): Set<number>
   return conflicting;
 }
 
-function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
+function CoursePill({ course, room, hasConflict, sectionAdvisory, userSpecs, onClick }: {
   course: Course;
   room: string;
   hasConflict: boolean;
+  sectionAdvisory: SectionAdvisory | undefined;
   userSpecs: SpecId[];
   onClick: () => void;
 }) {
@@ -80,10 +92,18 @@ function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
   );
   const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
 
-  const accent = hasConflict ? '#ef4444' : isMandatoryForUserSpec ? '#dc2626' : getCourseAccent(course);
+  const accent = hasConflict
+    ? '#ef4444'
+    : sectionAdvisory
+    ? '#d97706'
+    : isMandatoryForUserSpec
+    ? '#dc2626'
+    : getCourseAccent(course);
   const isWaw = course.type === 'waw';
   const bg = hasConflict
     ? '#fee2e2'
+    : sectionAdvisory
+    ? '#fffbeb'
     : isMandatoryForUserSpec
     ? `linear-gradient(135deg, #fee2e2 0%, #fff5f5 100%)`
     : getCourseBg(course);
@@ -92,6 +112,7 @@ function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
     <button
       onClick={onClick}
       className="w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1.5"
+      title={sectionAdvisory?.message}
       style={{
         background: isWaw ? WAW_GRADIENT : bg,
         borderLeft: `4px solid ${accent}`,
@@ -100,10 +121,16 @@ function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
     >
       <div className="flex items-center gap-1">
         {hasConflict && <AlertTriangle className="w-2.5 h-2.5 text-red-500 flex-shrink-0" />}
+        {sectionAdvisory && !hasConflict && <Info className="w-2.5 h-2.5 text-amber-500 flex-shrink-0" />}
         <span className="font-bold text-[12px] leading-tight" style={{ color: accent }}>
           {course.code ?? course.name.slice(0, 4).toUpperCase()}
         </span>
       </div>
+      {sectionAdvisory && !hasConflict && (
+        <div className="text-[9px] font-semibold mt-0.5" style={{ color: '#d97706' }}>
+          Sec B likely
+        </div>
+      )}
       {isMandatoryForUserSpec && (
         <div className="text-[9px] font-bold mt-0.5" style={{ color: '#dc2626' }}>
           Req. {relevantMandatorySpecs.join('/')}
@@ -118,11 +145,12 @@ function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
   );
 }
 
-function BlockTable({ blockInfo, courses, visibleIds, conflictIds, userSpecs, onCourseClick }: {
+function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, userSpecs, onCourseClick }: {
   blockInfo: typeof TERM4_BLOCKS[0];
   courses: Course[];
   visibleIds: Set<number>;
   conflictIds: Set<number>;
+  advisories: Map<number, SectionAdvisory>;
   userSpecs: SpecId[];
   onCourseClick: (c: Course) => void;
 }) {
@@ -130,23 +158,37 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, userSpecs, on
     .filter(c => c.timings && courseInBlock(c, blockInfo.start, blockInfo.end))
     .filter(c => visibleIds.has(c.id));
 
-  const slots = getUniqueSlots(blockCourses);
-  if (slots.length === 0) return null;
+  const slots = getUniqueSlots(blockCourses, advisories);
+
+  const blockHeader = (
+    <div className="flex items-center gap-3 mb-3 px-1">
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        padding: '4px 14px', borderRadius: 9999,
+        backgroundColor: '#fff7ed', border: '1px solid #fdba74',
+      }}>
+        <span style={{ color: '#c2410c', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Block {blockInfo.block} · Week {blockInfo.weekNum}
+        </span>
+        <span style={{ color: '#ea580c', fontSize: 11 }}>{blockInfo.dates}</span>
+      </div>
+    </div>
+  );
+
+  if (slots.length === 0) {
+    return (
+      <div className="mb-6">
+        {blockHeader}
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-green-200 bg-green-50 text-green-600 text-sm font-medium">
+          🟢 Free week for you — no courses this week
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8">
-      <div className="flex items-center gap-3 mb-3 px-1">
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          padding: '4px 14px', borderRadius: 9999,
-          backgroundColor: '#fff7ed', border: '1px solid #fdba74',
-        }}>
-          <span style={{ color: '#c2410c', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Block {blockInfo.block}
-          </span>
-          <span style={{ color: '#ea580c', fontSize: 11 }}>{blockInfo.dates}</span>
-        </div>
-      </div>
+      {blockHeader}
 
       <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white print:overflow-visible print:border-none print:shadow-none">
         <table className="w-full border-collapse" style={{ minWidth: 560 }}>
@@ -187,7 +229,10 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, userSpecs, on
                 </td>
                 {DAYS.map((day, di) => {
                   const dayCourses = blockCourses.filter(c =>
-                    c.timings?.some(t => t.slot === slot && t.days.includes(day))
+                    c.timings?.some(t => {
+                      const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
+                      return t.slot === slot && effectiveDays.includes(day) && !(advisories.has(c.id) && t.part === 'A');
+                    })
                   );
                   return (
                     <td key={day}
@@ -199,15 +244,17 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, userSpecs, on
                       {dayCourses.length > 0 && (
                         <div className="flex flex-col gap-1">
                           {dayCourses.map(c => {
-                            const timing = c.timings!.find(
-                              t => t.slot === slot && t.days.includes(day)
-                            );
+                            const timing = c.timings!.find(t => {
+                              const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
+                              return t.slot === slot && effectiveDays.includes(day) && !(advisories.has(c.id) && t.part === 'A');
+                            });
                             return (
                               <CoursePill
                                 key={c.id}
                                 course={c}
                                 room={timing?.room ?? ''}
                                 hasConflict={conflictIds.has(c.id)}
+                                sectionAdvisory={advisories.get(c.id)}
                                 userSpecs={userSpecs}
                                 onClick={() => onCourseClick(c)}
                               />
@@ -348,13 +395,14 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
   );
 }
 
-export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }: Props) {
+export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, selectedTerms }: Props) {
   const term4 = ALL_COURSES.filter(c => c.term === 4 && c.type !== 'exam' && c.type !== 'free');
   const term5 = ALL_COURSES.filter(c => c.term === 5 && c.type !== 'exam' && c.type !== 'free');
   const term6 = ALL_COURSES.filter(c => c.term === 6 && c.type !== 'exam' && c.type !== 'free');
 
   const allVisible = ALL_COURSES.filter(c => visibleIds.has(c.id));
   const conflictIds = getConflictIds(allVisible, visibleIds);
+  const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
 
   const hasTerm4Content = TERM4_BLOCKS.some(b =>
     term4.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id))
@@ -366,53 +414,67 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
     <div className="p-4 lg:p-6 min-h-screen print:min-h-0 print:p-0 print:bg-white" style={{ backgroundColor: '#f8fafc' }}>
       <SpecLegend />
 
-      {/* Conflict warning banner */}
+      {/* Genuine conflict banner */}
       {conflictCourses.length > 0 && (
-        <div className="mb-4 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+        <div className="mb-3 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
           <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-red-500" />
           <div>
             <span className="font-semibold">Schedule conflict: </span>
-            {conflictCourses.map(c => c.code ?? c.name).join(' & ')} are in the same conflict group — pick only one.
+            {conflictCourses.map(c => c.code ?? c.name).join(' & ')} cannot be taken together — pick only one.
           </div>
         </div>
       )}
 
-      <TermDivider label="Term 4" dateRange="Jun 29 – Sep 27, 2026" />
-
-      {!hasTerm4Content ? (
-        <p className="text-sm text-gray-400 italic px-1 mb-8">No Term 4 courses selected.</p>
-      ) : (
-        <>
-          {TERM4_BLOCKS.map((b, i) => (
-            <div key={b.block}>
-              {i === 4 && (
-                <div style={{ marginBottom: 16, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #fca5a5', backgroundColor: '#fff5f5', color: '#ef4444' }}>
-                  📝 Exam Week — Aug 24–28
-                </div>
-              )}
-              {i === 5 && (
-                <div style={{ marginBottom: 16, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #86efac', backgroundColor: '#f0fdf4', color: '#16a34a' }}>
-                  🟢 Free Week — Sep 7–11
-                </div>
-              )}
-              <BlockTable
-                blockInfo={b}
-                courses={term4}
-                visibleIds={visibleIds}
-                conflictIds={conflictIds}
-                userSpecs={userSpecs}
-                onCourseClick={onCourseClick}
-              />
-            </div>
-          ))}
-        </>
+      {/* Section advisory banner */}
+      {advisories.size > 0 && (
+        <div className="mb-4 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-amber-500" />
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold">Section assignment likely</span>
+            {[...advisories.values()].map((a, i) => (
+              <span key={i}>{a.message}</span>
+            ))}
+          </div>
+        </div>
       )}
 
-      <TermDivider label="Term 5" dateRange="Sep 28 – Dec 27, 2026" />
-      <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+      <div className={selectedTerms.has(4) ? '' : 'print:hidden'}>
+        <TermDivider label="Term 4" dateRange="Jun 29 – Sep 27, 2026" />
+        {!hasTerm4Content ? (
+          <p className="text-sm text-gray-400 italic px-1 mb-8">No Term 4 courses selected.</p>
+        ) : (
+          <>
+            {TERM4_BLOCKS.map((b, i) => (
+              <div key={`${b.block}-${b.weekNum}`}>
+                {i === 8 && (
+                  <div style={{ marginBottom: 16, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #fca5a5', backgroundColor: '#fff5f5', color: '#ef4444' }}>
+                    📝 Exam Week — Aug 24–28
+                  </div>
+                )}
+                <BlockTable
+                  blockInfo={b}
+                  courses={term4}
+                  visibleIds={visibleIds}
+                  conflictIds={conflictIds}
+                  advisories={advisories}
+                  userSpecs={userSpecs}
+                  onCourseClick={onCourseClick}
+                />
+              </div>
+            ))}
+          </>
+        )}
+      </div>
 
-      <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
-      <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+      <div className={selectedTerms.has(5) ? '' : 'print:hidden'}>
+        <TermDivider label="Term 5" dateRange="Sep 28 – Dec 27, 2026" />
+        <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+      </div>
+
+      <div className={selectedTerms.has(6) ? '' : 'print:hidden'}>
+        <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
+        <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+      </div>
     </div>
   );
 }

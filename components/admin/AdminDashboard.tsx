@@ -316,6 +316,7 @@ export function AdminDashboard({
   const [specSort, setSpecSort] = useState<'count' | 'alpha'>('count');
   const [showAllCourses, setShowAllCourses] = useState(false);
   const [courseListSort, setCourseListSort] = useState<'popular' | 'alpha'>('popular');
+  const [courseTermFilter, setCourseTermFilter] = useState<number | 'all'>('all');
 
   type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer';
   const [inDepthSection, setInDepthSection] = useState<InDepthSection | null>(null);
@@ -440,7 +441,7 @@ export function AdminDashboard({
       actor_id: adminUserId,
       event_type: 'admin_member_left',
       payload: { viewed_user_id: userId, viewed_name: name, dwell_seconds },
-    });
+    }).then(() => {});
     memberOpenTimeRef.current = null;
   }
 
@@ -482,7 +483,10 @@ export function AdminDashboard({
     .map(c => ({ course: c, count: courseCounts.get(c.id) ?? 0 }))
     .sort((a, b) => b.count - a.count);
 
-  const top10 = courseRanking.slice(0, 10);
+  const termFilteredRanking = courseTermFilter === 'all'
+    ? courseRanking
+    : courseRanking.filter(r => r.course.term === courseTermFilter);
+  const top10 = termFilteredRanking.slice(0, 10);
   const unpopular = courseRanking.filter(r => r.count === 0);
 
   // ── Member detail helpers ─────────────────────────────────────────────────
@@ -923,7 +927,7 @@ export function AdminDashboard({
                     actor_id: adminUserId,
                     event_type: 'admin_member_viewed',
                     payload: { viewed_user_id: p.id, viewed_email: p.email, viewed_name: p.name },
-                  });
+                  }).then(() => {});
                   memberOpenTimeRef.current = { userId: p.id, name: p.name, openedAt: Date.now() };
                 }}
                 className={`w-full text-left px-3 py-2.5 border-b border-white/5 hover:bg-slate-800 transition-colors ${
@@ -1109,44 +1113,62 @@ export function AdminDashboard({
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
-                  <div className="flex items-center justify-between mb-3 gap-2">
-                    <h3 className="text-sm font-semibold text-slate-200">
-                      {showAllCourses ? 'All Elective Courses' : 'Most Selected Courses'}
-                    </h3>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {showAllCourses && (
-                        <>
-                          <button
-                            onClick={() => setCourseListSort('popular')}
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
-                              courseListSort === 'popular' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200 bg-slate-700'
-                            }`}
-                          >
-                            Most Popular
-                          </button>
-                          <button
-                            onClick={() => setCourseListSort('alpha')}
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
-                              courseListSort === 'alpha' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200 bg-slate-700'
-                            }`}
-                          >
-                            A–Z
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={() => { setShowAllCourses(v => !v); setOverviewExpandedCourse(null); }}
-                        className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-700 text-slate-300 hover:text-white transition-all"
-                      >
-                        {showAllCourses ? 'Top 10' : 'View All'}
-                      </button>
+                  <div className="flex flex-col gap-2 mb-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-slate-200">
+                        {showAllCourses ? 'All Elective Courses' : 'Most Selected Courses'}
+                      </h3>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {showAllCourses && (
+                          <>
+                            <button
+                              onClick={() => setCourseListSort('popular')}
+                              className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
+                                courseListSort === 'popular' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200 bg-slate-700'
+                              }`}
+                            >
+                              Most Popular
+                            </button>
+                            <button
+                              onClick={() => setCourseListSort('alpha')}
+                              className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
+                                courseListSort === 'alpha' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200 bg-slate-700'
+                              }`}
+                            >
+                              A–Z
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => { setShowAllCourses(v => !v); setOverviewExpandedCourse(null); }}
+                          className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-700 text-slate-300 hover:text-white transition-all"
+                        >
+                          {showAllCourses ? 'Top 10' : 'View All'}
+                        </button>
+                      </div>
+                    </div>
+                    {/* Term filter row */}
+                    <div className="flex items-center gap-1.5">
+                      {(['all', 4, 5, 6] as const).map(t => (
+                        <button
+                          key={t}
+                          onClick={() => { setCourseTermFilter(t); setOverviewExpandedCourse(null); }}
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
+                            courseTermFilter === t
+                              ? 'bg-blue-500 text-white'
+                              : 'text-slate-400 hover:text-slate-200 bg-slate-700'
+                          }`}
+                        >
+                          {t === 'all' ? 'All Terms' : `Term ${t}`}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   <div className="space-y-2">
                     {(showAllCourses
                       ? courseListSort === 'alpha'
-                        ? [...courseRanking].sort((a, b) => a.course.name.localeCompare(b.course.name))
-                        : courseRanking
+                        ? [...termFilteredRanking].sort((a, b) => a.course.name.localeCompare(b.course.name))
+                        : termFilteredRanking
                       : top10
                     ).map(({ course, count }, i) => {
                       const pct = profiles.length ? Math.round((count / profiles.length) * 100) : 0;
@@ -1367,7 +1389,7 @@ export function AdminDashboard({
                                                     actor_id: adminUserId,
                                                     event_type: 'admin_member_viewed',
                                                     payload: { viewed_user_id: o.id, viewed_email: o.email, viewed_name: o.name },
-                                                  });
+                                                  }).then(() => {});
                                                   memberOpenTimeRef.current = { userId: o.id, name: o.name, openedAt: Date.now() };
                                                 }}
                                                 className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"

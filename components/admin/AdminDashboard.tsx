@@ -329,8 +329,13 @@ export function AdminDashboard({
   const [dauDrill, setDauDrill] = useState<DauDrillType | null>(null);
   const [loginTimingDate, setLoginTimingDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
 
-  // Dwell time tracking — records when the current member profile was opened
-  const memberOpenTimeRef = useRef<{ userId: string; name: string; openedAt: number } | null>(null);
+  // Audit tracking refs
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const sessionStartRef = useRef<number>(Date.now());
+  const auditPrevTabRef = useRef<Tab>('overview');
+  const auditTabOpenedAtRef = useRef<number>(Date.now());
+  const auditPrevSubTabRef = useRef<MemberSubTab>('courses');
+  const auditSubTabOpenedAtRef = useRef<number>(Date.now());
 
   useEffect(() => {
     Promise.all([
@@ -433,17 +438,95 @@ export function AdminDashboard({
       });
   }, [memberSubTab, isSuperAdmin, selectedMember?.id]);
 
-  function fireMemberLeft() {
-    if (!memberOpenTimeRef.current) return;
-    const { userId, name, openedAt } = memberOpenTimeRef.current;
-    const dwell_seconds = Math.round((Date.now() - openedAt) / 1000);
+  // ── Audit tracking useEffects ──────────────────────────────────────────────
+
+  // Session lifecycle: start on mount, end on unmount + pagehide
+  useEffect(() => {
     supabase.from('security_events').insert({
       actor_id: adminUserId,
-      event_type: 'admin_member_left',
-      payload: { viewed_user_id: userId, viewed_name: name, dwell_seconds },
+      event_type: 'admin_session_start',
+      payload: { session_id: sessionIdRef.current },
     }).then(() => {});
-    memberOpenTimeRef.current = null;
-  }
+
+    const sid = sessionIdRef.current;
+    const start = sessionStartRef.current;
+
+    const handlePageHide = () => {
+      navigator.sendBeacon(
+        '/api/admin-sessions/end',
+        new Blob(
+          [JSON.stringify({ session_id: sid, actor_id: adminUserId, duration_seconds: Math.round((Date.now() - start) / 1000) })],
+          { type: 'application/json' },
+        ),
+      );
+    };
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      supabase.from('security_events').insert({
+        actor_id: adminUserId,
+        event_type: 'admin_session_end',
+        payload: { session_id: sid, duration_seconds: Math.round((Date.now() - start) / 1000) },
+      }).then(() => {});
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tab change tracking
+  useEffect(() => {
+    const prev = auditPrevTabRef.current;
+    if (prev === tab) return;
+    const dwell = Math.round((Date.now() - auditTabOpenedAtRef.current) / 1000);
+    supabase.from('security_events').insert({
+      actor_id: adminUserId,
+      event_type: 'admin_tab_changed',
+      payload: { session_id: sessionIdRef.current, from: prev, to: tab, dwell_seconds: dwell },
+    }).then(() => {});
+    auditPrevTabRef.current = tab;
+    auditTabOpenedAtRef.current = Date.now();
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Member view tracking — fires when member or tab changes, cleanup fires member_left
+  useEffect(() => {
+    if (tab !== 'member' || !selectedMember) return;
+
+    // Reset sub-tab refs for this fresh member view
+    auditPrevSubTabRef.current = memberSubTab;
+    auditSubTabOpenedAtRef.current = Date.now();
+
+    supabase.from('security_events').insert({
+      actor_id: adminUserId,
+      event_type: 'admin_member_viewed',
+      payload: { session_id: sessionIdRef.current, viewed_user_id: selectedMember.id, viewed_email: selectedMember.email, viewed_name: selectedMember.name },
+    }).then(() => {});
+
+    const openedAt = Date.now();
+    const capturedId = selectedMember.id;
+    const capturedName = selectedMember.name;
+
+    return () => {
+      supabase.from('security_events').insert({
+        actor_id: adminUserId,
+        event_type: 'admin_member_left',
+        payload: { session_id: sessionIdRef.current, viewed_user_id: capturedId, viewed_name: capturedName, dwell_seconds: Math.round((Date.now() - openedAt) / 1000) },
+      }).then(() => {});
+    };
+  }, [selectedMember?.id, tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Member sub-tab tracking — must be after member tracking useEffect so the subtab reset fires first
+  useEffect(() => {
+    if (tab !== 'member' || !selectedMember) return;
+    const prev = auditPrevSubTabRef.current;
+    if (prev === memberSubTab) return;
+    const dwell = Math.round((Date.now() - auditSubTabOpenedAtRef.current) / 1000);
+    supabase.from('security_events').insert({
+      actor_id: adminUserId,
+      event_type: 'admin_member_subtab_changed',
+      payload: { session_id: sessionIdRef.current, member_id: selectedMember.id, member_name: selectedMember.name, from: prev, to: memberSubTab, dwell_seconds: dwell },
+    }).then(() => {});
+    auditPrevSubTabRef.current = memberSubTab;
+    auditSubTabOpenedAtRef.current = Date.now();
+  }, [memberSubTab, tab, selectedMember?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredProfiles = profiles
     .filter(
@@ -918,17 +1001,10 @@ export function AdminDashboard({
               <button
                 key={p.id}
                 onClick={() => {
-                  fireMemberLeft();
                   setSelectedMember(p);
                   setTab('member');
                   setExpandedCourse(null);
                   setMemberSubTab('courses');
-                  supabase.from('security_events').insert({
-                    actor_id: adminUserId,
-                    event_type: 'admin_member_viewed',
-                    payload: { viewed_user_id: p.id, viewed_email: p.email, viewed_name: p.name },
-                  }).then(() => {});
-                  memberOpenTimeRef.current = { userId: p.id, name: p.name, openedAt: Date.now() };
                 }}
                 className={`w-full text-left px-3 py-2.5 border-b border-white/5 hover:bg-slate-800 transition-colors ${
                   selectedMember?.id === p.id ? 'bg-slate-800 border-l-2 border-l-orange-500' : ''
@@ -968,7 +1044,7 @@ export function AdminDashboard({
           {/* Top-level tabs */}
           <div className="sticky top-0 z-10 flex gap-1 px-4 pt-4 pb-2 bg-slate-900 border-b border-white/5">
             <button
-              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('overview'); }}
+              onClick={() => setTab('overview')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 tab === 'overview' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -989,7 +1065,7 @@ export function AdminDashboard({
                 : 'Member Detail'}
             </button>
             <button
-              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('activity'); }}
+              onClick={() => setTab('activity')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 tab === 'activity' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -997,7 +1073,7 @@ export function AdminDashboard({
               Activity
             </button>
             <button
-              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('insights'); }}
+              onClick={() => setTab('insights')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 tab === 'insights' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -1005,7 +1081,7 @@ export function AdminDashboard({
               Insights
             </button>
             <button
-              onClick={() => { if (tab === 'member') fireMemberLeft(); setTab('in-depth'); }}
+              onClick={() => setTab('in-depth')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 tab === 'in-depth' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -1381,16 +1457,10 @@ export function AdminDashboard({
                                               <button
                                                 key={o.id}
                                                 onClick={() => {
-                                                  fireMemberLeft();
                                                   setSelectedMember(o);
                                                   setExpandedCourse(null);
                                                   setMemberSubTab('courses');
-                                                  supabase.from('security_events').insert({
-                                                    actor_id: adminUserId,
-                                                    event_type: 'admin_member_viewed',
-                                                    payload: { viewed_user_id: o.id, viewed_email: o.email, viewed_name: o.name },
-                                                  }).then(() => {});
-                                                  memberOpenTimeRef.current = { userId: o.id, name: o.name, openedAt: Date.now() };
+                                                  setTab('member');
                                                 }}
                                                 className="text-[10px] px-2 py-0.5 rounded-full bg-slate-600 text-slate-200 hover:bg-orange-500/20 hover:text-orange-300 transition-colors"
                                               >

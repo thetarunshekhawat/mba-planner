@@ -1,8 +1,10 @@
 'use client';
 
-import { AlertTriangle, Info } from 'lucide-react';
+import { useState } from 'react';
+import { AlertTriangle, Info, BookOpen } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
+import { Term1GanttPanel } from './Term1GanttPanel';
 import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 
 interface Props {
@@ -29,6 +31,10 @@ const TERM4_BLOCKS: { block: number; weekNum: 1 | 2; dates: string; start: strin
   { block: 21, weekNum: 1, dates: 'Sep 14 – Sep 20', start: '2026-09-14', end: '2026-09-20' },
   { block: 21, weekNum: 2, dates: 'Sep 21 – Sep 27', start: '2026-09-21', end: '2026-09-27' },
 ];
+
+// Maps each TERM4_BLOCKS index to the corresponding TERM1_WEEKS index
+// (Week 9 / index 8 is paired with the Term 4 exam week banner separately)
+const TERM4_TO_TERM1_WEEK_IDX: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12];
 
 function parseTs(iso: string) { return new Date(iso).getTime(); }
 
@@ -274,6 +280,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, u
   );
 }
 
+
 function TermDivider({ label, dateRange }: { label: string; dateRange: string }) {
   return (
     <div className="flex items-center gap-4 mb-5 mt-2">
@@ -396,6 +403,8 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
 }
 
 export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, selectedTerms }: Props) {
+  const [showTerm1, setShowTerm1] = useState(false);
+
   const term4 = ALL_COURSES.filter(c => c.term === 4 && c.type !== 'exam' && c.type !== 'free');
   const term5 = ALL_COURSES.filter(c => c.term === 5 && c.type !== 'exam' && c.type !== 'free');
   const term6 = ALL_COURSES.filter(c => c.term === 6 && c.type !== 'exam' && c.type !== 'free');
@@ -440,28 +449,98 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
 
       <div className={selectedTerms.has(4) ? '' : 'print:hidden'}>
         <TermDivider label="Term 4" dateRange="Jun 29 – Sep 27, 2026" />
+
+        {/* Term 1 overlay toggle */}
+        <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setShowTerm1(v => !v)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+              border: showTerm1 ? '1.5px solid #6366f1' : '1.5px solid #d1d5db',
+              backgroundColor: showTerm1 ? '#eef2ff' : '#ffffff',
+              color: showTerm1 ? '#4338ca' : '#6b7280',
+              fontSize: 12, fontWeight: 600,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            }}
+          >
+            <BookOpen size={13} />
+            {showTerm1 ? '✓ Term 1 Courses' : 'Show Term 1 Courses'}
+          </button>
+          {showTerm1 && (
+            <span style={{ fontSize: 11, color: '#6b7280' }}>
+              Reference only — for students retaking Term 1 subjects alongside Term 4
+            </span>
+          )}
+        </div>
+
         {!hasTerm4Content ? (
           <p className="text-sm text-gray-400 italic px-1 mb-8">No Term 4 courses selected.</p>
         ) : (
           <>
             {TERM4_BLOCKS.map((b, i) => (
-              <div key={`${b.block}-${b.weekNum}`}>
-                {i === 8 && (
-                  <div style={{ marginBottom: 16, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #fca5a5', backgroundColor: '#fff5f5', color: '#ef4444' }}>
-                    📝 Exam Week — Aug 24–28
-                  </div>
-                )}
-                <BlockTable
-                  blockInfo={b}
-                  courses={term4}
-                  visibleIds={visibleIds}
-                  conflictIds={conflictIds}
-                  advisories={advisories}
-                  userSpecs={userSpecs}
-                  onCourseClick={onCourseClick}
-                />
+                <div key={`${b.block}-${b.weekNum}`}>
+                  {i === 8 && (
+                    showTerm1 ? (
+                      <div style={{ display: 'flex', marginBottom: 12, borderRadius: 8, overflow: 'hidden', border: '1px dashed #fca5a5' }}>
+                        <div style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 14px', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center' }}>
+                          📝 Term 4 Exam Week — Aug 24–28
+                        </div>
+                        <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
+                        <div style={{ width: 300, flexShrink: 0 }}>
+                          <Term1GanttPanel activeWeekIndices={[8]} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ marginBottom: 16, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #fca5a5', backgroundColor: '#fff5f5', color: '#ef4444' }}>
+                        📝 Exam Week — Aug 24–28
+                      </div>
+                    )
+                  )}
+                  {showTerm1 ? (
+                    <div style={{ display: 'flex', marginBottom: 24, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                      <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+                        <BlockTable
+                          blockInfo={b}
+                          courses={term4}
+                          visibleIds={visibleIds}
+                          conflictIds={conflictIds}
+                          advisories={advisories}
+                          userSpecs={userSpecs}
+                          onCourseClick={onCourseClick}
+                        />
+                      </div>
+                      <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
+                      <div style={{ width: 300, flexShrink: 0 }}>
+                        <Term1GanttPanel activeWeekIndices={[TERM4_TO_TERM1_WEEK_IDX[i]]} />
+                      </div>
+                    </div>
+                  ) : (
+                    <BlockTable
+                      blockInfo={b}
+                      courses={term4}
+                      visibleIds={visibleIds}
+                      conflictIds={conflictIds}
+                      advisories={advisories}
+                      userSpecs={userSpecs}
+                      onCourseClick={onCourseClick}
+                    />
+                  )}
+                </div>
+              ))}
+
+            {/* Term 1 Week 14 — runs one week after Term 4 ends */}
+            {showTerm1 && (
+              <div style={{ display: 'flex', marginBottom: 8, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                <div style={{ flex: '1 1 auto', minWidth: 0, padding: '16px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 12, fontStyle: 'italic' }}>Term 4 has ended — Term 1 continues</span>
+                </div>
+                <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
+                <div style={{ width: 300, flexShrink: 0 }}>
+                  <Term1GanttPanel activeWeekIndices={[13]} />
+                </div>
               </div>
-            ))}
+            )}
           </>
         )}
       </div>

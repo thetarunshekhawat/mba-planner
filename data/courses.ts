@@ -138,6 +138,16 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
+  // WaW — Block 18
+  {
+    id: 105, term: 4, week: 5,
+    startDate: '2026-07-27', endDate: '2026-08-09',
+    dates: 'Jul 27–Aug 9', block: 18,
+    name: 'Expression through Theatre',
+    faculty: 'TBD',
+    seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
+  },
+
   // Block 18 (Jul 27 – Aug 9) — FWKJ + FSAT (FSAT continues into Block 19)
   {
     id: 6, term: 4, week: 5,
@@ -175,7 +185,7 @@ export const ALL_COURSES: Course[] = [
     name: 'Financial Statement Analysis',
     code: 'FSAT',
     faculty: 'Prof. Prabhu Venkatachalam',
-    seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    seats: 120, specs: ['FIN'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Wed', 'Fri'], week2Days: ['Tue', 'Thu'] }],
     review: {
       learningDepth: 5, workload: 'High', careerRelevance: 5,
@@ -481,16 +491,6 @@ export const ALL_COURSES: Course[] = [
       summary: 'One of the most relevant marketing courses at BITSoM. No filler topics, excellent class notes.',
     },
   },
-  // WaW — Block 24
-  {
-    id: 105, term: 5, week: 18,
-    startDate: '2026-10-26', endDate: '2026-10-30',
-    dates: 'Oct 26–30', block: 24,
-    name: 'Expression through Theatre',
-    faculty: 'TBD',
-    seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
-  },
-
   // Block 24 Week 2 — Nov 2
   {
     id: 22, term: 5, week: 19,

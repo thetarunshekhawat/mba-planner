@@ -1,9 +1,24 @@
 'use client';
 
-import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info, BookOpen } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
+import { Term1GanttPanel } from './Term1GanttPanel';
+
+// Maps Plan-tab Term 4 week numbers → TERM1_WEEKS array indices
+const TERM4_PLAN_WEEK_TO_TERM1: Record<number, number[]> = {
+  1:  [0, 1],   // Jun 29–Jul 12  → T1 Wk 1–2
+  3:  [2, 3],   // Jul 13–Jul 26  → T1 Wk 3–4
+  5:  [4, 5],   // Jul 27–Aug 9   → T1 Wk 5–6
+  7:  [6, 7],   // Aug 10–Aug 23  → T1 Wk 7–8
+  9:  [8],      // Aug 24–28 Exam → T1 Wk 9
+  10: [9, 10],  // Aug 31–Sep 13  → T1 Wk 10–11
+  11: [10],     // Sep 7–11 Free  → T1 Wk 11
+  12: [11, 12], // Sep 14–Sep 27  → T1 Wk 12–13
+};
+
 
 interface Props {
   selected: Set<number>;
@@ -212,6 +227,7 @@ function CourseCard({
   );
 }
 
+
 function WeekGroup({
   term,
   week,
@@ -219,6 +235,7 @@ function WeekGroup({
   selected,
   userSpecs,
   visibleIds,
+  showTerm1,
   onToggle,
   onClick,
 }: {
@@ -228,6 +245,7 @@ function WeekGroup({
   selected: Set<number>;
   userSpecs: SpecId[];
   visibleIds: Set<number>;
+  showTerm1: boolean;
   onToggle: (id: number) => void;
   onClick: (c: Course) => void;
 }) {
@@ -277,6 +295,48 @@ function WeekGroup({
   const visible = [...weekElectives, ...wawCourses].filter(c => visibleIds.has(c.id));
   if (visible.length === 0) return null;
 
+  const cardsAndWarnings = (
+    <>
+      <div className="flex flex-wrap gap-3">
+        {visible.map(c => {
+          const specMatch = c.specs.some(s => userSpecs.includes(s));
+          const isDimmed = userSpecs.length > 0 && !specMatch && c.type === 'elective';
+          const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id));
+          return (
+            <CourseCard
+              key={c.id}
+              course={c}
+              isSelected={selected.has(c.id)}
+              isDimmed={isDimmed}
+              hasConflict={hasConflict}
+              sectionAdvisory={selected.has(c.id) ? advisories.get(c.id) : undefined}
+              userSpecs={userSpecs}
+              onToggle={() => onToggle(c.id)}
+              onClick={() => onClick(c)}
+            />
+          );
+        })}
+      </div>
+      {selectedElectivesCount >= 3 && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm"
+          style={{ backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' }}>
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <span className="font-bold">Warning: Triple Block</span>
+            <span className="font-normal text-red-500"> — 3 electives in one week is extremely demanding</span>
+          </div>
+        </div>
+      )}
+      {selectedElectivesCount === 2 && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm"
+          style={{ backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fbbf24' }}>
+          <Zap className="w-5 h-5 flex-shrink-0" />
+          Double Block — you&apos;re doing 2 electives this week
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="flex gap-4 py-10 border-b border-gray-400 last:border-0">
       {/* Week meta column */}
@@ -290,54 +350,30 @@ function WeekGroup({
         )}
       </div>
 
-      {/* Cards column: cards + block warning below */}
-      <div className="flex flex-col gap-3 flex-1 min-w-0">
-        <div className="flex flex-wrap gap-3">
-          {visible.map(c => {
-            const specMatch = c.specs.some(s => userSpecs.includes(s));
-            const isDimmed = userSpecs.length > 0 && !specMatch && c.type === 'elective';
-            const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id));
-
-            return (
-              <CourseCard
-                key={c.id}
-                course={c}
-                isSelected={selected.has(c.id)}
-                isDimmed={isDimmed}
-                hasConflict={hasConflict}
-                sectionAdvisory={selected.has(c.id) ? advisories.get(c.id) : undefined}
-                userSpecs={userSpecs}
-                onToggle={() => onToggle(c.id)}
-                onClick={() => onClick(c)}
-              />
-            );
-          })}
+      {term === 4 && showTerm1 && TERM4_PLAN_WEEK_TO_TERM1[week] ? (
+        /* Split layout: Term 4 cards left | divider | Term 1 Gantt right */
+        <div style={{ display: 'flex', flex: '1 1 auto', minWidth: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+          <div style={{ flex: '1 1 auto', minWidth: 0, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {cardsAndWarnings}
+          </div>
+          <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
+          <div style={{ width: 300, flexShrink: 0 }}>
+            <Term1GanttPanel activeWeekIndices={TERM4_PLAN_WEEK_TO_TERM1[week]} />
+          </div>
         </div>
-
-        {/* Double / Triple block warning — below the cards */}
-        {selectedElectivesCount >= 3 && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm"
-            style={{ backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' }}>
-            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-            <div>
-              <span className="font-bold">Warning: Triple Block</span>
-              <span className="font-normal text-red-500"> — 3 electives in one week is extremely demanding</span>
-            </div>
-          </div>
-        )}
-        {selectedElectivesCount === 2 && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm"
-            style={{ backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fbbf24' }}>
-            <Zap className="w-5 h-5 flex-shrink-0" />
-            Double Block — you&apos;re doing 2 electives this week
-          </div>
-        )}
-      </div>
+      ) : (
+        /* Normal cards column */
+        <div className="flex flex-col gap-3 flex-1 min-w-0">
+          {cardsAndWarnings}
+        </div>
+      )}
     </div>
   );
 }
 
 export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onCourseClick }: Props) {
+  const [showTerm1, setShowTerm1] = useState(false);
+
   const terms: (4 | 5 | 6)[] = [4, 5, 6];
   const termLabels = { 4: 'Term 4', 5: 'Term 5', 6: 'Term 6' };
   const termDates = {
@@ -355,7 +391,7 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
         return (
           <div key={term} className="mb-10">
             {/* Term header */}
-            <div className="flex items-center gap-4 mb-5">
+            <div className="flex items-center gap-4 mb-4">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent to-orange-300/60" />
               <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30">
                 <span className="text-orange-600 font-bold text-sm">{termLabels[term]}</span>
@@ -364,6 +400,32 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
               </div>
               <div className="h-px flex-1 bg-gradient-to-l from-transparent to-orange-300/60" />
             </div>
+
+            {/* Term 1 toggle — only for Term 4 */}
+            {term === 4 && (
+              <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setShowTerm1(v => !v)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+                    border: showTerm1 ? '1.5px solid #6366f1' : '1.5px solid #d1d5db',
+                    backgroundColor: showTerm1 ? '#eef2ff' : '#ffffff',
+                    color: showTerm1 ? '#4338ca' : '#6b7280',
+                    fontSize: 12, fontWeight: 600,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <BookOpen size={13} />
+                  {showTerm1 ? '✓ Term 1 Courses' : 'Show Term 1 Courses'}
+                </button>
+                {showTerm1 && (
+                  <span style={{ fontSize: 11, color: '#6b7280' }}>
+                    Showing which Term 1 subjects run alongside each Term 4 block
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Week groups */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6">
@@ -378,6 +440,7 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
                     selected={selected}
                     userSpecs={userSpecs}
                     visibleIds={visibleIds}
+                    showTerm1={showTerm1}
                     onToggle={onToggle}
                     onClick={onCourseClick}
                   />

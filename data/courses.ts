@@ -21,7 +21,7 @@ export const ALL_COURSES: Course[] = [
     code: 'ABMK',
     faculty: 'Prof. Piyush Kumar',
     seats: 60, specs: ['ENT', 'MKT'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '17:30–20:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
+    timings: [{ slot: '17:30–20:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'] }],
     review: {
       learningDepth: 3, workload: 'Low', careerRelevance: 3,
       whatYouLearn: ['New Approach towards B2B', 'ABM transformation (cases)', 'Organizational Structure'],
@@ -68,7 +68,7 @@ export const ALL_COURSES: Course[] = [
     code: 'IFIN',
     faculty: 'Prof. Prachi Mishra',
     seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '13:30–16:30', room: 'S04', days: ['Wed', 'Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
+    timings: [{ slot: '13:30–16:30', room: 'S04', days: ['Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] }],
     review: null,
   },
 
@@ -120,7 +120,7 @@ export const ALL_COURSES: Course[] = [
     seats: 120, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: null,
     timings: [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
-      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
     ],
     review: {
       learningDepth: 5, workload: 'Moderate', careerRelevance: 5,
@@ -136,16 +136,6 @@ export const ALL_COURSES: Course[] = [
       ],
       summary: 'Staggered project is a pain, but Mudit Mathur is a brilliant prof.',
     },
-  },
-
-  // WaW — Block 18
-  {
-    id: 105, term: 4, week: 5,
-    startDate: '2026-07-27', endDate: '2026-08-09',
-    dates: 'Jul 27–Aug 9', block: 18,
-    name: 'Expression through Theatre',
-    faculty: 'TBD',
-    seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
   },
 
   // Block 18 (Jul 27 – Aug 9) — FWKJ + FSAT (FSAT continues into Block 19)
@@ -295,15 +285,6 @@ export const ALL_COURSES: Course[] = [
     review: null,
   },
 
-  // Block 20 Week 2 — Sep 7  (free week)
-  {
-    id: 13, term: 4, week: 11,
-    startDate: '2026-09-07', endDate: '2026-09-11',
-    dates: 'Sep 7–11', block: null,
-    name: 'Free Week',
-    faculty: '', seats: null, specs: [], type: 'free', conflictGroup: null, review: null,
-  },
-
   // Block 21 Week 1 — Sep 14
   {
     id: 14, term: 4, week: 12,
@@ -314,8 +295,8 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Srinivas Pingali',
     seats: 60, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: null,
     timings: [
-      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'A' },
-      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'B' },
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
     ],
     review: {
       learningDepth: 1, workload: 'Low-Moderate', careerRelevance: 4,
@@ -341,8 +322,8 @@ export const ALL_COURSES: Course[] = [
     faculty: 'TBD',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
-      { slot: '13:30–16:30', room: 'S03', days: ['Fri', 'Sat'], part: 'A' },
-      { slot: '17:00–20:00', room: 'S03', days: ['Fri', 'Sat'], part: 'B' },
+      { slot: '13:30–16:30', room: 'S03', days: ['Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed'], part: 'A' },
+      { slot: '17:00–20:00', room: 'S03', days: ['Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed'], part: 'B' },
     ],
     review: null,
   },
@@ -355,7 +336,7 @@ export const ALL_COURSES: Course[] = [
     code: 'MHPT',
     faculty: 'Prof. Pooja Mishra',
     seats: 60, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '09:00–12:00', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] }],
+    timings: [{ slot: '09:00–12:00', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
     review: {
       learningDepth: 2, workload: 'Low-Moderate', careerRelevance: 3,
       whatYouLearn: ['How to build Effective HP Teams', 'Power & Influence in Teams', 'Team Member roles & How to manage members'],

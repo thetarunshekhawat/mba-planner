@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info, BookOpen } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
+import type { EventType } from '@/hooks/useAnalytics';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 import { Term1GanttPanel } from './Term1GanttPanel';
@@ -26,6 +27,7 @@ interface Props {
   visibleIds: Set<number>;
   onToggle: (id: number) => void;
   onCourseClick: (course: Course) => void;
+  trackEvent: (eventType: EventType, payload?: Record<string, unknown>) => void;
 }
 
 function MiniStars({ value, max = 5 }: { value: number; max?: number }) {
@@ -371,8 +373,9 @@ function WeekGroup({
   );
 }
 
-export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onCourseClick }: Props) {
+export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onCourseClick, trackEvent }: Props) {
   const [showTerm1, setShowTerm1] = useState(false);
+  const term1OpenTimeRef = useRef<number | null>(null);
 
   const terms: (4 | 5 | 6)[] = [4, 5, 6];
   const termLabels = { 4: 'Term 4', 5: 'Term 5', 6: 'Term 6' };
@@ -405,7 +408,18 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
             {term === 4 && (
               <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <button
-                  onClick={() => setShowTerm1(v => !v)}
+                  onClick={() => {
+                    const next = !showTerm1;
+                    setShowTerm1(next);
+                    if (next) {
+                      term1OpenTimeRef.current = Date.now();
+                      trackEvent('term1_panel_toggled', { show: true });
+                    } else {
+                      const duration_ms = term1OpenTimeRef.current ? Date.now() - term1OpenTimeRef.current : null;
+                      term1OpenTimeRef.current = null;
+                      trackEvent('term1_panel_toggled', { show: false, duration_ms });
+                    }
+                  }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     padding: '5px 14px', borderRadius: 20, cursor: 'pointer',

@@ -303,7 +303,7 @@ export default function PlannerPage() {
         <div className="flex-1 flex items-center justify-end gap-2">
           {profile?.email && ADMIN_EMAILS.has(profile.email.toLowerCase()) && (
             <button
-              onClick={() => router.push('/admin')}
+              onClick={() => { trackEvent('admin_dashboard_accessed'); router.push('/admin'); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-orange-400 hover:bg-slate-700 hover:text-orange-300 transition-all border border-orange-500/30"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -501,10 +501,11 @@ export default function PlannerPage() {
               visibleIds={planVisibleIds}
               onToggle={toggle}
               onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
+              trackEvent={trackEvent}
             />
           ) : (
             <>
-              {selected.size === 0 ? (
+              {scheduleVisibleIds.size === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-3 text-center p-8">
                   <CalendarDays className="w-12 h-12 text-slate-600" />
                   <p className="text-slate-400 font-medium">No courses selected yet</p>

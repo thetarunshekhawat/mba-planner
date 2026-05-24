@@ -23,7 +23,9 @@ export type EventType =
   | 'calendar_panel_opened'
   | 'sidebar_toggled'
   | 'mobile_drawer_toggled'
-  | 'mobile_drawer_spec_tapped';
+  | 'mobile_drawer_spec_tapped'
+  | 'term1_panel_toggled'
+  | 'admin_dashboard_accessed';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

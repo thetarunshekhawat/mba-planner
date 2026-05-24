@@ -67,6 +67,8 @@ const EVENT_LABELS: Record<string, string> = {
   sidebar_toggled: 'Filter Sidebar Toggled',
   mobile_drawer_toggled: 'Mobile Drawer Toggled',
   mobile_drawer_spec_tapped: 'Mobile Drawer Spec Tapped',
+  term1_panel_toggled: 'Term 1 Panel Toggled',
+  admin_dashboard_accessed: 'Admin Dashboard Accessed',
 };
 
 function courseNameById(id: number): string {
@@ -104,6 +106,8 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'sidebar_toggled':           return { icon: '☰', text: `${p?.open ? 'Opened' : 'Closed'} filter sidebar (mobile)` };
     case 'mobile_drawer_toggled':     return { icon: '📱', text: `${p?.open ? 'Opened' : 'Closed'} mobile drawer${!p?.has_specs ? ' (no specs yet)' : ''}` };
     case 'mobile_drawer_spec_tapped': return { icon: '🎯', text: `Tapped ${p?.spec} spec in mobile drawer` };
+    case 'term1_panel_toggled':       return { icon: '📚', text: `${p?.show ? 'Opened' : 'Closed'} Term 1 courses panel` };
+    case 'admin_dashboard_accessed':  return { icon: '🛡', text: 'Navigated to admin dashboard' };
     default:                          return { icon: '•', text: e.event_type };
   }
 }
@@ -318,12 +322,13 @@ export function AdminDashboard({
   const [courseListSort, setCourseListSort] = useState<'popular' | 'alpha'>('popular');
   const [courseTermFilter, setCourseTermFilter] = useState<number | 'all'>('all');
 
-  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer';
+  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel';
   const [inDepthSection, setInDepthSection] = useState<InDepthSection | null>(null);
   const [whitelistEmails, setWhitelistEmails] = useState<{ email: string; display_name: string }[]>([]);
   const [memberEngagementFilter, setMemberEngagementFilter] = useState<'all' | '7d' | '30d' | 'never'>('all');
   const [drawerSpecFilter, setDrawerSpecFilter] = useState<string>('all');
   const [drawerDateFilter, setDrawerDateFilter] = useState<'all' | '7d' | '30d'>('all');
+  const [term1UsersExpanded, setTerm1UsersExpanded] = useState(false);
 
   type DauDrillType = 'today' | 'total' | 'avg7' | 'avg30' | 'peak';
   const [dauDrill, setDauDrill] = useState<DauDrillType | null>(null);
@@ -2537,6 +2542,7 @@ export function AdminDashboard({
                       { key: 'member-engagement' as InDepthSection, label: 'Member Engagement', desc: 'Full table with filters, recently active, never active', color: 'text-purple-400', border: 'border-purple-500/30 hover:border-purple-500/60' },
                       { key: 'user-status' as InDepthSection, label: 'User Status', desc: 'New this week, yet to log in from cohort whitelist', color: 'text-green-400', border: 'border-green-500/30 hover:border-green-500/60' },
                       { key: 'mobile-drawer' as InDepthSection, label: 'Mobile Drawer', desc: 'All members who used the drawer, sessions, specs tapped, filters', color: 'text-cyan-400', border: 'border-cyan-500/30 hover:border-cyan-500/60' },
+                      { key: 'term1-panel' as InDepthSection, label: 'Term 1 Panel', desc: 'Who toggled Term 1 courses, how long they kept it on, engagement intent', color: 'text-indigo-400', border: 'border-indigo-500/30 hover:border-indigo-500/60' },
                     ].map(({ key, label, desc, color, border }) => (
                       <button
                         key={key}
@@ -2567,6 +2573,7 @@ export function AdminDashboard({
                     {inDepthSection === 'member-engagement' && 'Member Engagement'}
                     {inDepthSection === 'user-status' && 'User Status'}
                     {inDepthSection === 'mobile-drawer' && 'Mobile Drawer'}
+                    {inDepthSection === 'term1-panel' && 'Term 1 Panel'}
                   </span>
                 </div>
               )}
@@ -3113,6 +3120,172 @@ export function AdminDashboard({
                   </div>
                 </div>
               )}
+
+              {/* ── Term 1 Panel In-Depth ── */}
+              {inDepthSection === 'term1-panel' && (() => {
+                const allTerm1Events = events.filter(e => e.event_type === 'term1_panel_toggled');
+                const openEvents = allTerm1Events.filter(e => (e.payload as Record<string, unknown>)?.show === true);
+                const closeEvents = allTerm1Events.filter(e => (e.payload as Record<string, unknown>)?.show === false);
+
+                const uniqueUserIds = [...new Set(allTerm1Events.map(e => e.user_id))];
+
+                // Per-user stats
+                const memberRows = uniqueUserIds.map(uid => {
+                  const userEvents = allTerm1Events.filter(e => e.user_id === uid);
+                  const userCloseEvents = userEvents.filter(e => (e.payload as Record<string, unknown>)?.show === false);
+                  const durations = userCloseEvents
+                    .map(e => (e.payload as Record<string, unknown>)?.duration_ms as number | null)
+                    .filter((d): d is number => typeof d === 'number' && d > 0);
+                  const totalDurationMs = durations.reduce((a, b) => a + b, 0);
+                  const avgDurationMs = durations.length > 0 ? totalDurationMs / durations.length : null;
+                  const opens = userEvents.filter(e => (e.payload as Record<string, unknown>)?.show === true).length;
+                  const timestamps = userEvents.map(e => e.occurred_at).sort();
+                  const profile = profiles.find(p => p.id === uid);
+                  return { uid, profile, opens, totalDurationMs, avgDurationMs, firstUsed: timestamps[0], lastUsed: timestamps[timestamps.length - 1] };
+                }).filter(r => r.profile).sort((a, b) => b.lastUsed.localeCompare(a.lastUsed));
+
+                // Cohort-wide duration stats from close events only
+                const allDurations = closeEvents
+                  .map(e => (e.payload as Record<string, unknown>)?.duration_ms as number | null)
+                  .filter((d): d is number => typeof d === 'number' && d > 0);
+                const cohortAvgMs = allDurations.length > 0
+                  ? allDurations.reduce((a, b) => a + b, 0) / allDurations.length
+                  : null;
+                const cohortMedianMs = (() => {
+                  if (allDurations.length === 0) return null;
+                  const sorted = [...allDurations].sort((a, b) => a - b);
+                  const mid = Math.floor(sorted.length / 2);
+                  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+                })();
+
+                const fmtDur = (ms: number | null) => {
+                  if (!ms) return '—';
+                  if (ms < 60000) return `${Math.round(ms / 1000)}s`;
+                  const m = Math.floor(ms / 60000);
+                  const s = Math.round((ms % 60000) / 1000);
+                  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+                };
+
+                return (
+                  <div className="space-y-5">
+                    {/* Summary stat cards */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {/* Unique users — clickable */}
+                      <button
+                        onClick={() => setTerm1UsersExpanded(v => !v)}
+                        className="bg-slate-800 rounded-xl p-3 border border-indigo-500/20 hover:border-indigo-500/50 transition-all text-left group"
+                      >
+                        <div className="text-2xl font-bold text-indigo-400 group-hover:text-indigo-300 transition-colors">
+                          {uniqueUserIds.length}
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          Unique users{term1UsersExpanded ? ' ▲' : ' ▼'}
+                        </div>
+                      </button>
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <div className="text-2xl font-bold text-orange-400">{openEvents.length}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Total toggles on</div>
+                      </div>
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <div className="text-2xl font-bold text-emerald-400">{fmtDur(cohortAvgMs)}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Avg session duration</div>
+                      </div>
+                      <div className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                        <div className="text-2xl font-bold text-purple-400">{fmtDur(cohortMedianMs)}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Median duration</div>
+                      </div>
+                    </div>
+
+                    {/* Expanded user list on click */}
+                    {term1UsersExpanded && (
+                      <div className="bg-slate-800/60 rounded-xl border border-indigo-500/20 overflow-hidden">
+                        <div className="px-4 py-2.5 border-b border-white/5 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-indigo-300">Users who used Term 1 panel</span>
+                          <span className="text-[10px] text-slate-500">{uniqueUserIds.length} total</span>
+                        </div>
+                        <div className="divide-y divide-white/5">
+                          {memberRows.map(r => (
+                            <div key={r.uid} className="flex items-center justify-between px-4 py-2.5 hover:bg-slate-700/30 transition-colors">
+                              <button
+                                onClick={() => { setSelectedMember(r.profile!); setTab('member'); setMemberSubTab('activity'); }}
+                                className="text-sm text-slate-200 hover:text-indigo-300 transition-colors text-left"
+                              >
+                                {r.profile!.name || r.profile!.email.split('@')[0]}
+                              </button>
+                              <div className="flex items-center gap-4 text-[11px] text-slate-500">
+                                <span>{r.opens} toggle{r.opens !== 1 ? 's' : ''}</span>
+                                <span className="text-slate-400">{fmtRelative(r.lastUsed)}</span>
+                              </div>
+                            </div>
+                          ))}
+                          {memberRows.length === 0 && (
+                            <div className="px-4 py-4 text-xs text-slate-600 text-center">No data yet</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Per-member table */}
+                    {memberRows.length === 0 ? (
+                      <p className="text-xs text-slate-500 py-4">No Term 1 panel interactions recorded yet.</p>
+                    ) : (
+                      <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                        <div className="px-4 py-2.5 border-b border-white/5">
+                          <span className="text-xs font-semibold text-slate-300">Per-member breakdown</span>
+                          <p className="text-[10px] text-slate-500 mt-0.5">Duration = time between toggling on and off. Longer = intentional use, not just a curious click.</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="border-b border-white/10 text-slate-500 text-left">
+                                <th className="py-2.5 px-4 font-medium">Member</th>
+                                <th className="py-2.5 px-4 font-medium">Toggles on</th>
+                                <th className="py-2.5 px-4 font-medium">Total time on</th>
+                                <th className="py-2.5 px-4 font-medium">Avg per session</th>
+                                <th className="py-2.5 px-4 font-medium">First used</th>
+                                <th className="py-2.5 px-4 font-medium">Last used</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {memberRows.map(r => (
+                                <tr key={r.uid} className="hover:bg-slate-700/30 transition-colors">
+                                  <td className="py-2.5 px-4">
+                                    <button
+                                      onClick={() => { setSelectedMember(r.profile!); setTab('member'); setMemberSubTab('activity'); }}
+                                      className="text-slate-200 hover:text-indigo-300 transition-colors text-left"
+                                    >
+                                      {r.profile!.name || r.profile!.email.split('@')[0]}
+                                    </button>
+                                  </td>
+                                  <td className="py-2.5 px-4 text-orange-400 font-semibold">{r.opens}</td>
+                                  <td className="py-2.5 px-4 text-emerald-400 font-semibold">{fmtDur(r.totalDurationMs || null)}</td>
+                                  <td className="py-2.5 px-4 text-slate-300">{fmtDur(r.avgDurationMs)}</td>
+                                  <td className="py-2.5 px-4 text-slate-400">{fmtTs(r.firstUsed)}</td>
+                                  <td className="py-2.5 px-4 text-slate-400">{fmtRelative(r.lastUsed)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Intent signal callout */}
+                    {cohortAvgMs !== null && (
+                      <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl px-4 py-3">
+                        <p className="text-xs text-indigo-300 font-semibold mb-0.5">Reading intent from duration</p>
+                        <p className="text-[11px] text-slate-400">
+                          {cohortAvgMs < 5000
+                            ? 'Most users close the panel within 5 seconds — likely curiosity clicks, not deep engagement.'
+                            : cohortAvgMs < 30000
+                            ? 'Average use is under 30 seconds — users are glancing at the Gantt but not studying it closely.'
+                            : 'Users are keeping the panel open for meaningful durations — they\'re actively cross-referencing Term 1 while planning Term 4.'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* ── Mobile Drawer In-Depth ── */}
               {inDepthSection === 'mobile-drawer' && (() => {

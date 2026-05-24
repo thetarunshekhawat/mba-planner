@@ -160,6 +160,7 @@ export function FilterSidebar({
             <Progress
               value={(selectedElectiveCount / TOTAL_ELECTIVE_CREDITS) * 100}
               className="h-1.5 bg-white/10"
+              indicatorStyle={{ backgroundColor: '#38bdf8' }}
             />
           </div>
 
@@ -173,13 +174,15 @@ export function FilterSidebar({
                 {TOTAL_WAW}/{TOTAL_WAW}
               </span>
             </div>
-            <Progress value={100} className="h-1.5 bg-white/10" />
+            <Progress value={100} className="h-1.5 bg-white/10" indicatorStyle={{ backgroundColor: '#fbbf24' }} />
           </div>
 
           {/* Per-spec progress (for active specs) */}
           {userSpecs.map(specId => {
             const entry = specProgress.find(sp => sp.spec.id === specId);
             if (!entry) return null;
+            const isExceeded = entry.selected > SPEC_REQUIRED_CREDITS;
+            const indicatorColor = isExceeded ? '#f59e0b' : entry.spec.color;
             return (
               <div key={specId}>
                 <div className="flex items-center justify-between mb-1">
@@ -189,11 +192,17 @@ export function FilterSidebar({
                   <span className="text-white text-xs font-semibold">
                     {entry.selected}/{SPEC_REQUIRED_CREDITS}
                     <span className="text-slate-500 font-normal"> req</span>
+                    {isExceeded && (
+                      <span className="ml-1 text-amber-400 font-semibold">
+                        +{entry.selected - SPEC_REQUIRED_CREDITS}
+                      </span>
+                    )}
                   </span>
                 </div>
                 <Progress
                   value={Math.min((entry.selected / SPEC_REQUIRED_CREDITS) * 100, 100)}
                   className="h-1.5 bg-white/10"
+                  indicatorStyle={{ backgroundColor: indicatorColor }}
                 />
               </div>
             );

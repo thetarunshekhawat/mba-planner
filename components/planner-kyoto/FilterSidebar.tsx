@@ -245,6 +245,8 @@ export function FilterSidebar({
           {userSpecs.map(specId => {
             const entry = specProgress.find(sp => sp.spec.id === specId);
             if (!entry) return null;
+            const isExceeded = entry.selected > SPEC_REQUIRED_CREDITS;
+            const barColor = isExceeded ? '#f59e0b' : entry.spec.color;
             return (
               <div key={specId}>
                 <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
@@ -254,9 +256,14 @@ export function FilterSidebar({
                   <span className="text-xs font-semibold" style={{ color: 'var(--cream)' }}>
                     {entry.selected}/{SPEC_REQUIRED_CREDITS}
                     <span style={{ color: 'var(--ash)', fontWeight: 400 }}> req</span>
+                    {isExceeded && (
+                      <span style={{ color: '#f59e0b', fontWeight: 600, marginLeft: 4 }}>
+                        +{entry.selected - SPEC_REQUIRED_CREDITS}
+                      </span>
+                    )}
                   </span>
                 </div>
-                <KyotoProgressBar value={entry.selected} max={SPEC_REQUIRED_CREDITS} color={entry.spec.color} />
+                <KyotoProgressBar value={entry.selected} max={SPEC_REQUIRED_CREDITS} color={barColor} />
               </div>
             );
           })}

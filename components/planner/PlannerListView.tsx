@@ -353,14 +353,15 @@ function WeekGroup({
       </div>
 
       {term === 4 && showTerm1 && TERM4_PLAN_WEEK_TO_TERM1[week] ? (
-        /* Split layout: Term 4 cards left | divider | Term 1 Gantt right */
-        <div style={{ display: 'flex', flex: '1 1 auto', minWidth: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+        /* Split layout: Term 4 cards left | divider | Term 1 Gantt right (stacks on mobile) */
+        <div className="flex flex-col lg:flex-row flex-1 min-w-0 rounded-lg overflow-hidden border border-gray-200">
           <div style={{ flex: '1 1 auto', minWidth: 0, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {cardsAndWarnings}
           </div>
-          <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
-          <div style={{ width: 300, flexShrink: 0 }}>
-            <Term1GanttPanel activeWeekIndices={TERM4_PLAN_WEEK_TO_TERM1[week]} />
+          <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
+          <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+          <div className="w-full lg:w-[300px] lg:flex-shrink-0">
+            <Term1GanttPanel activeWeekIndices={TERM4_PLAN_WEEK_TO_TERM1[week]} compact />
           </div>
         </div>
       ) : (

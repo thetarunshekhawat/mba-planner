@@ -482,12 +482,13 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
                 <div key={`${b.block}-${b.weekNum}`}>
                   {i === 8 && (
                     showTerm1 ? (
-                      <div style={{ display: 'flex', marginBottom: 12, borderRadius: 8, overflow: 'hidden', border: '1px dashed #fca5a5' }}>
+                      <div className="flex flex-col lg:flex-row mb-3 rounded-lg overflow-hidden" style={{ border: '1px dashed #fca5a5' }}>
                         <div style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 14px', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center' }}>
                           📝 Term 4 Exam Week — Aug 24–28
                         </div>
-                        <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
-                        <div style={{ width: 300, flexShrink: 0 }}>
+                        <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
+                        <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+                        <div className="w-full lg:w-[300px] lg:flex-shrink-0">
                           <Term1GanttPanel activeWeekIndices={[8]} />
                         </div>
                       </div>
@@ -498,7 +499,7 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
                     )
                   )}
                   {showTerm1 ? (
-                    <div style={{ display: 'flex', marginBottom: 24, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                    <div className="flex flex-col lg:flex-row mb-6 lg:mb-8 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                       <div style={{ flex: '1 1 auto', minWidth: 0 }}>
                         <BlockTable
                           blockInfo={b}
@@ -510,8 +511,9 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
                           onCourseClick={onCourseClick}
                         />
                       </div>
-                      <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
-                      <div style={{ width: 300, flexShrink: 0 }}>
+                      <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
+                      <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+                      <div className="w-full lg:w-[300px] lg:flex-shrink-0">
                         <Term1GanttPanel activeWeekIndices={[TERM4_TO_TERM1_WEEK_IDX[i]]} />
                       </div>
                     </div>
@@ -531,12 +533,13 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
 
             {/* Term 1 Week 14 — runs one week after Term 4 ends */}
             {showTerm1 && (
-              <div style={{ display: 'flex', marginBottom: 8, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+              <div className="flex flex-col lg:flex-row mb-2 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                 <div style={{ flex: '1 1 auto', minWidth: 0, padding: '16px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center' }}>
                   <span style={{ color: '#9ca3af', fontSize: 12, fontStyle: 'italic' }}>Term 4 has ended — Term 1 continues</span>
                 </div>
-                <div style={{ width: 2, backgroundColor: '#c7d2fe', flexShrink: 0 }} />
-                <div style={{ width: 300, flexShrink: 0 }}>
+                <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
+                <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+                <div className="w-full lg:w-[300px] lg:flex-shrink-0">
                   <Term1GanttPanel activeWeekIndices={[13]} />
                 </div>
               </div>

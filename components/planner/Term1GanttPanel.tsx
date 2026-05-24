@@ -31,12 +31,15 @@ const _buildSpans = () => {
 };
 
 const SPANS = _buildSpans();
-const CELL_W = 11;
-const LABEL_W = 85;
-const INTER_GAP = 3;   // gap between block groups
-const INTRA_GAP = 1;   // gap between weeks within a block
+const INTER_GAP = 3;
+const INTRA_GAP = 1;
 
-export function Term1GanttPanel({ activeWeekIndices }: { activeWeekIndices: number[] }) {
+export function Term1GanttPanel({ activeWeekIndices, compact = false }: {
+  activeWeekIndices: number[];
+  compact?: boolean;
+}) {
+  const CELL_W = compact ? 8 : 11;
+  const LABEL_W = compact ? 68 : 85;
   const active = new Set(activeWeekIndices);
 
   const renderCell = (idx: number, hasCourse: boolean, isWaw: boolean) => {

@@ -224,12 +224,20 @@ export function FriendsView({
                       onClick={() => handleOpenDetail(friend)}
                       className="flex items-center gap-3 flex-1 min-w-0 text-left"
                     >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
-                        style={{ backgroundColor: color }}
-                      >
-                        {initials || '?'}
-                      </div>
+                      {friend.avatarUrl ? (
+                        <img
+                          src={friend.avatarUrl}
+                          alt={friend.name}
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
+                          style={{ backgroundColor: color }}
+                        >
+                          {initials || '?'}
+                        </div>
+                      )}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-slate-800 truncate">{friend.name}</span>

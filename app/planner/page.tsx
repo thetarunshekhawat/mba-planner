@@ -20,24 +20,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ALL_COURSES } from '@/data/courses';
+import { TERM_DATES, getCurrentTerm, getTermCourses } from '@/lib/terms';
 import type { Course, SpecId, Profile, Friend, FriendOverlay } from '@/types';
 import { colorForFriend } from '@/types';
 import { useRouter } from 'next/navigation';
-
-const TERM_DATES = [
-  { term: 4 as const, label: 'Term 4', dates: 'Jun 29 – Sep 27, 2026', start: new Date('2026-06-29'), end: new Date('2026-09-27') },
-  { term: 5 as const, label: 'Term 5', dates: 'Sep 28 – Dec 27, 2026', start: new Date('2026-09-28'), end: new Date('2026-12-27') },
-  { term: 6 as const, label: 'Term 6', dates: 'Jan 4 – Apr 4, 2027',   start: new Date('2027-01-04'), end: new Date('2027-04-04') },
-];
-
-function getCurrentTerm(): 4 | 5 | 6 {
-  const today = new Date();
-  for (const t of TERM_DATES) {
-    if (today >= t.start && today <= t.end) return t.term;
-  }
-  if (today < TERM_DATES[0].start) return 4;
-  return 6;
-}
 
 const ADMIN_EMAILS = new Set([
   'tarun.shekhawat2027@bitsom.edu.in',
@@ -553,6 +539,7 @@ export default function PlannerPage() {
             onSpecToggle={handleSpecToggle}
             userName={profile.name}
             userEmail={profile.email}
+            userAvatarUrl={profile.avatar_url ?? undefined}
             onSignOut={handleSignOut}
           />
         </div>
@@ -625,6 +612,7 @@ export default function PlannerPage() {
           onSpecToggle={handleSpecToggle}
           userName={profile.name}
           userEmail={profile.email}
+          userAvatarUrl={profile.avatar_url ?? undefined}
           onSignOut={handleSignOut}
           trackEvent={trackEvent}
         />
@@ -646,7 +634,8 @@ export default function PlannerPage() {
 
       <ChatWidget
         userId={userId}
-        courses={ALL_COURSES.filter((c) => selected.has(c.id))}
+        courses={getTermCourses(selected, getCurrentTerm())}
+        specializations={profile?.specializations ?? []}
         trackEvent={trackEvent}
       />
     </div>

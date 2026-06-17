@@ -38,12 +38,20 @@ export function FriendDetailModal({ friend, selectedIds, color, onClose }: Props
       >
         <SheetHeader className="mb-6">
           <div className="flex items-center gap-3 mb-3">
-            <div
-              className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-              style={{ backgroundColor: color }}
-            >
-              {initials || '?'}
-            </div>
+            {friend.avatarUrl ? (
+              <img
+                src={friend.avatarUrl}
+                alt={friend.name}
+                className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div
+                className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                style={{ backgroundColor: color }}
+              >
+                {initials || '?'}
+              </div>
+            )}
             <div className="min-w-0">
               <SheetTitle className="text-white text-lg leading-tight truncate">{friend.name}</SheetTitle>
               <p className="text-slate-400 text-xs truncate">{friend.email}</p>

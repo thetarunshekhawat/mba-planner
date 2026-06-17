@@ -30,6 +30,7 @@ interface Props {
   onSpecToggle: (spec: SpecId) => void;
   userName: string;
   userEmail: string;
+  userAvatarUrl?: string;
   onSignOut: () => void;
   mobile?: boolean;
 }
@@ -66,6 +67,7 @@ export function FilterSidebar({
   onSpecToggle,
   userName,
   userEmail,
+  userAvatarUrl,
   onSignOut,
   mobile = false,
 }: Props) {
@@ -101,9 +103,17 @@ export function FilterSidebar({
       {/* User header */}
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm">
-            {userName.charAt(0).toUpperCase()}
-          </div>
+          {userAvatarUrl ? (
+            <img
+              src={userAvatarUrl}
+              alt={userName}
+              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-white text-sm font-medium truncate">{userName}</p>
             <p className="text-slate-500 text-xs truncate">{userEmail}</p>

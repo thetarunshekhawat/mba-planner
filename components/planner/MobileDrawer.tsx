@@ -15,6 +15,7 @@ interface Props {
   onSpecToggle: (spec: SpecId) => void;
   userName: string;
   userEmail: string;
+  userAvatarUrl?: string;
   onSignOut: () => void;
   trackEvent: (type: EventType, payload?: Record<string, unknown>) => void;
 }
@@ -34,6 +35,7 @@ export function MobileDrawer({
   onSpecToggle,
   userName,
   userEmail,
+  userAvatarUrl,
   onSignOut,
   trackEvent,
 }: Props) {
@@ -229,6 +231,7 @@ export function MobileDrawer({
             onSpecToggle={handleSpecChipTap}
             userName={userName}
             userEmail={userEmail}
+            userAvatarUrl={userAvatarUrl}
             onSignOut={onSignOut}
             mobile
           />

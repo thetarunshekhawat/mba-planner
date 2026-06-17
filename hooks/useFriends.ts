@@ -34,7 +34,7 @@ export function useFriends(userId: string | null) {
     const ids = edges.map(e => e.friend_id as string);
     const { data: profs } = await supabase
       .from('profiles')
-      .select('id, name, email, specializations, friend_code')
+      .select('id, name, email, specializations, friend_code, avatar_url')
       .in('id', ids);
 
     const addedAtById = new Map(edges.map(e => [e.friend_id as string, e.created_at as string]));
@@ -45,6 +45,7 @@ export function useFriends(userId: string | null) {
       specializations: (p.specializations as SpecId[]) ?? [],
       friendCode: (p.friend_code as string) ?? undefined,
       addedAt: addedAtById.get(p.id as string) ?? '',
+      avatarUrl: (p.avatar_url as string) ?? undefined,
     }));
     // Newest first
     list.sort((a, b) => (a.addedAt < b.addedAt ? 1 : a.addedAt > b.addedAt ? -1 : 0));

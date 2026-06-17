@@ -62,6 +62,7 @@ export interface Profile {
   name: string;
   specializations: SpecId[];
   friend_code?: string;
+  avatar_url?: string;
 }
 
 // A friend the current user can see (their viewer→friend edge exists).
@@ -72,6 +73,7 @@ export interface Friend {
   specializations: SpecId[];
   friendCode?: string;
   addedAt: string;
+  avatarUrl?: string;
 }
 
 // A friend currently overlaid on the schedule, with an assigned color.

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
+import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle } from 'lucide-react';
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -38,6 +38,18 @@ interface LastSignInRow {
   last_sign_in_at: string;
 }
 
+interface ChatbotMsgRow {
+  user_id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  course_code: string | null;
+  intent: string | null;
+  model: string | null;
+  latency_ms: number | null;
+  created_at: string;
+}
+
 interface FriendshipRow {
   viewer_id: string;
   friend_id: string;
@@ -50,7 +62,7 @@ interface GroupedSession {
   events: EventRow[];
 }
 
-type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth';
+type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot';
 type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
 
 
@@ -87,6 +99,14 @@ const EVENT_LABELS: Record<string, string> = {
   friend_overlay_toggled: 'Friend Overlay Toggled',
   friend_overlay_cleared: 'Friend Overlay Cleared',
   friend_overlay_conflict_detected: 'Friend Schedule Clash',
+  chatbot_opened: 'AI Chat Opened',
+  chatbot_closed: 'AI Chat Closed',
+  chatbot_message_sent: 'AI Chat Message Sent',
+  chatbot_disambiguation_shown: 'AI Chat Course Prompt',
+  chatbot_chip_clicked: 'AI Chat Course Picked',
+  chatbot_answer_received: 'AI Chat Answer',
+  chatbot_error: 'AI Chat Error',
+  chatbot_rate_limited: 'AI Chat Rate-limited',
 };
 
 function courseNameById(id: number): string {
@@ -137,6 +157,14 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'friend_overlay_toggled':    return { icon: '👁', text: `${p?.on ? 'Showed' : 'Hid'} a friend on schedule` };
     case 'friend_overlay_cleared':    return { icon: '🧹', text: 'Cleared friend overlays' };
     case 'friend_overlay_conflict_detected': return { icon: '⏰', text: `Clash: ${String(p?.friend_course ?? '')} vs ${String(p?.my_course ?? '')} (${String(p?.day ?? '')} ${String(p?.slot ?? '')})` };
+    case 'chatbot_opened':            return { icon: '💬', text: 'Opened the AI course assistant' };
+    case 'chatbot_closed':            return { icon: '💬', text: 'Closed the AI course assistant' };
+    case 'chatbot_message_sent':      return { icon: '✨', text: 'Asked the AI assistant a question' };
+    case 'chatbot_disambiguation_shown': return { icon: '❓', text: `AI asked which course (${Number(p?.options ?? 0)} options)` };
+    case 'chatbot_chip_clicked':      return { icon: '👉', text: `Picked course ${String(p?.name ?? p?.code ?? '')}` };
+    case 'chatbot_answer_received':   return { icon: '🤖', text: `AI answered (${String(p?.intent ?? '')})` };
+    case 'chatbot_error':             return { icon: '🔴', text: `AI chat error${p?.status ? ` (${p.status})` : ''}` };
+    case 'chatbot_rate_limited':      return { icon: '🚦', text: 'AI chat rate-limited' };
     default:                          return { icon: '•', text: e.event_type };
   }
 }
@@ -315,6 +343,7 @@ export function AdminDashboard({
   // Shared analytics data (Activity + Insights tabs)
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [chatbotMessages, setChatbotMessages] = useState<ChatbotMsgRow[]>([]);
   const [lastSignIns, setLastSignIns] = useState<LastSignInRow[]>([]);
   const analyticsLoadedRef = useRef(false);
 
@@ -404,16 +433,21 @@ export function AdminDashboard({
 
   // Lazy-load analytics data when Activity, Insights, or In-Depth tab first opens
   useEffect(() => {
-    if ((tab !== 'activity' && tab !== 'insights' && tab !== 'in-depth') || analyticsLoadedRef.current) return;
+    if ((tab !== 'activity' && tab !== 'insights' && tab !== 'in-depth' && tab !== 'chatbot') || analyticsLoadedRef.current) return;
     analyticsLoadedRef.current = true;
     Promise.all([
       supabase
         .from('user_sessions')
         .select('user_id, session_start, session_end, duration_seconds, metadata'),
       supabase.from('user_events').select('user_id, event_type, payload, occurred_at'),
-    ]).then(([{ data: s }, { data: e }]) => {
+      supabase
+        .from('chatbot_messages')
+        .select('user_id, conversation_id, role, content, course_code, intent, model, latency_ms, created_at')
+        .order('created_at', { ascending: false }),
+    ]).then(([{ data: s }, { data: e }, { data: cm }]) => {
       setSessions((s ?? []) as SessionRow[]);
       setEvents((e ?? []) as EventRow[]);
+      setChatbotMessages((cm ?? []) as ChatbotMsgRow[]);
     });
   }, [tab]);
 
@@ -1127,6 +1161,15 @@ export function AdminDashboard({
               }`}
             >
               In-Depth
+            </button>
+            <button
+              onClick={() => setTab('chatbot')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+                tab === 'chatbot' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Sparkles className="w-3 h-3" />
+              AI Chatbot
             </button>
           </div>
 
@@ -3628,6 +3671,173 @@ export function AdminDashboard({
                       </div>
                     )}
                   </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ── AI CHATBOT TAB ── */}
+          {tab === 'chatbot' && (
+            <div className="p-4 space-y-6">
+              {(() => {
+                const cName = (code: string) => ALL_COURSES.find(c => c.code === code)?.name ?? code;
+                const pName = (uid: string) => {
+                  const p = profiles.find(pr => pr.id === uid);
+                  return p?.name || p?.email?.split('@')[0] || 'Unknown';
+                };
+
+                const msgs = chatbotMessages;
+                const userMsgs = msgs.filter(m => m.role === 'user');
+                const asstMsgs = msgs.filter(m => m.role === 'assistant');
+                const convCount = new Set(msgs.map(m => m.conversation_id)).size;
+                const userCount = new Set(msgs.map(m => m.user_id)).size;
+
+                const chatbotEvents = events.filter(e => e.event_type.startsWith('chatbot_'));
+                const opens = chatbotEvents.filter(e => e.event_type === 'chatbot_opened').length;
+                const disambig = chatbotEvents.filter(e => e.event_type === 'chatbot_disambiguation_shown').length;
+                const errors = chatbotEvents.filter(e => e.event_type === 'chatbot_error').length;
+
+                const latencies = asstMsgs
+                  .map(m => m.latency_ms)
+                  .filter((n): n is number => typeof n === 'number' && n > 0);
+                const avgLatency = latencies.length
+                  ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length)
+                  : null;
+
+                const byCourse = new Map<string, number>();
+                for (const m of userMsgs) {
+                  if (m.course_code) byCourse.set(m.course_code, (byCourse.get(m.course_code) ?? 0) + 1);
+                }
+                const courseRows = [...byCourse.entries()]
+                  .map(([code, count]) => ({ code, name: cName(code), count }))
+                  .sort((a, b) => b.count - a.count);
+                const maxCourse = Math.max(1, ...courseRows.map(r => r.count));
+
+                const byQ = new Map<string, { text: string; count: number }>();
+                for (const m of userMsgs) {
+                  const key = m.content.trim().toLowerCase().replace(/\s+/g, ' ');
+                  if (!key) continue;
+                  const e = byQ.get(key);
+                  if (e) e.count++;
+                  else byQ.set(key, { text: m.content.trim(), count: 1 });
+                }
+                const topQuestions = [...byQ.values()].sort((a, b) => b.count - a.count).slice(0, 8);
+                const recent = userMsgs.slice(0, 30);
+
+                const kpis: { label: string; value: string | number }[] = [
+                  { label: 'Conversations', value: convCount },
+                  { label: 'Messages', value: msgs.length },
+                  { label: 'Questions asked', value: userMsgs.length },
+                  { label: 'Unique users', value: userCount },
+                  { label: 'Chat opens', value: opens },
+                  { label: 'Course prompts', value: disambig },
+                  { label: 'Errors', value: errors },
+                  { label: 'Avg reply', value: avgLatency != null ? `${(avgLatency / 1000).toFixed(1)}s` : '—' },
+                ];
+
+                if (msgs.length === 0 && opens === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-slate-500 text-sm gap-2">
+                      <Sparkles className="w-10 h-10 text-slate-700" />
+                      No AI chatbot activity yet.
+                      <span className="text-xs text-slate-600">Opens, questions and answers will appear here as students use the assistant.</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <>
+                    <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-indigo-400" />
+                      AI Course Assistant — Usage
+                    </h2>
+
+                    {/* KPI cards */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {kpis.map(k => (
+                        <div key={k.label} className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                          <p className="text-2xl font-bold text-white">{k.value}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{k.label}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Questions by course */}
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-indigo-400" />
+                          Questions by Course
+                        </h3>
+                        {courseRows.length === 0 ? (
+                          <p className="text-xs text-slate-500">No course-specific questions yet.</p>
+                        ) : (
+                          <div className="space-y-2.5">
+                            {courseRows.map(r => (
+                              <div key={r.code} className="flex items-center gap-3">
+                                <span className="text-xs text-slate-400 w-36 shrink-0 truncate" title={r.name}>{r.name}</span>
+                                <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${(r.count / maxCourse) * 100}%` }} />
+                                </div>
+                                <span className="text-xs text-slate-300 w-8 text-right">{r.count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Top questions */}
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-indigo-400" />
+                          Most-asked Questions
+                        </h3>
+                        {topQuestions.length === 0 ? (
+                          <p className="text-xs text-slate-500">No questions yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {topQuestions.map((q, i) => (
+                              <div key={i} className="flex items-start gap-2">
+                                <span className="text-xs font-semibold text-indigo-300 w-6 shrink-0">{q.count}×</span>
+                                <span className="text-xs text-slate-300 leading-snug">{q.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Recent questions feed */}
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-indigo-400" />
+                        Recent Questions
+                        {errors > 0 && (
+                          <span className="ml-auto text-[11px] text-amber-400 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" /> {errors} error{errors > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </h3>
+                      {recent.length === 0 ? (
+                        <p className="text-xs text-slate-500">No questions yet.</p>
+                      ) : (
+                        <div className="space-y-2 max-h-[420px] overflow-y-auto">
+                          {recent.map((m, i) => (
+                            <div key={i} className="rounded-lg bg-slate-900/60 border border-white/5 px-3 py-2">
+                              <p className="text-sm text-slate-200">{m.content}</p>
+                              <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
+                                <span className="text-slate-400">{pName(m.user_id)}</span>
+                                {m.course_code && (
+                                  <span className="rounded bg-indigo-500/15 text-indigo-300 px-1.5 py-0.5">{cName(m.course_code)}</span>
+                                )}
+                                <span className="ml-auto">{fmtRelative(m.created_at)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
                 );
               })()}
             </div>

@@ -13,6 +13,7 @@ import { FriendDetailModal } from '@/components/planner/FriendDetailModal';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
 import { MobileDrawer } from '@/components/planner/MobileDrawer';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
+import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { generateScheduleICS } from '@/lib/calendar';
 import { GraduationCap, LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -641,6 +642,12 @@ export default function PlannerPage() {
         selectedIds={friendDetail ? (friendSelections.get(friendDetail.id) ?? new Set<number>()) : new Set<number>()}
         color={friendDetail ? colorForFriend(friendDetail.id) : '#64748b'}
         onClose={() => setFriendDetail(null)}
+      />
+
+      <ChatWidget
+        userId={userId}
+        courses={ALL_COURSES.filter((c) => selected.has(c.id))}
+        trackEvent={trackEvent}
       />
     </div>
   );

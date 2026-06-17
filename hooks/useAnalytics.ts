@@ -37,7 +37,16 @@ export type EventType =
   | 'friend_detail_viewed'
   | 'friend_overlay_toggled'
   | 'friend_overlay_cleared'
-  | 'friend_overlay_conflict_detected';
+  | 'friend_overlay_conflict_detected'
+  // AI course chatbot
+  | 'chatbot_opened'
+  | 'chatbot_closed'
+  | 'chatbot_message_sent'
+  | 'chatbot_disambiguation_shown'
+  | 'chatbot_chip_clicked'
+  | 'chatbot_answer_received'
+  | 'chatbot_error'
+  | 'chatbot_rate_limited';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

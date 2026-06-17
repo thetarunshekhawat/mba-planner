@@ -3,7 +3,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, PlusCircle, Star } from 'lucide-react';
+import { CheckCircle2, PlusCircle, Star, BookOpen } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 
@@ -70,6 +70,22 @@ export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Pro
             <p className="text-slate-400 text-sm mt-1">{course.faculty}</p>
           )}
           <p className="text-slate-500 text-xs mt-1">{course.dates}</p>
+
+          {course.outlineUrl && (
+            <a
+              href={
+                course.outlineUrl.endsWith('.pdf')
+                  ? course.outlineUrl
+                  : `https://docs.google.com/viewer?url=${encodeURIComponent(course.outlineUrl)}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:text-orange-300 transition-colors text-sm font-medium border border-orange-500/20 w-full justify-center"
+            >
+              <BookOpen className="w-4 h-4 flex-shrink-0" />
+              Open Course Outline
+            </a>
+          )}
         </SheetHeader>
 
         {course.review ? (

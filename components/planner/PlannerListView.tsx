@@ -221,9 +221,32 @@ function CourseCard({
         </div>
       )}
 
-      {/* Seats */}
-      {course.seats && (
-        <p className="text-[10px] text-gray-400 mt-1.5">{course.seats} seats</p>
+      {/* Bottom row: seats + outline button */}
+      {(course.seats || course.outlineUrl) && (
+        <div className="flex items-center justify-between mt-1.5">
+          {course.seats
+            ? <p className="text-[10px] text-gray-400">{course.seats} seats</p>
+            : <span />}
+          {course.outlineUrl && (
+            <a
+              href={
+                course.outlineUrl.endsWith('.pdf')
+                  ? course.outlineUrl
+                  : `https://docs.google.com/viewer?url=${encodeURIComponent(course.outlineUrl)}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              title="Open Course Outline"
+              className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors"
+              style={{ backgroundColor: accentColor + '18', color: accentColor }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = accentColor + '30')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = accentColor + '18')}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </div>
       )}
     </div>
   );

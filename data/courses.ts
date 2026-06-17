@@ -22,6 +22,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Piyush Kumar',
     seats: 60, specs: ['ENT', 'MKT'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '17:30–20:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'] }],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/abmk.docx',
     review: {
       learningDepth: 3, workload: 'Low', careerRelevance: 3,
       whatYouLearn: ['New Approach towards B2B', 'ABM transformation (cases)', 'Organizational Structure'],
@@ -46,6 +47,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Ravi Subramanian',
     seats: 60, specs: ['ECOM', 'OPS'], mandatoryFor: ['OPS'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/scat.docx',
     review: {
       learningDepth: 2, workload: 'Moderate', careerRelevance: 1,
       whatYouLearn: ['Bull Whip effect', 'Push Pull Supply chains', 'Real-time Operational Decision Making'],
@@ -69,6 +71,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Prachi Mishra',
     seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '13:30–16:30', room: 'S04', days: ['Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] }],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/ifin.pdf',
     review: null,
   },
 
@@ -82,6 +85,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Vinayak Deshpande',
     seats: 60, specs: ['LSTR', 'OPS'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'] }],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/stop.docx',
     review: {
       learningDepth: 5, workload: 'Moderate-Low', careerRelevance: 3,
       whatYouLearn: ['Sustainable ops setup', 'Environmental factors', 'Lean and green ops', 'Sustainability across ops'],
@@ -122,6 +126,7 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
     ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/sadt.docx',
     review: {
       learningDepth: 5, workload: 'Moderate', careerRelevance: 5,
       whatYouLearn: ['Sales Strategies/Frameworks', 'Distribution Channels & Value Chain'],
@@ -151,6 +156,7 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/fwkj.pdf',
     review: {
       learningDepth: 3, workload: 'Low', careerRelevance: 4,
       whatYouLearn: ['Human Capital, Jobs in the future', 'Impact of AI & Automation on Jobs', 'Remote vs Hybrid vs WFA vs In Office', 'Frameworks to Evaluate'],
@@ -177,6 +183,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Prabhu Venkatachalam',
     seats: 120, specs: ['FIN'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Wed', 'Fri'], week2Days: ['Tue', 'Thu'] }],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/fsat.docx',
     review: {
       learningDepth: 5, workload: 'High', careerRelevance: 5,
       whatYouLearn: ['Ratio Analysis', 'Structured forecasting', 'Cash Flow & Earnings Analysis', 'Equity Valuation Models'],
@@ -206,6 +213,7 @@ export const ALL_COURSES: Course[] = [
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '17:00–20:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/becb.pdf',
     review: {
       learningDepth: 5, workload: 'Heavy', careerRelevance: 4,
       whatYouLearn: ['UI/UX of E-commerce platform', 'Digital Marketing', 'Being forcefully punctual'],
@@ -230,6 +238,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Meenakshi Balakrishna',
     seats: 60, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/mhlg.docx',
     review: {
       learningDepth: 3, workload: 'Moderate', careerRelevance: 2,
       whatYouLearn: ['Basic Classification & Trees', 'Basics of Neural Networks', 'Clustering, Data Handling, Vibe Coding'],
@@ -267,6 +276,7 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/abma.docx',
     review: null,
   },
   // WaW — Block 20
@@ -298,6 +308,7 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
     ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/pdmt.pdf',
     review: {
       learningDepth: 1, workload: 'Low-Moderate', careerRelevance: 4,
       whatYouLearn: ['JBTD', 'User Stories', 'Prototyping, PoC build, Claude usage'],
@@ -337,6 +348,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Pooja Mishra',
     seats: 60, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: null,
     timings: [{ slot: '09:00–12:00', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/mhpt.docx',
     review: {
       learningDepth: 2, workload: 'Low-Moderate', careerRelevance: 3,
       whatYouLearn: ['How to build Effective HP Teams', 'Power & Influence in Teams', 'Team Member roles & How to manage members'],

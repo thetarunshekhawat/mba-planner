@@ -45,6 +45,7 @@ export interface Course {
   type: CourseType;
   conflictGroup: string | null;
   timings?: SessionSlot[]; // time slot + room data from timetable (Term 4 has this)
+  outlineUrl?: string;
   review: CourseReview | null;
 }
 

@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageCircle, X, Sparkles, SquarePen } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Course } from '@/types';
+import type { Course, SpecId } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from './ChatMessage';
@@ -21,11 +20,7 @@ interface Msg {
   pendingQuestion?: string;
 }
 
-const SUGGESTIONS = [
-  'How many days is my course?',
-  'What will I learn?',
-  'How is it graded?',
-];
+const FALLBACK_GREETING = 'Hey! Which of your courses would you like my help with?';
 
 function formatShortDate(iso: string): string {
   const d = new Date(iso);
@@ -41,16 +36,22 @@ function newId(): string {
 export function ChatWidget({
   userId,
   courses,
+  specializations,
   trackEvent,
 }: {
   userId: string | null;
-  /** The student's currently selected courses (used for suggestion hints). */
+  /** The student's locked courses for the current term, ordered by occurrence. */
   courses: Course[];
+  /** The student's specialization(s) — used for analytics on open. */
+  specializations: SpecId[];
   trackEvent: TrackEvent;
 }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
+  // AI-generated opening line — regenerated each time a fresh conversation opens.
+  const [greeting, setGreeting] = useState<string | null>(null);
+  const [greetingLoading, setGreetingLoading] = useState(false);
   // Stable conversation ID — persists across open/close; only reset on explicit "New Chat".
   const convoRef = useRef<string>(newId());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -64,16 +65,35 @@ export function ChatWidget({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, open]);
 
+  // Fetch a freshly-generated opening line. Cheap, non-critical: any failure falls
+  // back to a static greeting so the widget always has something to show.
+  const loadGreeting = useCallback(async () => {
+    setGreetingLoading(true);
+    setGreeting(null);
+    try {
+      const res = await fetch('/api/chat/intro', { method: 'POST' });
+      const data = await res.json().catch(() => null);
+      setGreeting((data?.greeting as string | undefined)?.trim() || FALLBACK_GREETING);
+    } catch {
+      setGreeting(FALLBACK_GREETING);
+    } finally {
+      setGreetingLoading(false);
+    }
+  }, []);
+
   const openWidget = useCallback(() => {
     setOpen(true);
-    trackEvent('chatbot_opened');
-  }, [trackEvent]);
+    trackEvent('chatbot_opened', { specializations });
+    // Only (re)generate the greeting when opening onto a fresh conversation.
+    if (messagesRef.current.length === 0) void loadGreeting();
+  }, [trackEvent, specializations, loadGreeting]);
 
   const startNewChat = useCallback(() => {
     convoRef.current = newId();
     setMessages([]);
     trackEvent('chatbot_new_chat');
-  }, [trackEvent]);
+    void loadGreeting();
+  }, [trackEvent, loadGreeting]);
 
   const closeWidget = useCallback(() => {
     setOpen(false);
@@ -234,51 +254,38 @@ export function ChatWidget({
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-3">
             {messages.length === 0 && (
               <div className="space-y-3">
-                <ChatMessage
-                  role="assistant"
-                  content="Hi! I can help you understand your courses — schedule, what you'll learn, grading, and more. What would you like to know?"
-                />
+                {greetingLoading ? (
+                  <div className="flex w-fit max-w-[85%] flex-col gap-1.5 rounded-2xl bg-muted px-3.5 py-2.5">
+                    <span className="h-3 w-44 animate-pulse rounded bg-muted-foreground/20" />
+                    <span className="h-3 w-32 animate-pulse rounded bg-muted-foreground/20" />
+                  </div>
+                ) : (
+                  <ChatMessage role="assistant" content={greeting ?? FALLBACK_GREETING} />
+                )}
 
-                {courses.filter((c) => c.type !== 'free').length > 0 && (
+                {courses.length > 0 && (
                   <div className="rounded-xl border border-border bg-muted/30 p-2.5 space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground px-0.5">Your courses this term</p>
                     <div className="space-y-1">
-                      {[...courses]
-                        .filter((c) => c.type !== 'free')
-                        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-                        .map((c) => (
-                          <button
-                            key={c.id}
-                            disabled={busy}
-                            onClick={() => onSend(`Tell me about ${c.code ?? c.name}`)}
-                            className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <span className="shrink-0 text-[10px] font-semibold text-muted-foreground bg-muted rounded px-1 py-0.5 tabular-nums">
-                              Wk {c.week}
-                            </span>
-                            <span className="flex-1 font-medium truncate">{c.name}</span>
-                            <span className="shrink-0 text-[10px] text-muted-foreground">
-                              {formatShortDate(c.startDate)}
-                            </span>
-                          </button>
-                        ))}
+                      {courses.map((c) => (
+                        <button
+                          key={c.id}
+                          disabled={busy}
+                          onClick={() => onSend(`Tell me about ${c.code ?? c.name}`)}
+                          className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="shrink-0 text-[10px] font-semibold text-muted-foreground bg-muted rounded px-1 py-0.5 tabular-nums">
+                            Wk {c.week}
+                          </span>
+                          <span className="flex-1 font-medium truncate">{c.name}</span>
+                          <span className="shrink-0 text-[10px] text-muted-foreground">
+                            {formatShortDate(c.startDate)}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
-
-                <div className="flex flex-wrap gap-1.5 pl-1">
-                  {SUGGESTIONS.map((s) => (
-                    <Button
-                      key={s}
-                      variant="outline"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => onSend(s)}
-                    >
-                      {s}
-                    </Button>
-                  ))}
-                </div>
               </div>
             )}
 

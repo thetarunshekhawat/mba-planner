@@ -114,3 +114,14 @@ export async function* streamCompletion(
     reader.releaseLock();
   }
 }
+
+/**
+ * Collect a full (non-streamed) completion into a single string. Thin wrapper over
+ * streamCompletion — used for short one-shot generations like the chatbot greeting,
+ * where streaming buys nothing. Throws the same errors as streamCompletion.
+ */
+export async function complete(messages: ChatMessage[], opts: StreamOptions = {}): Promise<string> {
+  let full = '';
+  for await (const delta of streamCompletion(messages, opts)) full += delta;
+  return full.trim();
+}

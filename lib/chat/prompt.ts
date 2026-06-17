@@ -3,8 +3,9 @@
 // (fetched from the Supabase `course_outlines` table by the route). Outline text is
 // treated strictly as reference data, never as instructions.
 
-import type { Course } from '@/types';
+import type { Course, SpecId } from '@/types';
 import { SPECS } from '@/data/courses';
+import { biddingNote, type TermId } from '@/lib/terms';
 import type { ChatMessage } from './nemotron';
 
 // ── schedule / duration helpers ──────────────────────────────────────────────
@@ -99,13 +100,15 @@ export function buildCourseContext(c: Course, outlineText?: string | null): stri
 
 // ── system prompt ─────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are the course assistant for the BITSoM MBA Planner, helping students understand their elective courses.
+const SYSTEM_PROMPT = `You are the course assistant embedded inside the BITSoM MBA Planner — a tool where MBA students plan and understand their elective and mandatory courses across terms. You are talking to one such student. The STUDENT CONTEXT block tells you who they are: their specialization(s) and the exact courses they are taking. Use it to tailor every answer.
 
 Sources of truth:
-- Use the COURSE DATA and COURSE OUTLINE blocks provided in this conversation as the authoritative source for any course-specific fact (dates, schedule, faculty, grading, topics, workload).
+- Use the STUDENT CONTEXT, COURSE DATA and COURSE OUTLINE blocks provided in this conversation as the authoritative source for any course-specific fact (dates, schedule, faculty, grading, topics, workload).
 - For general concepts a student asks about (e.g. "what is logistic regression?", "explain agile"), use your own knowledge, but stay brief and connect back to the course when relevant.
 
 Rules:
+- You already know who the student is and what they are taking (see STUDENT CONTEXT). Never ask them to reintroduce themselves, restate their specialization, or list their courses — work from the context you were given.
+- Respect the bidding state in the STUDENT CONTEXT: the current term's courses are locked, so never suggest dropping, swapping, or reconsidering them — help the student prepare for and get the most out of them. For later terms (still open for bidding) it is fine to weigh options, compare courses, and discuss fit.
 - Never invent course specifics. If a detail is not present in the provided data (for example, the number of credits is not in these outlines), say plainly that it is not specified in the outline rather than guessing.
 - The "Approximate number of class days/sessions" figure is an estimate derived from the schedule — present it as approximate.
 - Cohort reviews are subjective peer opinions; label them as such, don't state them as official fact.
@@ -114,6 +117,53 @@ Rules:
 
 export function buildSystemPrompt(): string {
   return SYSTEM_PROMPT;
+}
+
+function specLabelsFrom(ids: SpecId[]): string {
+  return ids.map((id) => SPECS.find((s) => s.id === id)?.label ?? id).join(', ');
+}
+
+function courseLine(c: Course): string {
+  return `- ${c.name}${c.code ? ` (${c.code})` : ''} — Term ${c.term}, week ${c.week}, ${c.dates}${
+    c.type === 'mandatory' ? ' [mandatory for all students]' : ''
+  }`;
+}
+
+export interface StudentContext {
+  specializations: SpecId[];
+  currentTerm: TermId;
+  /** Courses the student is taking in the current term (locked after bidding). */
+  termCourses: Course[];
+  /** Every course the student has selected across all terms (later terms still tentative). */
+  allSelected: Course[];
+}
+
+/** A system block telling the model who the student is and the bidding scenario. */
+export function buildStudentContext(ctx: StudentContext): string {
+  const parts: string[] = ['STUDENT CONTEXT (who you are helping):'];
+
+  parts.push(
+    ctx.specializations.length
+      ? `Specialization(s): ${specLabelsFrom(ctx.specializations)}.`
+      : 'Specialization(s): none selected yet.',
+  );
+
+  parts.push(`Current term: Term ${ctx.currentTerm}.`);
+  if (ctx.termCourses.length) {
+    parts.push(`Courses this term (locked — bidding is done):\n${ctx.termCourses.map(courseLine).join('\n')}`);
+  } else {
+    parts.push('Courses this term: none on record.');
+  }
+
+  const later = ctx.allSelected.filter((c) => c.term > ctx.currentTerm);
+  if (later.length) {
+    parts.push(
+      `Tentative picks for later terms (bidding still open, may change):\n${later.map(courseLine).join('\n')}`,
+    );
+  }
+
+  parts.push(biddingNote(ctx.currentTerm));
+  return parts.join('\n');
 }
 
 export type PriorTurn = { role: 'user' | 'assistant'; content: string };
@@ -129,9 +179,14 @@ export function buildMessages(opts: {
   course?: Course | null;
   outlineText?: string | null;
   selectedCourses?: Course[];
+  studentContext?: StudentContext;
   history?: PriorTurn[];
 }): ChatMessage[] {
   const messages: ChatMessage[] = [{ role: 'system', content: buildSystemPrompt() }];
+
+  if (opts.studentContext) {
+    messages.push({ role: 'system', content: buildStudentContext(opts.studentContext) });
+  }
 
   if (opts.course) {
     messages.push({

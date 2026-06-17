@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ALL_COURSES } from '@/data/courses';
+import { getCurrentTerm, getTermCourses } from '@/lib/terms';
 import { classifyIntent } from '@/lib/chat/router';
 import { buildMessages, type PriorTurn } from '@/lib/chat/prompt';
 import { streamCompletion, ProviderError, isConfigured, CHAT_MODEL } from '@/lib/chat/nemotron';
+import type { SpecId } from '@/types';
 
 const MAX_MESSAGE_LEN = 2000;
 const MAX_HISTORY_TURNS = 6;
@@ -94,13 +96,27 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── Resolve the student's selected courses ─────────────────────────────────
+  // ── Resolve the student's selected courses + profile context ───────────────
   const { data: selRows } = await supabase
     .from('course_selections')
     .select('course_id')
     .eq('user_id', user.id);
   const selectedIds = new Set((selRows ?? []).map((r) => r.course_id as number));
   const selectedCourses = ALL_COURSES.filter((c) => selectedIds.has(c.id));
+
+  const { data: profileRow } = await supabase
+    .from('profiles')
+    .select('specializations')
+    .eq('id', user.id)
+    .maybeSingle();
+  const specializations = ((profileRow?.specializations as SpecId[] | undefined) ?? []);
+  const currentTerm = getCurrentTerm();
+  const studentContext = {
+    specializations,
+    currentTerm,
+    termCourses: getTermCourses(selectedIds, currentTerm),
+    allSelected: selectedCourses,
+  };
 
   // ── Route intent ───────────────────────────────────────────────────────────
   const intent = classifyIntent(message, selectedCourses, courseCode);
@@ -164,6 +180,7 @@ export async function POST(request: Request) {
     course: answerCourse,
     outlineText,
     selectedCourses,
+    studentContext,
     history,
   });
 

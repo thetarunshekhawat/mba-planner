@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { AlertTriangle, Info, BookOpen } from 'lucide-react';
-import type { Course, SpecId } from '@/types';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Info, BookOpen, Users, Eye, EyeOff } from 'lucide-react';
+import type { Course, SpecId, Friend, FriendOverlay } from '@/types';
+import { colorForFriend } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
+import type { EventType } from '@/hooks/useAnalytics';
 import { Term1GanttPanel } from './Term1GanttPanel';
 import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 
@@ -13,6 +15,11 @@ interface Props {
   userSpecs: SpecId[];
   onCourseClick: (course: Course) => void;
   selectedTerms: Set<4 | 5 | 6>;
+  friendOverlays?: FriendOverlay[];
+  friends?: Friend[];
+  overlayIds?: Set<string>;
+  onToggleOverlay?: (friend: Friend) => void;
+  trackEvent?: (type: EventType, payload?: Record<string, unknown>) => void;
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -85,6 +92,117 @@ function getConflictIds(courses: Course[], visibleIds: Set<number>): Set<number>
   return conflicting;
 }
 
+// ── Friend overlay helpers ──────────────────────────────────
+
+function initialsOf(name: string): string {
+  return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// Does a course have a timing in this slot on this day, for this week of the block?
+function matchesSlotDay(c: Course, slot: string, day: string, weekNum: 1 | 2): boolean {
+  return !!c.timings?.some(t => {
+    const eff = weekNum === 2 && t.week2Days ? t.week2Days : t.days;
+    return t.slot === slot && eff.includes(day);
+  });
+}
+
+// A friend's overlaid courses that fall inside a given Term 4 block.
+function friendBlockCourses(overlay: FriendOverlay, start: string, end: string): Course[] {
+  return ALL_COURSES.filter(
+    c => overlay.selected.has(c.id) && c.timings && courseInBlock(c, start, end),
+  );
+}
+
+type FriendCellState = 'together' | 'clash' | 'solo';
+
+interface Clash {
+  friendId: string;
+  friendName: string;
+  block: number;
+  week: 1 | 2;
+  slot: string;
+  day: string;
+  myCourse: string;
+  friendCourse: string;
+}
+
+// Time overlaps where, in the same block/slot/day, the user has a course and an
+// overlaid friend has a *different* course (same course = sitting together, not a clash).
+function computeClashes(visibleIds: Set<number>, overlays: FriendOverlay[]): Clash[] {
+  if (overlays.length === 0) return [];
+  const myCourses = ALL_COURSES.filter(c => visibleIds.has(c.id) && c.timings);
+  const out: Clash[] = [];
+
+  for (const block of TERM4_BLOCKS) {
+    const mine = myCourses.filter(c => courseInBlock(c, block.start, block.end));
+    if (mine.length === 0) continue;
+    for (const overlay of overlays) {
+      const theirs = friendBlockCourses(overlay, block.start, block.end);
+      if (theirs.length === 0) continue;
+      const slots = getUniqueSlots([...mine, ...theirs]);
+      for (const slot of slots) {
+        for (const day of DAYS) {
+          const myHere = mine.filter(c => matchesSlotDay(c, slot, day, block.weekNum));
+          if (myHere.length === 0) continue;
+          for (const tc of theirs) {
+            if (!matchesSlotDay(tc, slot, day, block.weekNum)) continue;
+            if (myHere.some(mc => mc.id === tc.id)) continue; // same class — together
+            out.push({
+              friendId: overlay.id,
+              friendName: overlay.name,
+              block: block.block,
+              week: block.weekNum,
+              slot,
+              day,
+              myCourse: myHere[0].code ?? myHere[0].name,
+              friendCourse: tc.code ?? tc.name,
+            });
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function FriendCoursePill({ course, overlay, state, onClick }: {
+  course: Course;
+  overlay: FriendOverlay;
+  state: FriendCellState;
+  onClick: () => void;
+}) {
+  const color = overlay.color;
+  const note = state === 'clash' ? ' — clashes with your class'
+    : state === 'together' ? ' — same class as you' : '';
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1"
+      title={`${overlay.name}: ${course.name}${note}`}
+      style={{
+        background: color + '14',
+        borderLeft: `3px dashed ${color}`,
+        outline: state === 'clash' ? `1.5px solid ${color}` : 'none',
+        outlineOffset: state === 'clash' ? '-1px' : undefined,
+      }}
+    >
+      <div className="flex items-center gap-1">
+        <span
+          className="inline-flex items-center justify-center text-[8px] font-bold text-white rounded-sm px-1 flex-shrink-0"
+          style={{ backgroundColor: color, minWidth: 14, height: 12 }}
+        >
+          {initialsOf(overlay.name)}
+        </span>
+        {state === 'clash' && <AlertTriangle className="w-2.5 h-2.5 flex-shrink-0" style={{ color }} />}
+        {state === 'together' && <Users className="w-2.5 h-2.5 flex-shrink-0" style={{ color }} />}
+        <span className="font-semibold text-[11px] leading-tight" style={{ color }}>
+          {course.code ?? course.name.slice(0, 4).toUpperCase()}
+        </span>
+      </div>
+    </button>
+  );
+}
+
 function CoursePill({ course, room, hasConflict, sectionAdvisory, userSpecs, onClick }: {
   course: Course;
   room: string;
@@ -151,20 +269,29 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, userSpecs, onC
   );
 }
 
-function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, userSpecs, onCourseClick }: {
+function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, userSpecs, friendOverlays, onCourseClick }: {
   blockInfo: typeof TERM4_BLOCKS[0];
   courses: Course[];
   visibleIds: Set<number>;
   conflictIds: Set<number>;
   advisories: Map<number, SectionAdvisory>;
   userSpecs: SpecId[];
+  friendOverlays: FriendOverlay[];
   onCourseClick: (c: Course) => void;
 }) {
   const blockCourses = courses
     .filter(c => c.timings && courseInBlock(c, blockInfo.start, blockInfo.end))
     .filter(c => visibleIds.has(c.id));
 
-  const slots = getUniqueSlots(blockCourses, advisories);
+  const friendBlock = friendOverlays.map(o => ({
+    overlay: o,
+    courses: friendBlockCourses(o, blockInfo.start, blockInfo.end),
+  }));
+
+  const slots = getUniqueSlots(
+    [...blockCourses, ...friendBlock.flatMap(f => f.courses)],
+    advisories,
+  );
 
   const blockHeader = (
     <div className="flex items-center gap-3 mb-3 px-1">
@@ -247,27 +374,50 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, u
                       }`}
                       style={{ minWidth: 90 }}
                     >
-                      {dayCourses.length > 0 && (
-                        <div className="flex flex-col gap-1">
-                          {dayCourses.map(c => {
-                            const timing = c.timings!.find(t => {
-                              const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
-                              return t.slot === slot && effectiveDays.includes(day) && !(advisories.has(c.id) && t.part === 'A');
-                            });
-                            return (
-                              <CoursePill
-                                key={c.id}
-                                course={c}
-                                room={timing?.room ?? ''}
-                                hasConflict={conflictIds.has(c.id)}
-                                sectionAdvisory={advisories.get(c.id)}
-                                userSpecs={userSpecs}
-                                onClick={() => onCourseClick(c)}
-                              />
-                            );
-                          })}
-                        </div>
-                      )}
+                      {(() => {
+                        const friendPills = friendBlock.flatMap(({ overlay, courses: fcs }) =>
+                          fcs
+                            .filter(c => matchesSlotDay(c, slot, day, blockInfo.weekNum))
+                            .map(c => {
+                              const together = dayCourses.some(mc => mc.id === c.id);
+                              const state: FriendCellState = together
+                                ? 'together'
+                                : dayCourses.length > 0 ? 'clash' : 'solo';
+                              return (
+                                <FriendCoursePill
+                                  key={`${overlay.id}-${c.id}`}
+                                  course={c}
+                                  overlay={overlay}
+                                  state={state}
+                                  onClick={() => onCourseClick(c)}
+                                />
+                              );
+                            }),
+                        );
+                        if (dayCourses.length === 0 && friendPills.length === 0) return null;
+                        return (
+                          <div className="flex flex-col gap-1">
+                            {dayCourses.map(c => {
+                              const timing = c.timings!.find(t => {
+                                const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
+                                return t.slot === slot && effectiveDays.includes(day) && !(advisories.has(c.id) && t.part === 'A');
+                              });
+                              return (
+                                <CoursePill
+                                  key={c.id}
+                                  course={c}
+                                  room={timing?.room ?? ''}
+                                  hasConflict={conflictIds.has(c.id)}
+                                  sectionAdvisory={advisories.get(c.id)}
+                                  userSpecs={userSpecs}
+                                  onClick={() => onCourseClick(c)}
+                                />
+                              );
+                            })}
+                            {friendPills}
+                          </div>
+                        );
+                      })()}
                     </td>
                   );
                 })}
@@ -316,14 +466,23 @@ function SpecLegend() {
 }
 
 // Simple week-based list for terms without timing data
-function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
+function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, onCourseClick }: {
   courses: Course[];
   visibleIds: Set<number>;
   userSpecs: SpecId[];
+  friendOverlays: FriendOverlay[];
+  term: 4 | 5 | 6;
   onCourseClick: (c: Course) => void;
 }) {
   const visible = courses.filter(c => visibleIds.has(c.id));
-  if (visible.length === 0) {
+
+  const friendTermCourses = friendOverlays.flatMap(o =>
+    ALL_COURSES
+      .filter(c => c.term === term && c.type !== 'exam' && c.type !== 'free' && o.selected.has(c.id))
+      .map(c => ({ overlay: o, course: c })),
+  );
+
+  if (visible.length === 0 && friendTermCourses.length === 0) {
     return (
       <p className="text-sm text-gray-400 italic px-1 mb-6">
         No courses selected for this term yet.
@@ -331,18 +490,22 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
     );
   }
 
-  const weekNums = [...new Set(visible.map(c => c.week))].sort((a, b) => a - b);
+  const weekNums = [...new Set([
+    ...visible.map(c => c.week),
+    ...friendTermCourses.map(fc => fc.course.week),
+  ])].sort((a, b) => a - b);
 
   return (
     <div className="mb-8 space-y-3">
       {weekNums.map(wk => {
         const wkCourses = visible.filter(c => c.week === wk);
+        const wkFriends = friendTermCourses.filter(fc => fc.course.week === wk);
         return (
           <div key={wk} className="flex gap-3">
             <div className="flex flex-col items-start min-w-[72px] pt-1 flex-shrink-0">
               <span className="text-xs font-bold text-gray-600">Wk {wk}</span>
               <span className="text-[10px] text-gray-400 leading-tight mt-0.5">
-                {wkCourses[0]?.dates}
+                {wkCourses[0]?.dates ?? wkFriends[0]?.course.dates}
               </span>
             </div>
             <div className="flex flex-wrap gap-2 flex-1">
@@ -394,6 +557,28 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
                   </button>
                 );
               })}
+              {wkFriends.map(({ overlay, course: c }) => (
+                <button
+                  key={`${overlay.id}-${c.id}`}
+                  onClick={() => onCourseClick(c)}
+                  className="rounded-xl border-2 border-dashed px-3 py-2 text-left hover:shadow-md transition-all"
+                  style={{ borderColor: overlay.color, background: overlay.color + '10', minWidth: 160 }}
+                >
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span
+                      className="inline-flex items-center justify-center text-[8px] font-bold text-white rounded-sm px-1"
+                      style={{ backgroundColor: overlay.color, minWidth: 14, height: 12 }}
+                    >
+                      {initialsOf(overlay.name)}
+                    </span>
+                    {c.code && (
+                      <span className="text-xs font-bold" style={{ color: overlay.color }}>{c.code}</span>
+                    )}
+                  </div>
+                  <div className="text-sm font-semibold text-gray-800 leading-snug">{c.name}</div>
+                  <div className="text-[10px] mt-0.5" style={{ color: overlay.color }}>{overlay.name}</div>
+                </button>
+              ))}
             </div>
           </div>
         );
@@ -402,7 +587,10 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
   );
 }
 
-export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, selectedTerms }: Props) {
+export function TimetableView({
+  selected, visibleIds, userSpecs, onCourseClick, selectedTerms,
+  friendOverlays = [], friends = [], overlayIds, onToggleOverlay, trackEvent,
+}: Props) {
   const [showTerm1, setShowTerm1] = useState(false);
 
   const term4 = ALL_COURSES.filter(c => c.term === 4 && c.type !== 'exam' && c.type !== 'free');
@@ -413,15 +601,97 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
   const conflictIds = getConflictIds(allVisible, visibleIds);
   const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
 
-  const hasTerm4Content = TERM4_BLOCKS.some(b =>
-    term4.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id))
-  );
+  const hasTerm4Content =
+    TERM4_BLOCKS.some(b => term4.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)))
+    || friendOverlays.some(o => TERM4_BLOCKS.some(b => friendBlockCourses(o, b.start, b.end).length > 0));
 
   const conflictCourses = allVisible.filter(c => conflictIds.has(c.id));
+
+  // ── Friend overlay: time clashes ──────────────────────────
+  const clashes = computeClashes(visibleIds, friendOverlays);
+  const clashSig = clashes
+    .map(c => `${c.friendId}|${c.block}|${c.week}|${c.slot}|${c.day}|${c.friendCourse}`)
+    .join(';');
+  const firedClashRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!trackEvent) return;
+    for (const c of clashes) {
+      const key = `${c.friendId}|${c.block}|${c.week}|${c.slot}|${c.day}|${c.friendCourse}`;
+      if (firedClashRef.current.has(key)) continue;
+      firedClashRef.current.add(key);
+      trackEvent('friend_overlay_conflict_detected', {
+        friend_id: c.friendId, block: c.block, week: c.week,
+        slot: c.slot, day: c.day, my_course: c.myCourse, friend_course: c.friendCourse,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clashSig]);
 
   return (
     <div className="p-4 lg:p-6 min-h-screen print:min-h-0 print:p-0 print:bg-white" style={{ backgroundColor: '#f8fafc' }}>
       <SpecLegend />
+
+      {/* Friend overlay toggles */}
+      {friends.length > 0 && (
+        <div className="mb-3 flex items-center gap-2 flex-wrap print:hidden">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Overlay friends:</span>
+          {friends.map(f => {
+            const on = overlayIds?.has(f.id) ?? false;
+            const color = colorForFriend(f.id);
+            return (
+              <button
+                key={f.id}
+                onClick={() => onToggleOverlay?.(f)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors"
+                style={on
+                  ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                  : { backgroundColor: '#fff', borderColor: '#e2e8f0', color: '#64748b' }}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: on ? '#fff' : color }} />
+                {f.name.split(' ')[0] || f.name}
+                {on ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Friend legend (only when something is overlaid) */}
+      {friendOverlays.length > 0 && (
+        <div className="mb-3 flex items-center gap-x-4 gap-y-1 flex-wrap text-[11px] text-slate-500">
+          <span className="font-semibold uppercase tracking-wide text-slate-400">Showing:</span>
+          {friendOverlays.map(o => (
+            <span key={o.id} className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-3 h-0 border-t-2 border-dashed" style={{ borderColor: o.color }} />
+              {o.name}
+            </span>
+          ))}
+          <span className="inline-flex items-center gap-1 text-amber-600">
+            <AlertTriangle className="w-3 h-3" /> = same time as your class
+          </span>
+          <span className="inline-flex items-center gap-1 text-slate-500">
+            <Users className="w-3 h-3" /> = same class as you
+          </span>
+        </div>
+      )}
+
+      {/* Friend time-clash banner */}
+      {clashes.length > 0 && (
+        <div className="mb-4 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs print:hidden">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-amber-500" />
+          <div className="flex flex-col gap-0.5">
+            <span className="font-semibold">
+              {clashes.length} time {clashes.length === 1 ? 'overlap' : 'overlaps'} with overlaid {clashes.length === 1 ? 'friend' : 'friends'}
+            </span>
+            {clashes.slice(0, 4).map((c, i) => (
+              <span key={i}>
+                {c.friendName}: <strong>{c.friendCourse}</strong> clashes with your <strong>{c.myCourse}</strong> ({c.day} {c.slot}, Block {c.block})
+              </span>
+            ))}
+            {clashes.length > 4 && <span>…and {clashes.length - 4} more</span>}
+          </div>
+        </div>
+      )}
 
       {/* Genuine conflict banner */}
       {conflictCourses.length > 0 && (
@@ -508,6 +778,7 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
                           conflictIds={conflictIds}
                           advisories={advisories}
                           userSpecs={userSpecs}
+                          friendOverlays={friendOverlays}
                           onCourseClick={onCourseClick}
                         />
                       </div>
@@ -525,6 +796,7 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
                       conflictIds={conflictIds}
                       advisories={advisories}
                       userSpecs={userSpecs}
+                      friendOverlays={friendOverlays}
                       onCourseClick={onCourseClick}
                     />
                   )}
@@ -550,12 +822,12 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick, 
 
       <div className={selectedTerms.has(5) ? '' : 'print:hidden'}>
         <TermDivider label="Term 5" dateRange="Sep 28 – Dec 27, 2026" />
-        <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+        <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={5} onCourseClick={onCourseClick} />
       </div>
 
       <div className={selectedTerms.has(6) ? '' : 'print:hidden'}>
         <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
-        <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+        <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={6} onCourseClick={onCourseClick} />
       </div>
     </div>
   );

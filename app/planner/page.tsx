@@ -4,18 +4,23 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useSelections } from '@/hooks/useSelections';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useFriends } from '@/hooks/useFriends';
+import { useFriendSelections } from '@/hooks/useFriendSelections';
 import { TimetableView } from '@/components/planner/TimetableView';
 import { PlannerListView } from '@/components/planner/PlannerListView';
+import { FriendsView } from '@/components/planner/FriendsView';
+import { FriendDetailModal } from '@/components/planner/FriendDetailModal';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
 import { MobileDrawer } from '@/components/planner/MobileDrawer';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
 import { generateScheduleICS } from '@/lib/calendar';
-import { GraduationCap, LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck } from 'lucide-react';
+import { GraduationCap, LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ALL_COURSES } from '@/data/courses';
-import type { Course, SpecId, Profile } from '@/types';
+import type { Course, SpecId, Profile, Friend, FriendOverlay } from '@/types';
+import { colorForFriend } from '@/types';
 import { useRouter } from 'next/navigation';
 
 const TERM_DATES = [
@@ -40,7 +45,7 @@ const ADMIN_EMAILS = new Set([
   'apoorv.sharma2027@bitsom.edu.in',
 ]);
 
-type ViewMode = 'plan' | 'schedule';
+type ViewMode = 'plan' | 'schedule' | 'friends';
 
 const DEFAULT_FILTERS: Filters = {
   specs: [],
@@ -72,6 +77,49 @@ export default function PlannerPage() {
     userId,
     (type, courseId) => trackEvent(type, { course_id: courseId }),
   );
+
+  // ── Friends ──────────────────────────────────────────────
+  const { friends, loading: friendsLoading, addByCode, removeFriend, regenerateCode } = useFriends(userId);
+  const [overlayIds, setOverlayIds] = useState<Set<string>>(new Set());
+  const [friendDetail, setFriendDetail] = useState<Friend | null>(null);
+
+  const friendIds = friends.map(f => f.id);
+  const friendSelections = useFriendSelections(friendIds);
+
+  // Drop overlays for friends that are no longer in the list (e.g. removed).
+  useEffect(() => {
+    setOverlayIds(prev => {
+      const next = new Set([...prev].filter(id => friendIds.includes(id)));
+      return next.size === prev.size ? prev : next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [friendIds.join(',')]);
+
+  // Only the toggled-on friends, with a stable color + their selected courses.
+  const friendOverlays: FriendOverlay[] = friends
+    .filter(f => overlayIds.has(f.id))
+    .map(f => ({
+      id: f.id,
+      name: f.name,
+      color: colorForFriend(f.id),
+      selected: friendSelections.get(f.id) ?? new Set<number>(),
+    }));
+
+  function handleToggleOverlay(friend: Friend, source: 'friends' | 'schedule' = 'friends') {
+    setOverlayIds(prev => {
+      const next = new Set(prev);
+      const turningOn = !next.has(friend.id);
+      if (turningOn) next.add(friend.id); else next.delete(friend.id);
+      trackEvent('friend_overlay_toggled', { friend_id: friend.id, on: turningOn, view: source });
+      return next;
+    });
+  }
+
+  async function handleRegenerateCode() {
+    const code = await regenerateCode();
+    if (code) setProfile(p => (p ? { ...p, friend_code: code } : p));
+    return code;
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -296,6 +344,22 @@ export default function PlannerPage() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => { setViewMode('friends'); trackEvent('view_changed', { to: 'friends' }); trackEvent('friend_tab_opened'); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                viewMode === 'friends'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              Friends
+              {friends.length > 0 && (
+                <span className="ml-0.5 bg-orange-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {friends.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -503,9 +567,23 @@ export default function PlannerPage() {
               onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
               trackEvent={trackEvent}
             />
+          ) : viewMode === 'friends' ? (
+            <FriendsView
+              myCode={profile.friend_code}
+              friends={friends}
+              loading={friendsLoading}
+              friendSelections={friendSelections}
+              overlayIds={overlayIds}
+              onToggleOverlay={(friend) => handleToggleOverlay(friend, 'friends')}
+              onAddByCode={addByCode}
+              onRemove={(friend) => removeFriend(friend.id)}
+              onRegenerate={handleRegenerateCode}
+              onOpenDetail={setFriendDetail}
+              trackEvent={trackEvent}
+            />
           ) : (
             <>
-              {scheduleVisibleIds.size === 0 ? (
+              {scheduleVisibleIds.size === 0 && friendOverlays.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-3 text-center p-8">
                   <CalendarDays className="w-12 h-12 text-slate-600" />
                   <p className="text-slate-400 font-medium">No courses selected yet</p>
@@ -526,6 +604,11 @@ export default function PlannerPage() {
                   userSpecs={profile.specializations}
                   selectedTerms={selectedTerms}
                   onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
+                  friendOverlays={friendOverlays}
+                  friends={friends}
+                  overlayIds={overlayIds}
+                  onToggleOverlay={(friend) => handleToggleOverlay(friend, 'schedule')}
+                  trackEvent={trackEvent}
                 />
               )}
             </>
@@ -551,6 +634,13 @@ export default function PlannerPage() {
         isSelected={activeModal ? selected.has(activeModal.id) : false}
         onToggle={toggle}
         onClose={() => setActiveModal(null)}
+      />
+
+      <FriendDetailModal
+        friend={friendDetail}
+        selectedIds={friendDetail ? (friendSelections.get(friendDetail.id) ?? new Set<number>()) : new Set<number>()}
+        color={friendDetail ? colorForFriend(friendDetail.id) : '#64748b'}
+        onClose={() => setFriendDetail(null)}
       />
     </div>
   );

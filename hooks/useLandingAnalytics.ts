@@ -6,7 +6,7 @@ const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL + '/rest/v1/landing_sessions';
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 function dbFetch(filter: string, method: 'POST' | 'PATCH', body: object) {
-  return fetch(`${BASE}${filter}`, {
+  fetch(`${BASE}${filter}`, {
     method,
     headers: {
       apikey: ANON,
@@ -15,7 +15,7 @@ function dbFetch(filter: string, method: 'POST' | 'PATCH', body: object) {
       Prefer: 'return=minimal',
     },
     body: JSON.stringify(body),
-  });
+  }).catch(() => {});
 }
 
 export function useLandingAnalytics() {
@@ -72,7 +72,7 @@ export function useLandingAnalytics() {
         },
         body: JSON.stringify({ abandoned: true, ring_interaction_ms: ringInteractionMsRef.current }),
         keepalive: true,
-      });
+      }).catch(() => {});
     }
 
     window.addEventListener('pagehide', handlePageHide);

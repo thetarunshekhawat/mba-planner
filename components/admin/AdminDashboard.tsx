@@ -38,6 +38,13 @@ interface LastSignInRow {
   last_sign_in_at: string;
 }
 
+interface FriendshipRow {
+  viewer_id: string;
+  friend_id: string;
+  created_by: string | null;
+  created_at: string;
+}
+
 interface GroupedSession {
   session: SessionRow;
   events: EventRow[];
@@ -69,6 +76,17 @@ const EVENT_LABELS: Record<string, string> = {
   mobile_drawer_spec_tapped: 'Mobile Drawer Spec Tapped',
   term1_panel_toggled: 'Term 1 Panel Toggled',
   admin_dashboard_accessed: 'Admin Dashboard Accessed',
+  friend_tab_opened: 'Friends Tab Opened',
+  friend_code_copied: 'Friend Code Copied',
+  friend_code_regenerated: 'Friend Code Regenerated',
+  friend_add_attempted: 'Friend Add Attempted',
+  friend_added: 'Friend Added',
+  friend_add_failed: 'Friend Add Failed',
+  friend_removed: 'Friend Removed',
+  friend_detail_viewed: 'Friend Detail Viewed',
+  friend_overlay_toggled: 'Friend Overlay Toggled',
+  friend_overlay_cleared: 'Friend Overlay Cleared',
+  friend_overlay_conflict_detected: 'Friend Schedule Clash',
 };
 
 function courseNameById(id: number): string {
@@ -108,6 +126,17 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'mobile_drawer_spec_tapped': return { icon: '🎯', text: `Tapped ${p?.spec} spec in mobile drawer` };
     case 'term1_panel_toggled':       return { icon: '📚', text: `${p?.show ? 'Opened' : 'Closed'} Term 1 courses panel` };
     case 'admin_dashboard_accessed':  return { icon: '🛡', text: 'Navigated to admin dashboard' };
+    case 'friend_tab_opened':         return { icon: '👥', text: 'Opened Friends tab' };
+    case 'friend_code_copied':        return { icon: '📋', text: 'Copied their friend code' };
+    case 'friend_code_regenerated':   return { icon: '🔄', text: 'Regenerated friend code' };
+    case 'friend_add_attempted':      return { icon: '➕', text: `Tried friend code ${String(p?.code ?? '')}` };
+    case 'friend_added':              return { icon: '🤝', text: `Added friend ${String(p?.friend_name ?? '')}`.trim() };
+    case 'friend_add_failed':         return { icon: '⚠', text: `Friend add failed (${String(p?.reason ?? '')})` };
+    case 'friend_removed':            return { icon: '➖', text: 'Removed a friend' };
+    case 'friend_detail_viewed':      return { icon: '🔎', text: "Viewed a friend's detail" };
+    case 'friend_overlay_toggled':    return { icon: '👁', text: `${p?.on ? 'Showed' : 'Hid'} a friend on schedule` };
+    case 'friend_overlay_cleared':    return { icon: '🧹', text: 'Cleared friend overlays' };
+    case 'friend_overlay_conflict_detected': return { icon: '⏰', text: `Clash: ${String(p?.friend_course ?? '')} vs ${String(p?.my_course ?? '')} (${String(p?.day ?? '')} ${String(p?.slot ?? '')})` };
     default:                          return { icon: '•', text: e.event_type };
   }
 }
@@ -303,6 +332,7 @@ export function AdminDashboard({
     browser: string | null;
   }
   const [landingSessions, setLandingSessions] = useState<LandingSession[]>([]);
+  const [friendships, setFriendships] = useState<FriendshipRow[]>([]);
   const [expandedFunnelCard, setExpandedFunnelCard] = useState<'total' | 'ring' | 'email' | 'converted' | null>(null);
 
   // Per-member detail data
@@ -365,6 +395,11 @@ export function AdminDashboard({
       .select('id, user_id, landed_at, first_ring_interaction_at, ring_interaction_ms, login_attempted, login_succeeded, abandoned, device_type, browser')
       .order('landed_at', { ascending: false })
       .then(({ data }) => setLandingSessions((data ?? []) as LandingSession[]));
+    supabase
+      .from('friendships')
+      .select('viewer_id, friend_id, created_by, created_at')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setFriendships((data ?? []) as FriendshipRow[]));
   }, [tab]);
 
   // Lazy-load analytics data when Activity, Insights, or In-Depth tab first opens
@@ -2058,6 +2093,143 @@ export function AdminDashboard({
           {/* ── INSIGHTS TAB ── */}
           {tab === 'insights' && (
             <div className="p-4 space-y-6">
+              {/* ── Friends & Social ── */}
+              {(() => {
+                const nameMap = new Map(profiles.map(p => [p.id, p.name || p.email]));
+                const nameOf = (id: string) => nameMap.get(id) ?? id.slice(0, 8);
+
+                const edges = friendships;
+                const edgeSet = new Set(edges.map(e => `${e.viewer_id}|${e.friend_id}`));
+
+                // Initiations: the initiator's own edge (created_by === viewer_id)
+                const initiations = edges
+                  .filter(e => e.created_by && e.created_by === e.viewer_id)
+                  .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
+                // Mutual pairs (both directions present), counted once
+                let mutual = 0;
+                const seen = new Set<string>();
+                edges.forEach(e => {
+                  const key = [e.viewer_id, e.friend_id].sort().join('|');
+                  if (seen.has(key)) return;
+                  seen.add(key);
+                  if (edgeSet.has(`${e.friend_id}|${e.viewer_id}`)) mutual++;
+                });
+                const oneWay = seen.size - mutual;
+
+                // In-degree: how many people can see each member's schedule
+                const inDeg = new Map<string, number>();
+                edges.forEach(e => inDeg.set(e.friend_id, (inDeg.get(e.friend_id) ?? 0) + 1));
+                const topConnected = [...inDeg.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+                const maxDeg = topConnected[0]?.[1] ?? 1;
+
+                const membersWithFriends = new Set(edges.map(e => e.viewer_id)).size;
+
+                // Overlay / social activity from user_events
+                const friendEvents = events.filter(e => e.event_type.startsWith('friend_'));
+                const overlayOn = friendEvents.filter(
+                  e => e.event_type === 'friend_overlay_toggled' && Boolean((e.payload as Record<string, unknown> | null)?.on),
+                ).length;
+                const detailViews = friendEvents.filter(e => e.event_type === 'friend_detail_viewed').length;
+                const clashEvents = friendEvents.filter(e => e.event_type === 'friend_overlay_conflict_detected').length;
+                const recentSocial = friendEvents
+                  .slice()
+                  .sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1))
+                  .slice(0, 12);
+
+                const stat = (label: string, value: number | string, color: string) => (
+                  <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                    <div className={`text-2xl font-bold ${color}`}>{value}</div>
+                    <div className="text-xs text-slate-400 mt-1">{label}</div>
+                  </div>
+                );
+
+                return (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-200 mb-3">👥 Friends &amp; Social</h3>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                      {stat('Connections', seen.size, 'text-blue-400')}
+                      {stat('Mutual pairs', mutual, 'text-green-400')}
+                      {stat('One-way (after removal)', oneWay, 'text-orange-400')}
+                      {stat('Members with friends', membersWithFriends, 'text-purple-400')}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                      {/* Who added whom */}
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wide mb-3">Who added whom</h4>
+                        {initiations.length === 0 ? (
+                          <p className="text-slate-500 text-sm">No friend connections yet.</p>
+                        ) : (
+                          <ul className="space-y-1.5 max-h-72 overflow-y-auto">
+                            {initiations.map((e, i) => (
+                              <li key={i} className="flex items-center justify-between gap-2 text-sm">
+                                <span className="text-slate-200 truncate">
+                                  <strong>{nameOf(e.viewer_id)}</strong> <span className="text-slate-500">added</span> <strong>{nameOf(e.friend_id)}</strong>
+                                </span>
+                                <span className="text-[11px] text-slate-500 flex-shrink-0">{fmtTs(e.created_at)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      {/* Most-watched schedules */}
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wide mb-3">Most-watched schedules</h4>
+                        {topConnected.length === 0 ? (
+                          <p className="text-slate-500 text-sm">No data yet.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {topConnected.map(([id, deg]) => (
+                              <li key={id} className="flex items-center gap-2">
+                                <span className="text-xs text-slate-300 w-28 truncate flex-shrink-0">{nameOf(id)}</span>
+                                <div className="flex-1 bg-slate-700/50 rounded h-4 overflow-hidden">
+                                  <div className="h-full bg-blue-500 rounded" style={{ width: `${(deg / maxDeg) * 100}%` }} />
+                                </div>
+                                <span className="text-xs text-slate-400 w-6 text-right flex-shrink-0">{deg}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                      {stat('Overlay toggles (on)', overlayOn, 'text-sky-400')}
+                      {stat('Friend detail views', detailViews, 'text-indigo-400')}
+                      {stat('Schedule clashes seen', clashEvents, 'text-amber-400')}
+                    </div>
+
+                    {/* Recent social activity */}
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wide mb-3">Recent social activity</h4>
+                      {recentSocial.length === 0 ? (
+                        <p className="text-slate-500 text-sm">No friend activity yet.</p>
+                      ) : (
+                        <ul className="space-y-1.5 max-h-72 overflow-y-auto">
+                          {recentSocial.map((e, i) => {
+                            const d = describeEvent(e);
+                            return (
+                              <li key={i} className="flex items-center justify-between gap-2 text-sm">
+                                <span className="text-slate-200 truncate">
+                                  <span className="mr-1">{d.icon}</span>
+                                  <strong>{nameOf(e.user_id)}</strong> <span className="text-slate-400">{d.text}</span>
+                                </span>
+                                <span className="text-[11px] text-slate-500 flex-shrink-0">{fmtTs(e.occurred_at)}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="border-t border-white/5 my-6" />
+                  </div>
+                );
+              })()}
+
               {/* Landing page funnel */}
               {(() => {
                 const total = landingSessions.length;

@@ -25,7 +25,19 @@ export type EventType =
   | 'mobile_drawer_toggled'
   | 'mobile_drawer_spec_tapped'
   | 'term1_panel_toggled'
-  | 'admin_dashboard_accessed';
+  | 'admin_dashboard_accessed'
+  // Friends & schedule overlay
+  | 'friend_tab_opened'
+  | 'friend_code_copied'
+  | 'friend_code_regenerated'
+  | 'friend_add_attempted'
+  | 'friend_added'
+  | 'friend_add_failed'
+  | 'friend_removed'
+  | 'friend_detail_viewed'
+  | 'friend_overlay_toggled'
+  | 'friend_overlay_cleared'
+  | 'friend_overlay_conflict_detected';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

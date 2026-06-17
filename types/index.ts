@@ -60,4 +60,45 @@ export interface Profile {
   email: string;
   name: string;
   specializations: SpecId[];
+  friend_code?: string;
+}
+
+// A friend the current user can see (their viewer→friend edge exists).
+export interface Friend {
+  id: string;
+  name: string;
+  email: string;
+  specializations: SpecId[];
+  friendCode?: string;
+  addedAt: string;
+}
+
+// A friend currently overlaid on the schedule, with an assigned color.
+export interface FriendOverlay {
+  id: string;
+  name: string;
+  color: string;
+  selected: Set<number>;
+}
+
+// Distinct hues for overlaid friends (cycled by friend ordering).
+// Chosen to read clearly against the light schedule grid and to stay
+// distinguishable from the spec palette / mandatory-blue / conflict-red.
+export const FRIEND_COLORS: string[] = [
+  '#0ea5e9', // sky
+  '#a855f7', // purple
+  '#10b981', // emerald
+  '#f97316', // orange
+  '#ec4899', // pink
+  '#14b8a6', // teal
+  '#eab308', // amber
+  '#6366f1', // indigo
+];
+
+// Stable color per friend id (so a friend keeps the same hue across views,
+// independent of list order or how many friends are added/removed).
+export function colorForFriend(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return FRIEND_COLORS[h % FRIEND_COLORS.length];
 }

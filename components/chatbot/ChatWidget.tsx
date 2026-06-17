@@ -15,12 +15,31 @@ type TrackEvent = (eventType: EventType, payload?: Record<string, unknown>) => v
 
 // Proactive-nudge cadence (Gentle): first tug shortly after landing, then occasional,
 // capped per session, and only while the chat has never been opened.
-const NUDGE_FIRST_DELAY = 2500; // ms after mount
-const NUDGE_INTERVAL = 75_000; // ms between subsequent nudges
+const NUDGE_FIRST_DELAY  = 2500;   // ms after mount
+const NUDGE_INTERVAL     = 75_000; // ms between subsequent nudges
 const NUDGE_MAX_PER_SESSION = 3;
-const NUDGE_TUG_MS = 600; // launcher tug duration (matches CSS keyframe)
-const NUDGE_REVEAL_MS = 360; // bubble appears on the tug's rebound
-const NUDGE_TTL = 8000; // bubble auto-hides after this
+const NUDGE_REVEAL_MS    = 360;    // bubble appears on animation's rebound
+const NUDGE_FADE_OUT_MS  = 260;    // bubble exit animation duration
+const NUDGE_GAP_MS       = 2000;   // pause after old bubble exits before new one appears
+const PERSONALITY_MIN_MS = 5000;   // random idle animation min interval
+const PERSONALITY_MAX_MS = 7000;   // random idle animation max interval
+
+const LAUNCHER_ANIMS = [
+  { cls: 'animate-launcher-bounce-lr',      weight: 28 },
+  { cls: 'animate-launcher-bounce-lr-hard', weight: 10 },
+  { cls: 'animate-launcher-bounce-tb',      weight: 22 },
+  { cls: 'animate-launcher-bounce-tb-hard', weight: 8  },
+  { cls: 'animate-launcher-shake',          weight: 18 },
+  { cls: 'animate-launcher-shake-hard',     weight: 7  },
+  { cls: 'animate-launcher-jiggle',         weight: 7  },
+] as const;
+
+function pickAnim(): string {
+  const total = LAUNCHER_ANIMS.reduce((s, a) => s + a.weight, 0);
+  let r = Math.random() * total;
+  for (const a of LAUNCHER_ANIMS) { r -= a.weight; if (r <= 0) return a.cls; }
+  return LAUNCHER_ANIMS[0].cls;
+}
 
 interface Msg {
   id: string;
@@ -79,7 +98,8 @@ export function ChatWidget({
   // ── Proactive "mood" nudges ─────────────────────────────────────────────────
   const { loadPool, nextNudge } = useChatNudges(userId, courses, specializations);
   const [activeNudge, setActiveNudge] = useState<ActiveNudge | null>(null);
-  const [tugging, setTugging] = useState(false);
+  const [launcherAnim, setLauncherAnim] = useState<string | null>(null);
+  const [nudgeFadingOut, setNudgeFadingOut] = useState(false);
   // Pre-fills the chat input when a nudge is tapped (key forces re-trigger on repeats).
   const [prefill, setPrefill] = useState<{ text: string; key: number } | null>(null);
   // Once the user opens the chat, we stop nudging entirely (they're engaged).
@@ -89,12 +109,16 @@ export function ChatWidget({
   const ttlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fireNudgeRef = useRef<() => void>(() => {});
+  // Stale-closure guard: personality timer reads this ref so it always sees current open state.
+  const openRef = useRef(false);
+  openRef.current = open;
 
   const clearNudge = useCallback(() => {
     if (ttlTimerRef.current) {
       clearTimeout(ttlTimerRef.current);
       ttlTimerRef.current = null;
     }
+    setNudgeFadingOut(false);
     setActiveNudge(null);
     activeNudgeRef.current = null;
   }, []);
@@ -146,20 +170,35 @@ export function ChatWidget({
   fireNudgeRef.current = () => {
     if (open || openedOnceRef.current) return; // chat open/engaged → stay quiet
     if (nudgeCountRef.current >= NUDGE_MAX_PER_SESSION) return;
-    if (activeNudgeRef.current) return; // a bubble is already showing
     const n = nextNudge();
     if (!n) return;
-    setTugging(true);
-    setTimeout(() => setTugging(false), NUDGE_TUG_MS);
-    // Reveal the bubble on the tug's rebound.
-    setTimeout(() => {
-      if (openedOnceRef.current || activeNudgeRef.current) return;
-      setActiveNudge(n);
-      activeNudgeRef.current = n;
-      nudgeCountRef.current += 1;
-      trackEvent('chatbot_nudge_shown', { type: n.type, course: n.courseCode ?? undefined });
-      ttlTimerRef.current = setTimeout(clearNudge, NUDGE_TTL);
-    }, NUDGE_REVEAL_MS);
+
+    const showNudge = () => {
+      if (openedOnceRef.current) return;
+      setLauncherAnim(pickAnim());
+      // Reveal bubble on the animation's rebound.
+      setTimeout(() => {
+        if (openedOnceRef.current || activeNudgeRef.current) return;
+        setActiveNudge(n);
+        activeNudgeRef.current = n;
+        nudgeCountRef.current += 1;
+        trackEvent('chatbot_nudge_shown', { type: n.type, course: n.courseCode ?? undefined });
+      }, NUDGE_REVEAL_MS);
+    };
+
+    if (activeNudgeRef.current) {
+      // Fade existing bubble out, gap, then show new one.
+      setNudgeFadingOut(true);
+      if (ttlTimerRef.current) clearTimeout(ttlTimerRef.current);
+      ttlTimerRef.current = setTimeout(() => {
+        setNudgeFadingOut(false);
+        setActiveNudge(null);
+        activeNudgeRef.current = null;
+        ttlTimerRef.current = setTimeout(showNudge, NUDGE_GAP_MS);
+      }, NUDGE_FADE_OUT_MS);
+    } else {
+      showNudge();
+    }
   };
 
   // Scheduler: fetch the pool, fire the first nudge after a short idle, then on a gentle
@@ -177,6 +216,24 @@ export function ChatWidget({
       if (ttlTimerRef.current) clearTimeout(ttlTimerRef.current);
     };
   }, [userId, loadPool]);
+
+  // Personality timer: makes the icon animate randomly every 5–7 s while chat is closed,
+  // giving it a sense of life regardless of the nudge scheduler.
+  useEffect(() => {
+    if (!userId) return;
+    let id: ReturnType<typeof setTimeout>;
+    const scheduleNext = () => {
+      const delay = PERSONALITY_MIN_MS + Math.random() * (PERSONALITY_MAX_MS - PERSONALITY_MIN_MS);
+      id = setTimeout(() => {
+        if (!openRef.current) {
+          setLauncherAnim((prev) => prev ?? pickAnim());
+        }
+        scheduleNext();
+      }, delay);
+    };
+    scheduleNext();
+    return () => clearTimeout(id);
+  }, [userId]);
 
   const startNewChat = useCallback(() => {
     convoRef.current = newId();
@@ -399,7 +456,12 @@ export function ChatWidget({
 
       {/* Proactive nudge bubble — only while the chat is closed */}
       {activeNudge && !open && (
-        <NudgeBubble nudge={activeNudge} onActivate={onNudgeActivate} onDismiss={onNudgeDismiss} />
+        <NudgeBubble
+          nudge={activeNudge}
+          onActivate={onNudgeActivate}
+          onDismiss={onNudgeDismiss}
+          fadingOut={nudgeFadingOut}
+        />
       )}
 
       {/* Launcher */}
@@ -407,7 +469,8 @@ export function ChatWidget({
         size="icon-lg"
         onClick={open ? closeWidget : openWidget}
         aria-label={open ? 'Close course assistant' : 'Open course assistant'}
-        className={`size-12 rounded-full shadow-lg${tugging ? ' animate-launcher-nudge' : ''}`}
+        className={`size-12 rounded-full shadow-lg${launcherAnim ? ` ${launcherAnim}` : ''}`}
+        onAnimationEnd={() => setLauncherAnim(null)}
       >
         {open ? <X className="size-5" /> : <MessageCircle className="size-5" />}
       </Button>

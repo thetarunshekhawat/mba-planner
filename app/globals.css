@@ -171,8 +171,7 @@
   100% { transform: scale(1); }
 }
 
-/* Chat launcher "tug": the button slides left, then rebounds to rest — the nudge
-   bubble is revealed on the rebound (timed from JS). */
+/* Chat launcher animations — physics bounces decay over 3 rebounds */
 @keyframes launcher-nudge {
   0%   { transform: translateX(0); }
   35%  { transform: translateX(-10px); }
@@ -180,9 +179,90 @@
   100% { transform: translateX(0); }
 }
 
+@keyframes launcher-bounce-lr {
+  0%   { transform: translateX(0); }
+  12%  { transform: translateX(-12px); }
+  26%  { transform: translateX(6px); }
+  40%  { transform: translateX(-3px); }
+  54%  { transform: translateX(1.5px); }
+  68%  { transform: translateX(-0.5px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes launcher-bounce-lr-hard {
+  0%   { transform: translateX(0); }
+  10%  { transform: translateX(-20px); }
+  22%  { transform: translateX(11px); }
+  34%  { transform: translateX(-6px); }
+  46%  { transform: translateX(3px); }
+  58%  { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes launcher-bounce-tb {
+  0%   { transform: translateY(0); }
+  12%  { transform: translateY(-12px); }
+  26%  { transform: translateY(6px); }
+  40%  { transform: translateY(-3px); }
+  54%  { transform: translateY(1.5px); }
+  68%  { transform: translateY(-0.5px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes launcher-bounce-tb-hard {
+  0%   { transform: translateY(0); }
+  10%  { transform: translateY(-20px); }
+  22%  { transform: translateY(11px); }
+  34%  { transform: translateY(-6px); }
+  46%  { transform: translateY(3px); }
+  58%  { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes launcher-shake {
+  0%   { transform: translateX(0) rotate(0deg); }
+  10%  { transform: translateX(-4px) rotate(-2deg); }
+  20%  { transform: translateX(4px) rotate(2deg); }
+  30%  { transform: translateX(-4px) rotate(-2deg); }
+  40%  { transform: translateX(4px) rotate(2deg); }
+  50%  { transform: translateX(-3px) rotate(-1.5deg); }
+  60%  { transform: translateX(3px) rotate(1.5deg); }
+  70%  { transform: translateX(-1.5px) rotate(-0.8deg); }
+  80%  { transform: translateX(1.5px) rotate(0.8deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes launcher-shake-hard {
+  0%   { transform: translateX(0) rotate(0deg); }
+  8%   { transform: translateX(-7px) rotate(-5deg); }
+  16%  { transform: translateX(7px) rotate(5deg); }
+  24%  { transform: translateX(-7px) rotate(-5deg); }
+  32%  { transform: translateX(7px) rotate(5deg); }
+  40%  { transform: translateX(-5px) rotate(-3deg); }
+  48%  { transform: translateX(5px) rotate(3deg); }
+  56%  { transform: translateX(-2.5px) rotate(-1.5deg); }
+  64%  { transform: translateX(2.5px) rotate(1.5deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes launcher-jiggle {
+  0%   { transform: rotate(0deg) scale(1); }
+  15%  { transform: rotate(-14deg) scale(1.06); }
+  30%  { transform: rotate(12deg) scale(1.04); }
+  45%  { transform: rotate(-8deg) scale(1.02); }
+  60%  { transform: rotate(5deg) scale(1.01); }
+  75%  { transform: rotate(-2deg) scale(1); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
 @keyframes nudge-bubble-in {
   from { opacity: 0; transform: translateX(8px) scale(0.96); }
   to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes nudge-bubble-out {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to   { opacity: 0; transform: translateX(8px) scale(0.96); }
 }
 
 .animate-planner-card-in {
@@ -209,8 +289,32 @@
 .animate-launcher-nudge {
   animation: launcher-nudge 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+.animate-launcher-bounce-lr {
+  animation: launcher-bounce-lr 900ms linear both;
+}
+.animate-launcher-bounce-lr-hard {
+  animation: launcher-bounce-lr-hard 1100ms linear both;
+}
+.animate-launcher-bounce-tb {
+  animation: launcher-bounce-tb 900ms linear both;
+}
+.animate-launcher-bounce-tb-hard {
+  animation: launcher-bounce-tb-hard 1100ms linear both;
+}
+.animate-launcher-shake {
+  animation: launcher-shake 700ms linear both;
+}
+.animate-launcher-shake-hard {
+  animation: launcher-shake-hard 800ms linear both;
+}
+.animate-launcher-jiggle {
+  animation: launcher-jiggle 800ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
 .animate-nudge-bubble-in {
   animation: nudge-bubble-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-nudge-bubble-out {
+  animation: nudge-bubble-out 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -222,7 +326,15 @@
   .animate-view-fade-in,
   .animate-spec-pop,
   .animate-launcher-nudge,
-  .animate-nudge-bubble-in {
+  .animate-launcher-bounce-lr,
+  .animate-launcher-bounce-lr-hard,
+  .animate-launcher-bounce-tb,
+  .animate-launcher-bounce-tb-hard,
+  .animate-launcher-shake,
+  .animate-launcher-shake-hard,
+  .animate-launcher-jiggle,
+  .animate-nudge-bubble-in,
+  .animate-nudge-bubble-out {
     animation: none !important;
     transition: none !important;
   }

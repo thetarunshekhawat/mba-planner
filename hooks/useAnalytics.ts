@@ -47,7 +47,10 @@ export type EventType =
   | 'chatbot_chip_clicked'
   | 'chatbot_answer_received'
   | 'chatbot_error'
-  | 'chatbot_rate_limited';
+  | 'chatbot_rate_limited'
+  | 'chatbot_nudge_shown'
+  | 'chatbot_nudge_clicked'
+  | 'chatbot_nudge_dismissed';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

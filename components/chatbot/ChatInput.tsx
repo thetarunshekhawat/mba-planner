@@ -1,17 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function ChatInput({
   disabled,
   onSend,
+  prefill,
 }: {
   disabled?: boolean;
   onSend: (text: string) => void;
+  /** Drops text into the box (ready to send, NOT auto-sent) and focuses it.
+   *  `key` must change on each new prefill so repeats re-trigger. */
+  prefill?: { text: string; key: number };
 }) {
   const [value, setValue] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // When a new prefill arrives, fill the box and focus — the user hits Enter themselves.
+  useEffect(() => {
+    if (!prefill?.text) return;
+    setValue(prefill.text);
+    const el = textareaRef.current;
+    if (el) {
+      el.focus();
+      // Caret to end so they can immediately send or edit.
+      const len = prefill.text.length;
+      requestAnimationFrame(() => el.setSelectionRange(len, len));
+    }
+  }, [prefill?.key, prefill?.text]);
 
   function submit() {
     const t = value.trim();
@@ -29,6 +47,7 @@ export function ChatInput({
       className="flex items-end gap-2 border-t border-border p-2"
     >
       <textarea
+        ref={textareaRef}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {

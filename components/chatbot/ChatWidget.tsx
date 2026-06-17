@@ -5,11 +5,22 @@ import { MessageCircle, X, Sparkles, SquarePen } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 import { Button } from '@/components/ui/button';
+import { useChatNudges, type ActiveNudge } from '@/hooks/useChatNudges';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { DisambiguationChips, type Chip } from './DisambiguationChips';
+import { NudgeBubble } from './NudgeBubble';
 
 type TrackEvent = (eventType: EventType, payload?: Record<string, unknown>) => void;
+
+// Proactive-nudge cadence (Gentle): first tug shortly after landing, then occasional,
+// capped per session, and only while the chat has never been opened.
+const NUDGE_FIRST_DELAY = 2500; // ms after mount
+const NUDGE_INTERVAL = 75_000; // ms between subsequent nudges
+const NUDGE_MAX_PER_SESSION = 3;
+const NUDGE_TUG_MS = 600; // launcher tug duration (matches CSS keyframe)
+const NUDGE_REVEAL_MS = 360; // bubble appears on the tug's rebound
+const NUDGE_TTL = 8000; // bubble auto-hides after this
 
 interface Msg {
   id: string;
@@ -65,6 +76,29 @@ export function ChatWidget({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, open]);
 
+  // ── Proactive "mood" nudges ─────────────────────────────────────────────────
+  const { loadPool, nextNudge } = useChatNudges(userId, courses, specializations);
+  const [activeNudge, setActiveNudge] = useState<ActiveNudge | null>(null);
+  const [tugging, setTugging] = useState(false);
+  // Pre-fills the chat input when a nudge is tapped (key forces re-trigger on repeats).
+  const [prefill, setPrefill] = useState<{ text: string; key: number } | null>(null);
+  // Once the user opens the chat, we stop nudging entirely (they're engaged).
+  const openedOnceRef = useRef(false);
+  const nudgeCountRef = useRef(0);
+  const activeNudgeRef = useRef<ActiveNudge | null>(null);
+  const ttlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fireNudgeRef = useRef<() => void>(() => {});
+
+  const clearNudge = useCallback(() => {
+    if (ttlTimerRef.current) {
+      clearTimeout(ttlTimerRef.current);
+      ttlTimerRef.current = null;
+    }
+    setActiveNudge(null);
+    activeNudgeRef.current = null;
+  }, []);
+
   // Fetch a freshly-generated opening line. Cheap, non-critical: any failure falls
   // back to a static greeting so the widget always has something to show.
   const loadGreeting = useCallback(async () => {
@@ -83,10 +117,66 @@ export function ChatWidget({
 
   const openWidget = useCallback(() => {
     setOpen(true);
+    openedOnceRef.current = true; // engaged — no more proactive nudges this session
+    clearNudge();
     trackEvent('chatbot_opened', { specializations });
     // Only (re)generate the greeting when opening onto a fresh conversation.
     if (messagesRef.current.length === 0) void loadGreeting();
-  }, [trackEvent, specializations, loadGreeting]);
+  }, [trackEvent, specializations, loadGreeting, clearNudge]);
+
+  // Tapping the bubble opens the chat and pre-fills the seeded question (not sent).
+  const onNudgeActivate = useCallback(() => {
+    const n = activeNudgeRef.current;
+    clearNudge();
+    openWidget();
+    if (n) {
+      trackEvent('chatbot_nudge_clicked', { type: n.type, course: n.courseCode ?? undefined });
+      setPrefill({ text: n.seedQuestion, key: Date.now() });
+    }
+  }, [openWidget, trackEvent, clearNudge]);
+
+  const onNudgeDismiss = useCallback(() => {
+    const n = activeNudgeRef.current;
+    if (n) trackEvent('chatbot_nudge_dismissed', { type: n.type, course: n.courseCode ?? undefined });
+    clearNudge();
+  }, [trackEvent, clearNudge]);
+
+  // Keep a live closure of the firing logic so the scheduler (set up once) always sees
+  // current state without restarting its timers.
+  fireNudgeRef.current = () => {
+    if (open || openedOnceRef.current) return; // chat open/engaged → stay quiet
+    if (nudgeCountRef.current >= NUDGE_MAX_PER_SESSION) return;
+    if (activeNudgeRef.current) return; // a bubble is already showing
+    const n = nextNudge();
+    if (!n) return;
+    setTugging(true);
+    setTimeout(() => setTugging(false), NUDGE_TUG_MS);
+    // Reveal the bubble on the tug's rebound.
+    setTimeout(() => {
+      if (openedOnceRef.current || activeNudgeRef.current) return;
+      setActiveNudge(n);
+      activeNudgeRef.current = n;
+      nudgeCountRef.current += 1;
+      trackEvent('chatbot_nudge_shown', { type: n.type, course: n.courseCode ?? undefined });
+      ttlTimerRef.current = setTimeout(clearNudge, NUDGE_TTL);
+    }, NUDGE_REVEAL_MS);
+  };
+
+  // Scheduler: fetch the pool, fire the first nudge after a short idle, then on a gentle
+  // cadence. Torn down on unmount or when the student's selection signature changes.
+  useEffect(() => {
+    if (!userId) return;
+    void loadPool();
+    const first = setTimeout(() => {
+      fireNudgeRef.current();
+      intervalRef.current = setInterval(() => fireNudgeRef.current(), NUDGE_INTERVAL);
+    }, NUDGE_FIRST_DELAY);
+    return () => {
+      clearTimeout(first);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (ttlTimerRef.current) clearTimeout(ttlTimerRef.current);
+    };
+  }, [userId, loadPool]);
 
   const startNewChat = useCallback(() => {
     convoRef.current = newId();
@@ -303,8 +393,13 @@ export function ChatWidget({
             ))}
           </div>
 
-          <ChatInput disabled={busy} onSend={onSend} />
+          <ChatInput disabled={busy} onSend={onSend} prefill={prefill ?? undefined} />
         </div>
+      )}
+
+      {/* Proactive nudge bubble — only while the chat is closed */}
+      {activeNudge && !open && (
+        <NudgeBubble nudge={activeNudge} onActivate={onNudgeActivate} onDismiss={onNudgeDismiss} />
       )}
 
       {/* Launcher */}
@@ -312,7 +407,7 @@ export function ChatWidget({
         size="icon-lg"
         onClick={open ? closeWidget : openWidget}
         aria-label={open ? 'Close course assistant' : 'Open course assistant'}
-        className="size-12 rounded-full shadow-lg"
+        className={`size-12 rounded-full shadow-lg${tugging ? ' animate-launcher-nudge' : ''}`}
       >
         {open ? <X className="size-5" /> : <MessageCircle className="size-5" />}
       </Button>

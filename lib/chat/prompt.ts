@@ -166,6 +166,59 @@ export function buildStudentContext(ctx: StudentContext): string {
   return parts.join('\n');
 }
 
+// ── proactive nudges ───────────────────────────────────────────────────────────
+
+/** A lean one-line fact block per selected course — enough for the model to ground a
+ *  nudge in real data (grading weights live inside highlights/lowlights), without the
+ *  full outline. Kept compact since this covers ALL of a student's selected courses. */
+function nudgeFacts(courses: Course[]): string {
+  return courses
+    .map((c) => {
+      const bits: string[] = [];
+      bits.push(`${c.name}${c.code ? ` (${c.code})` : ''} — Term ${c.term}, ${c.dates}`);
+      if (c.faculty) bits.push(`faculty ${c.faculty}`);
+      bits.push(c.type === 'mandatory' ? 'mandatory' : 'elective');
+      if (c.mandatoryFor?.length) bits.push(`mandatory for ${c.mandatoryFor.join(', ')}`);
+      if (c.specs.length) bits.push(`counts toward ${specLabels(c)}`);
+      const r = c.review;
+      if (r) {
+        bits.push(`workload ${r.workload}, learning ${r.learningDepth}/5, career ${r.careerRelevance}/5`);
+        if (r.whatYouLearn?.length) bits.push(`learn: ${r.whatYouLearn.join(', ')}`);
+        if (r.highlights?.length) bits.push(`notes: ${r.highlights.join('; ')}`);
+        if (r.lowlights?.length) bits.push(`watch-outs: ${r.lowlights.join('; ')}`);
+        if (r.summary) bits.push(`summary: ${r.summary}`);
+      }
+      return `- ${bits.join('; ')}`;
+    })
+    .join('\n');
+}
+
+const NUDGE_INSTRUCTION =
+  `You are generating proactive "nudge" notifications that appear in a small bubble next to the chat launcher while the student browses their planner. Each is a short, friendly side-note that surfaces something genuinely useful about THE STUDENT'S OWN selected courses to spark curiosity and pull them into a conversation.\n\n` +
+  `Using ONLY the facts in COURSE FACTS and STUDENT CONTEXT — never invent grading weights, dates, faculty, numbers, or topics — produce 4 to 6 nudges as a STRICT JSON array. Each element must be an object:\n` +
+  `{"type":"fact"|"question","text":string,"courseCode":string|null,"seedQuestion":string}\n\n` +
+  `- type "fact": a self-sufficient insight the student grasps at a glance — a grading weight (e.g. "20% is peer evaluation"), a workload heads-up, an observation about pairing two of their courses, or spec progress. seedQuestion = a natural follow-up they could tap to dig deeper.\n` +
+  `- type "question": a curiosity hook phrased as an offer, e.g. "Want the inside scoop on Supply Chain Analytics?". seedQuestion = the exact line to drop into the chat box if they bite, e.g. "Tell me about Supply Chain Analytics".\n` +
+  `- "text" must be <= 16 words, no emojis, and refer to courses by name. "courseCode" is the course's code when the nudge is about one specific course, else null.\n` +
+  `- Vary the categories AND the courses across the set; do not make every nudge about the same course. Prefer concrete facts that actually appear in the data (grading %, workload, what they'll learn, a sensible pairing). Skip anything the facts don't support.\n` +
+  `Output ONLY the JSON array — no markdown fences, no preamble, no trailing text.`;
+
+/** Messages for the one-shot nudge-pool generation (see app/api/chat/nudges). */
+export function buildNudgeMessages(ctx: StudentContext): ChatMessage[] {
+  const facts = nudgeFacts(ctx.allSelected);
+  return [
+    { role: 'system', content: buildSystemPrompt() },
+    { role: 'system', content: buildStudentContext(ctx) },
+    {
+      role: 'system',
+      content: facts
+        ? `COURSE FACTS (the student's selected courses — ground every nudge in these):\n${facts}`
+        : 'COURSE FACTS: the student has not selected any courses yet.',
+    },
+    { role: 'user', content: NUDGE_INSTRUCTION },
+  ];
+}
+
 export type PriorTurn = { role: 'user' | 'assistant'; content: string };
 
 /**

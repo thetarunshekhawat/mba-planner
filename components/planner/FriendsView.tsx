@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Users, Copy, Check, RefreshCw, UserPlus, Eye, EyeOff, Trash2, BookOpen,
 } from 'lucide-react';
@@ -50,6 +50,24 @@ export function FriendsView({
   const [displayCode, setDisplayCode] = useState<string | undefined>(myCode);
 
   const code = displayCode ?? myCode;
+
+  const friendsQuip = useMemo(() => {
+    const quips = [
+      '(results may not reflect real life)',
+      'not a reflection of your actual social standing',
+      'in-app connections only. real friendships sold separately.',
+      'your mileage in real life may vary',
+      'classmates, not necessarily friends. but we appreciate the optimism.',
+      'for academic purposes only',
+      'bonded by case studies, not by choice',
+      "everyone's your friend until internship season",
+      'study group ≠ friend group',
+      'connected on the app. LinkedIn pending.',
+      'cohort proximity does not imply emotional closeness',
+      'real friendships require electives together',
+    ];
+    return quips[Math.floor(Math.random() * quips.length)];
+  }, []);
 
   async function handleCopy() {
     if (!code) return;
@@ -172,10 +190,11 @@ export function FriendsView({
 
         {/* ── Friends list ─────────────────────────────── */}
         <section>
-          <div className="flex items-center gap-2 mb-3 px-1">
+          <div className="flex items-baseline gap-2 mb-3 px-1">
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
               Your friends {friends.length > 0 && <span className="text-slate-400">({friends.length})</span>}
             </h2>
+            <span className="text-[10px] text-slate-400 italic">{friendsQuip}</span>
           </div>
 
           {loading ? (

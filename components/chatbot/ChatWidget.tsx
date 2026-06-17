@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageCircle, X, Sparkles } from 'lucide-react';
+import { MessageCircle, X, Sparkles, SquarePen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Course } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
@@ -27,6 +27,11 @@ const SUGGESTIONS = [
   'How is it graded?',
 ];
 
+function formatShortDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
 function newId(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
@@ -46,7 +51,8 @@ export function ChatWidget({
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
-  const convoRef = useRef<string>('');
+  // Stable conversation ID — persists across open/close; only reset on explicit "New Chat".
+  const convoRef = useRef<string>(newId());
   const scrollRef = useRef<HTMLDivElement>(null);
   // Mirror of messages for synchronous reads (history) without effect re-runs.
   const messagesRef = useRef<Msg[]>([]);
@@ -59,10 +65,14 @@ export function ChatWidget({
   }, [messages, open]);
 
   const openWidget = useCallback(() => {
-    convoRef.current = newId();
-    setMessages([]);
     setOpen(true);
     trackEvent('chatbot_opened');
+  }, [trackEvent]);
+
+  const startNewChat = useCallback(() => {
+    convoRef.current = newId();
+    setMessages([]);
+    trackEvent('chatbot_new_chat');
   }, [trackEvent]);
 
   const closeWidget = useCallback(() => {
@@ -202,9 +212,22 @@ export function ChatWidget({
                 <p className="text-xs text-muted-foreground">Ask about your courses</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon-sm" onClick={closeWidget} aria-label="Close chat">
-              <X />
-            </Button>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={startNewChat}
+                  aria-label="New chat"
+                  title="New chat"
+                >
+                  <SquarePen className="size-4" />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon-sm" onClick={closeWidget} aria-label="Close chat">
+                <X />
+              </Button>
+            </div>
           </div>
 
           {/* Messages */}
@@ -215,6 +238,34 @@ export function ChatWidget({
                   role="assistant"
                   content="Hi! I can help you understand your courses — schedule, what you'll learn, grading, and more. What would you like to know?"
                 />
+
+                {courses.filter((c) => c.type !== 'free').length > 0 && (
+                  <div className="rounded-xl border border-border bg-muted/30 p-2.5 space-y-1.5">
+                    <p className="text-xs font-medium text-muted-foreground px-0.5">Your courses this term</p>
+                    <div className="space-y-1">
+                      {[...courses]
+                        .filter((c) => c.type !== 'free')
+                        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                        .map((c) => (
+                          <button
+                            key={c.id}
+                            disabled={busy}
+                            onClick={() => onSend(`Tell me about ${c.code ?? c.name}`)}
+                            className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span className="shrink-0 text-[10px] font-semibold text-muted-foreground bg-muted rounded px-1 py-0.5 tabular-nums">
+                              Wk {c.week}
+                            </span>
+                            <span className="flex-1 font-medium truncate">{c.name}</span>
+                            <span className="shrink-0 text-[10px] text-muted-foreground">
+                              {formatShortDate(c.startDate)}
+                            </span>
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-1.5 pl-1">
                   {SUGGESTIONS.map((s) => (
                     <Button

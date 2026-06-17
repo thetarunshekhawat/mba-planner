@@ -41,6 +41,7 @@ export type EventType =
   // AI course chatbot
   | 'chatbot_opened'
   | 'chatbot_closed'
+  | 'chatbot_new_chat'
   | 'chatbot_message_sent'
   | 'chatbot_disambiguation_shown'
   | 'chatbot_chip_clicked'

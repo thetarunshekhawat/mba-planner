@@ -101,6 +101,7 @@ const EVENT_LABELS: Record<string, string> = {
   friend_overlay_conflict_detected: 'Friend Schedule Clash',
   chatbot_opened: 'AI Chat Opened',
   chatbot_closed: 'AI Chat Closed',
+  chatbot_new_chat: 'AI Chat New Thread',
   chatbot_message_sent: 'AI Chat Message Sent',
   chatbot_disambiguation_shown: 'AI Chat Course Prompt',
   chatbot_chip_clicked: 'AI Chat Course Picked',
@@ -159,6 +160,7 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'friend_overlay_conflict_detected': return { icon: '⏰', text: `Clash: ${String(p?.friend_course ?? '')} vs ${String(p?.my_course ?? '')} (${String(p?.day ?? '')} ${String(p?.slot ?? '')})` };
     case 'chatbot_opened':            return { icon: '💬', text: 'Opened the AI course assistant' };
     case 'chatbot_closed':            return { icon: '💬', text: 'Closed the AI course assistant' };
+    case 'chatbot_new_chat':          return { icon: '🆕', text: 'Started a new AI chat thread' };
     case 'chatbot_message_sent':      return { icon: '✨', text: 'Asked the AI assistant a question' };
     case 'chatbot_disambiguation_shown': return { icon: '❓', text: `AI asked which course (${Number(p?.options ?? 0)} options)` };
     case 'chatbot_chip_clicked':      return { icon: '👉', text: `Picked course ${String(p?.name ?? p?.code ?? '')}` };

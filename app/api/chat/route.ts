@@ -5,6 +5,15 @@ import { getCurrentTerm, getTermCourses } from '@/lib/terms';
 import { classifyIntent } from '@/lib/chat/router';
 import { buildMessages, type PriorTurn } from '@/lib/chat/prompt';
 import { streamCompletion, ProviderError, isConfigured, CHAT_MODEL } from '@/lib/chat/nemotron';
+import { fetchFriends, buildFriendComparison, type FriendComparisonRow } from '@/lib/chat/friends';
+import { buildSpecProgress } from '@/lib/chat/progress';
+import {
+  type ChatAction,
+  outlineLinkAction,
+  exportActions,
+  friendAskActions,
+  encodeActionsFrame,
+} from '@/lib/chat/actions';
 import type { SpecId } from '@/types';
 
 const MAX_MESSAGE_LEN = 2000;
@@ -118,16 +127,21 @@ export async function POST(request: Request) {
     allSelected: selectedCourses,
   };
 
+  // Confirmed friends (names only) — cheap, used to route messages that mention a
+  // friend by name. The heavier "what are they taking" query is deferred to the
+  // friend_compare branch below so non-social messages stay lean.
+  const friends = await fetchFriends(supabase, user.id);
+
   // ── Route intent ───────────────────────────────────────────────────────────
-  const intent = classifyIntent(message, selectedCourses, courseCode);
+  const intent = classifyIntent(
+    message,
+    selectedCourses,
+    courseCode,
+    friends.map((f) => f.name),
+  );
 
   // Persist the user's message (so admins see what was asked, even on errors).
-  const userIntentLabel =
-    intent.type === 'course_specific'
-      ? 'course_specific'
-      : intent.type === 'disambiguation'
-        ? 'disambiguation'
-        : 'general';
+  const userIntentLabel = intent.type;
   const userCourseCode = intent.type === 'course_specific' ? (intent.course.code ?? null) : null;
   await supabase.from('chatbot_messages').insert({
     user_id: user.id,
@@ -156,6 +170,30 @@ export async function POST(request: Request) {
     });
   }
 
+  // ── Export: deterministic action chips, no LLM call ────────────────────────
+  if (intent.type === 'export') {
+    await supabase.from('user_events').insert({
+      user_id: user.id,
+      event_type: 'chatbot_export_offered',
+      payload: { conversation_id: conversationId },
+    });
+    await supabase.from('chatbot_messages').insert({
+      user_id: user.id,
+      conversation_id: conversationId,
+      role: 'assistant',
+      content:
+        'You can export your schedule with the buttons below. Tip: choose which terms to include first in the Export dialog (My Schedule tab).',
+      intent: userIntentLabel,
+    });
+    return NextResponse.json({
+      type: 'action',
+      conversationId,
+      message:
+        'You can export your schedule with the buttons below. Tip: choose which terms to include first in the Export dialog (My Schedule tab).',
+      actions: exportActions(),
+    });
+  }
+
   // ── Build the prompt (fetch outline text from Supabase for course questions) ─
   if (!isConfigured()) {
     return NextResponse.json(
@@ -163,6 +201,18 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
+
+  // Friend comparison + spec-fit options are computed deterministically and injected
+  // as context; the model narrates them but never invents the numbers.
+  let friendBlock: string | null = null;
+  let friendRows: FriendComparisonRow[] = [];
+  if (intent.type === 'friend_compare') {
+    const cmp = await buildFriendComparison(supabase, friends, selectedIds);
+    friendBlock = cmp.block;
+    friendRows = cmp.rows;
+  }
+  const progressBlock =
+    intent.type === 'recommend' ? buildSpecProgress(specializations, selectedIds) : null;
 
   let outlineText: string | null = null;
   const answerCourse = intent.type === 'course_specific' ? intent.course : null;
@@ -175,6 +225,17 @@ export async function POST(request: Request) {
     outlineText = (outlineRow?.content as string | undefined) ?? null;
   }
 
+  // Actions surfaced beneath the streamed reply: outline link for course answers, and a
+  // tappable chip per friend (drill into their full list) for comparison answers.
+  const actions: ChatAction[] = [];
+  if (answerCourse) {
+    const link = outlineLinkAction(answerCourse);
+    if (link) actions.push(link);
+  }
+  if (friendRows.length) {
+    actions.push(...friendAskActions(friendRows.map((r) => r.name)));
+  }
+
   const messages = buildMessages({
     message,
     course: answerCourse,
@@ -182,6 +243,8 @@ export async function POST(request: Request) {
     selectedCourses,
     studentContext,
     history,
+    friendBlock,
+    progressBlock,
   });
 
   // ── Stream the answer; persist assistant message + events on completion ─────
@@ -196,6 +259,11 @@ export async function POST(request: Request) {
         for await (const delta of streamCompletion(messages, { maxTokens: 1024 })) {
           full += delta;
           controller.enqueue(encoder.encode(delta));
+        }
+        // After the prose, append any action chips as a trailing sentinel frame the
+        // client splits off (it never renders the frame as text).
+        if (actions.length) {
+          controller.enqueue(encoder.encode(encodeActionsFrame(actions)));
         }
       } catch (err) {
         errored = true;

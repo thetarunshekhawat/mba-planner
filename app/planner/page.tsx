@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useSelections } from '@/hooks/useSelections';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -23,6 +23,7 @@ import { ALL_COURSES } from '@/data/courses';
 import { TERM_DATES, getCurrentTerm, getTermCourses } from '@/lib/terms';
 import type { Course, SpecId, Profile, Friend, FriendOverlay } from '@/types';
 import { colorForFriend } from '@/types';
+import type { ChatAction } from '@/lib/chat/actions';
 import { useRouter } from 'next/navigation';
 
 const ADMIN_EMAILS = new Set([
@@ -69,6 +70,13 @@ export default function PlannerPage() {
   const { friends, loading: friendsLoading, addByCode, removeFriend, regenerateCode } = useFriends(userId);
   const [overlayIds, setOverlayIds] = useState<Set<string>>(new Set());
   const [friendDetail, setFriendDetail] = useState<Friend | null>(null);
+
+  // ── Sliding tab pill (Plan / My Schedule / Friends) ───────
+  const tabRowRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Record<ViewMode, HTMLButtonElement | null>>({
+    plan: null, schedule: null, friends: null,
+  });
+  const [pill, setPill] = useState<{ left: number; width: number } | null>(null);
 
   const friendIds = friends.map(f => f.id);
   const friendSelections = useFriendSelections(friendIds);
@@ -152,6 +160,19 @@ export default function PlannerPage() {
       modalCourseRef.current = null;
     }
   }, [activeModal]);
+
+  // Keep the sliding pill aligned with the active tab. Re-measures when the view
+  // changes and when badge counts shift the button widths, plus on container resize.
+  useLayoutEffect(() => {
+    const el = tabRefs.current[viewMode];
+    const row = tabRowRef.current;
+    if (!el || !row) return;
+    const measure = () => setPill({ left: el.offsetLeft, width: el.offsetWidth });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(row);
+    return () => ro.disconnect();
+  }, [viewMode, selected.size, friends.length]);
 
   function handleFiltersChange(newFilters: Filters) {
     filtersDirtyRef.current = true;
@@ -279,6 +300,18 @@ export default function PlannerPage() {
     window.print();
   };
 
+  // Runs an action the chatbot proposed. Reuses the same export handlers as the UI, so
+  // chat-triggered exports honor the current term selection. (open_link actions open via
+  // their own anchor in the chat — they don't reach here.)
+  const handleChatAction = (action: ChatAction) => {
+    if (action.type === 'export_ics') {
+      handleExportCalendar();
+    } else if (action.type === 'export_subscription') {
+      const url = action.provider === 'google' ? getGoogleCalendarUrl() : getAppleCalendarUrl();
+      if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   if (loading || !profile) {
     return (
       <div className="h-screen bg-slate-900 flex items-center justify-center">
@@ -303,12 +336,20 @@ export default function PlannerPage() {
 
         {/* View toggle — centered */}
         <div className="flex-none flex justify-center">
-          <div className="flex bg-slate-800 rounded-lg p-0.5 border border-white/10">
+          <div ref={tabRowRef} className="relative flex bg-slate-800 rounded-lg p-0.5 border border-white/10">
+            {pill && (
+              <span
+                aria-hidden
+                className="absolute top-0.5 bottom-0.5 left-0 rounded-md bg-white shadow-sm transition-[transform,width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                style={{ transform: `translateX(${pill.left}px)`, width: pill.width }}
+              />
+            )}
             <button
+              ref={(el) => { tabRefs.current.plan = el; }}
               onClick={() => { setViewMode('plan'); trackEvent('view_changed', { to: 'plan' }); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 viewMode === 'plan'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -316,10 +357,11 @@ export default function PlannerPage() {
               Plan
             </button>
             <button
+              ref={(el) => { tabRefs.current.schedule = el; }}
               onClick={() => { setViewMode('schedule'); trackEvent('view_changed', { to: 'schedule' }); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 viewMode === 'schedule'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -332,10 +374,11 @@ export default function PlannerPage() {
               )}
             </button>
             <button
+              ref={(el) => { tabRefs.current.friends = el; }}
               onClick={() => { setViewMode('friends'); trackEvent('view_changed', { to: 'friends' }); trackEvent('friend_tab_opened'); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 viewMode === 'friends'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -546,6 +589,7 @@ export default function PlannerPage() {
 
         {/* Main content area — bottom padding on mobile so content clears the drawer */}
         <main className="flex-1 overflow-y-auto min-h-0 max-lg:pb-20 print:overflow-visible print:h-auto">
+          <div key={viewMode} className="h-full animate-view-fade-in">
           {viewMode === 'plan' ? (
             <PlannerListView
               selected={selected}
@@ -601,6 +645,7 @@ export default function PlannerPage() {
               )}
             </>
           )}
+          </div>
         </main>
 
         {/* Mobile bottom drawer — only renders on <lg */}
@@ -637,6 +682,7 @@ export default function PlannerPage() {
         courses={getTermCourses(selected, getCurrentTerm())}
         specializations={profile?.specializations ?? []}
         trackEvent={trackEvent}
+        onAction={handleChatAction}
       />
     </div>
   );

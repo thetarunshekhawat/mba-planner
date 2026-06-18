@@ -10,7 +10,9 @@ import { ChatMessage } from './ChatMessage';
 import { TypingIndicator } from './TypingIndicator';
 import { ChatInput } from './ChatInput';
 import { DisambiguationChips, type Chip } from './DisambiguationChips';
+import { ActionChips } from './ActionChips';
 import { NudgeBubble } from './NudgeBubble';
+import { ACTIONS_SENTINEL, type ChatAction } from '@/lib/chat/actions';
 
 type TrackEvent = (eventType: EventType, payload?: Record<string, unknown>) => void;
 
@@ -49,6 +51,7 @@ interface Msg {
   streaming?: boolean;
   chips?: Chip[];
   pendingQuestion?: string;
+  actions?: ChatAction[];
 }
 
 const FALLBACK_GREETING = 'Hey! Which of your courses would you like my help with?';
@@ -69,6 +72,7 @@ export function ChatWidget({
   courses,
   specializations,
   trackEvent,
+  onAction,
 }: {
   userId: string | null;
   /** The student's locked courses for the current term, ordered by occurrence. */
@@ -76,8 +80,12 @@ export function ChatWidget({
   /** The student's specialization(s) — used for analytics on open. */
   specializations: SpecId[];
   trackEvent: TrackEvent;
+  /** Runs a chat action the bot proposed (export, etc.). Links open on their own. */
+  onAction: (action: ChatAction) => void;
 }) {
   const [open, setOpen] = useState(false);
+  // Keeps the panel mounted through its "genie" retract animation after open flips false.
+  const [closing, setClosing] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -145,6 +153,7 @@ export function ChatWidget({
   }, []);
 
   const openWidget = useCallback(() => {
+    setClosing(false);
     setOpen(true);
     openedOnceRef.current = true; // engaged — no more proactive nudges this session
     openTimeRef.current = Date.now();
@@ -251,6 +260,12 @@ export function ChatWidget({
 
   const closeWidget = useCallback(() => {
     setOpen(false);
+    // Play the retract animation unless the user prefers reduced motion (where the
+    // exit keyframes are disabled and onAnimationEnd would never fire to unmount).
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    setClosing(!reduce);
     trackEvent('chatbot_closed');
     if (openTimeRef.current !== null) {
       const duration_ms = Date.now() - openTimeRef.current;
@@ -311,6 +326,18 @@ export function ChatWidget({
             ]);
             return;
           }
+          if (data?.type === 'action') {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: newId(),
+                role: 'assistant',
+                content: data.message ?? '',
+                actions: (data.actions ?? []) as ChatAction[],
+              },
+            ]);
+            return;
+          }
           setMessages((prev) => [
             ...prev,
             { id: newId(), role: 'assistant', content: 'Hmm, I got an unexpected response.' },
@@ -318,23 +345,51 @@ export function ChatWidget({
           return;
         }
 
-        // Streaming plain-text answer.
+        // Streaming plain-text answer. The server may append a trailing actions frame
+        // (ACTIONS_SENTINEL + JSON) after the prose — split it off so it's never shown.
         const asstId = newId();
         setMessages((prev) => [...prev, { id: asstId, role: 'assistant', content: '', streaming: true }]);
         const reader = res.body?.getReader();
         if (!reader) return;
         const decoder = new TextDecoder();
+        let sawSentinel = false;
+        let actionBuf = '';
         for (;;) {
           const { done, value } = await reader.read();
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
-          if (chunk) {
+          if (!chunk) continue;
+          if (sawSentinel) {
+            actionBuf += chunk;
+            continue;
+          }
+          const idx = chunk.indexOf(ACTIONS_SENTINEL);
+          if (idx === -1) {
             setMessages((prev) =>
               prev.map((m) => (m.id === asstId ? { ...m, content: m.content + chunk } : m)),
             );
+          } else {
+            sawSentinel = true;
+            const textPart = chunk.slice(0, idx);
+            actionBuf += chunk.slice(idx + ACTIONS_SENTINEL.length);
+            if (textPart) {
+              setMessages((prev) =>
+                prev.map((m) => (m.id === asstId ? { ...m, content: m.content + textPart } : m)),
+              );
+            }
           }
         }
-        setMessages((prev) => prev.map((m) => (m.id === asstId ? { ...m, streaming: false } : m)));
+        let parsedActions: ChatAction[] | undefined;
+        if (actionBuf.trim()) {
+          try {
+            parsedActions = JSON.parse(actionBuf).actions as ChatAction[];
+          } catch {
+            /* malformed frame — drop it, the prose still stands */
+          }
+        }
+        setMessages((prev) =>
+          prev.map((m) => (m.id === asstId ? { ...m, streaming: false, actions: parsedActions } : m)),
+        );
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -379,6 +434,24 @@ export function ChatWidget({
     [request, trackEvent],
   );
 
+  const handleAction = useCallback(
+    (action: ChatAction) => {
+      trackEvent('chatbot_action_clicked', {
+        action: action.type,
+        ...(action.type === 'open_link' ? { course: action.courseCode } : {}),
+        ...(action.type === 'export_subscription' ? { provider: action.provider } : {}),
+        ...(action.type === 'ask' ? { label: action.label } : {}),
+      });
+      // A drill-down chip just sends its question as the next message.
+      if (action.type === 'ask') {
+        onSend(action.question);
+        return;
+      }
+      onAction(action);
+    },
+    [trackEvent, onAction, onSend],
+  );
+
   if (!userId) return null;
 
   // Show the "typing" dots while a request is in flight and no answer text has
@@ -393,8 +466,13 @@ export function ChatWidget({
 
   return (
     <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end">
-      {open && (
-        <div className="mb-3 flex h-[min(72vh,40rem)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-xl">
+      {(open || closing) && (
+        <div
+          className={`mb-3 flex h-[min(72vh,40rem)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-xl ${closing ? 'animate-genie-out' : 'animate-genie-in'}`}
+          onAnimationEnd={(e) => {
+            if (e.animationName === 'genie-out') setClosing(false);
+          }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2.5">
             <div className="flex items-center gap-2">
@@ -494,6 +572,9 @@ export function ChatWidget({
                     disabled={busy}
                     onPick={(chip) => onPickChip(m.id, chip, m.pendingQuestion ?? '')}
                   />
+                )}
+                {m.actions && m.actions.length > 0 && (
+                  <ActionChips actions={m.actions} onAction={handleAction} disabled={busy} />
                 )}
               </div>
               );

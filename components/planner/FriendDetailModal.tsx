@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { CalendarClock, BookOpen } from 'lucide-react';
@@ -16,19 +17,26 @@ interface Props {
 const TERM_LABELS: Record<number, string> = { 4: 'Term 4', 5: 'Term 5', 6: 'Term 6' };
 
 export function FriendDetailModal({ friend, selectedIds, color, onClose }: Props) {
-  if (!friend) return null;
+  // Snapshot the friend + their selection/color so the content stays put while the
+  // sheet slides out (the parent zeroes these props the instant `friend` goes null).
+  const lastRef = useRef<{ friend: Friend; selectedIds: Set<number>; color: string } | null>(null);
+  if (friend) lastRef.current = { friend, selectedIds, color };
+  const snap = friend ? { friend, selectedIds, color } : lastRef.current;
 
-  const specObjects = SPECS.filter(s => friend.specializations.includes(s.id));
-  const courses = ALL_COURSES
-    .filter(c => selectedIds.has(c.id) && c.type !== 'exam' && c.type !== 'free')
-    .sort((a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0));
+  const f = snap?.friend;
+  const specObjects = f ? SPECS.filter(s => f.specializations.includes(s.id)) : [];
+  const courses = snap
+    ? ALL_COURSES
+        .filter(c => snap.selectedIds.has(c.id) && c.type !== 'exam' && c.type !== 'free')
+        .sort((a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0))
+    : [];
 
   const byTerm = [4, 5, 6].map(term => ({
     term,
     list: courses.filter(c => c.term === term),
   })).filter(g => g.list.length > 0);
 
-  const initials = friend.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  const initials = f ? f.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() : '';
 
   return (
     <Sheet open={!!friend} onOpenChange={open => { if (!open) onClose(); }}>
@@ -36,25 +44,27 @@ export function FriendDetailModal({ friend, selectedIds, color, onClose }: Props
         side="right"
         className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-white/10 text-white"
       >
+        {f && snap && (
+        <>
         <SheetHeader className="mb-6">
           <div className="flex items-center gap-3 mb-3">
-            {friend.avatarUrl ? (
+            {f.avatarUrl ? (
               <img
-                src={friend.avatarUrl}
-                alt={friend.name}
+                src={f.avatarUrl}
+                alt={f.name}
                 className="w-11 h-11 rounded-full object-cover flex-shrink-0"
               />
             ) : (
               <div
                 className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: snap.color }}
               >
                 {initials || '?'}
               </div>
             )}
             <div className="min-w-0">
-              <SheetTitle className="text-white text-lg leading-tight truncate">{friend.name}</SheetTitle>
-              <p className="text-slate-400 text-xs truncate">{friend.email}</p>
+              <SheetTitle className="text-white text-lg leading-tight truncate">{f.name}</SheetTitle>
+              <p className="text-slate-400 text-xs truncate">{f.email}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -121,6 +131,8 @@ export function FriendDetailModal({ friend, selectedIds, color, onClose }: Props
               </div>
             ))}
           </div>
+        )}
+        </>
         )}
       </SheetContent>
     </Sheet>

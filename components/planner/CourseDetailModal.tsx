@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,20 +30,28 @@ function Stars({ value, max = 5 }: { value: number; max?: number }) {
   );
 }
 
-export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Props) {
-  if (!course) return null;
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose }: Props) {
+  // Snapshot the course + its selected state so the content stays rendered while the
+  // sheet slides out (the parent zeroes these props the instant `course` goes null).
+  const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
+  if (courseProp) lastRef.current = { course: courseProp, isSelected: isSelectedProp };
+  const snap = courseProp ? { course: courseProp, isSelected: isSelectedProp } : lastRef.current;
+  const course = snap?.course ?? null;
+  const isSelected = snap?.isSelected ?? false;
 
-  const specObjects = SPECS.filter(s => course.specs.includes(s.id));
-  const isWaw = course.type === 'waw';
-  const isMandatory = course.type === 'mandatory';
-  const isExamOrFree = course.type === 'exam' || course.type === 'free';
+  const specObjects = course ? SPECS.filter(s => course.specs.includes(s.id)) : [];
+  const isWaw = course?.type === 'waw';
+  const isMandatory = course?.type === 'mandatory';
+  const isExamOrFree = course?.type === 'exam' || course?.type === 'free';
 
   return (
-    <Sheet open={!!course} onOpenChange={open => { if (!open) onClose(); }}>
+    <Sheet open={!!courseProp} onOpenChange={open => { if (!open) onClose(); }}>
       <SheetContent
         side="right"
         className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-white/10 text-white"
       >
+        {course && (
+        <>
         <SheetHeader className="mb-6">
           <div className="flex flex-wrap gap-1.5 mb-3">
             {isWaw && (
@@ -194,6 +203,8 @@ export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Pro
               )}
             </Button>
           </div>
+        )}
+        </>
         )}
       </SheetContent>
     </Sheet>

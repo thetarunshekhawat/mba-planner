@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { CheckCircle2, PlusCircle, Star } from 'lucide-react';
 import type { Course } from '@/types';
@@ -89,13 +89,19 @@ function RippleBtn({ onClick, isSelected }: { onClick: () => void; isSelected: b
   );
 }
 
-export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Props) {
-  if (!course) return null;
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose }: Props) {
+  // Snapshot the course + its selected state so the content stays rendered while the
+  // sheet slides out (the parent zeroes these props the instant `course` goes null).
+  const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
+  if (courseProp) lastRef.current = { course: courseProp, isSelected: isSelectedProp };
+  const snap = courseProp ? { course: courseProp, isSelected: isSelectedProp } : lastRef.current;
+  const course = snap?.course ?? null;
+  const isSelected = snap?.isSelected ?? false;
 
-  const specObjects = SPECS.filter(s => course.specs.includes(s.id));
-  const isWaw = course.type === 'waw';
-  const isMandatory = course.type === 'mandatory';
-  const isExamOrFree = course.type === 'exam' || course.type === 'free';
+  const specObjects = course ? SPECS.filter(s => course.specs.includes(s.id)) : [];
+  const isWaw = course?.type === 'waw';
+  const isMandatory = course?.type === 'mandatory';
+  const isExamOrFree = course?.type === 'exam' || course?.type === 'free';
 
   const badgeBase: React.CSSProperties = {
     fontSize: 10,
@@ -109,7 +115,7 @@ export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Pro
   };
 
   return (
-    <Sheet open={!!course} onOpenChange={open => { if (!open) onClose(); }}>
+    <Sheet open={!!courseProp} onOpenChange={open => { if (!open) onClose(); }}>
       <SheetContent
         side="right"
         className="w-full sm:max-w-lg overflow-y-auto"
@@ -120,6 +126,8 @@ export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Pro
           color: 'var(--cream)',
         }}
       >
+        {course && (
+        <>
         <SheetHeader style={{ marginBottom: 14 }}>
           {/* Type badges */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
@@ -267,6 +275,8 @@ export function CourseDetailModal({ course, isSelected, onToggle, onClose }: Pro
             </div>
           )}
         </div>
+        </>
+        )}
       </SheetContent>
     </Sheet>
   );

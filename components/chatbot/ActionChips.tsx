@@ -1,12 +1,14 @@
 'use client';
 
-import { ExternalLink, Download, CalendarPlus, User } from 'lucide-react';
+import { ExternalLink, Download, FileDown, CalendarPlus, User, ArrowRight } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import type { ChatAction } from '@/lib/chat/actions';
 
 function iconFor(a: ChatAction) {
   if (a.type === 'open_link') return <ExternalLink className="size-3.5" />;
+  if (a.type === 'export_pdf') return <FileDown className="size-3.5" />;
   if (a.type === 'export_ics') return <Download className="size-3.5" />;
+  if (a.type === 'navigate') return <ArrowRight className="size-3.5" />;
   if (a.type === 'ask') return <User className="size-3.5" />;
   return <CalendarPlus className="size-3.5" />;
 }

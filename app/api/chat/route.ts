@@ -12,6 +12,7 @@ import {
   outlineLinkAction,
   exportActions,
   friendAskActions,
+  navActions,
   encodeActionsFrame,
 } from '@/lib/chat/actions';
 import type { SpecId } from '@/types';
@@ -115,12 +116,15 @@ export async function POST(request: Request) {
 
   const { data: profileRow } = await supabase
     .from('profiles')
-    .select('specializations')
+    .select('specializations, name, email, friend_code')
     .eq('id', user.id)
     .maybeSingle();
   const specializations = ((profileRow?.specializations as SpecId[] | undefined) ?? []);
   const currentTerm = getCurrentTerm();
   const studentContext = {
+    name: (profileRow?.name as string | undefined) ?? user.email ?? null,
+    email: (profileRow?.email as string | undefined) ?? user.email ?? null,
+    friendCode: (profileRow?.friend_code as string | undefined) ?? null,
     specializations,
     currentTerm,
     termCourses: getTermCourses(selectedIds, currentTerm),
@@ -172,6 +176,10 @@ export async function POST(request: Request) {
 
   // ── Export: deterministic action chips, no LLM call ────────────────────────
   if (intent.type === 'export') {
+    const exportMessage =
+      `I can export your schedule for you right here — just pick a format below. ` +
+      `By default it includes your current term (Term ${currentTerm}); to add Term 5 or 6, ` +
+      `tap "Open Export" (the Export button is at the top-right of the My Schedule tab) and toggle the terms.`;
     await supabase.from('user_events').insert({
       user_id: user.id,
       event_type: 'chatbot_export_offered',
@@ -181,15 +189,13 @@ export async function POST(request: Request) {
       user_id: user.id,
       conversation_id: conversationId,
       role: 'assistant',
-      content:
-        'You can export your schedule with the buttons below. Tip: choose which terms to include first in the Export dialog (My Schedule tab).',
+      content: exportMessage,
       intent: userIntentLabel,
     });
     return NextResponse.json({
       type: 'action',
       conversationId,
-      message:
-        'You can export your schedule with the buttons below. Tip: choose which terms to include first in the Export dialog (My Schedule tab).',
+      message: exportMessage,
       actions: exportActions(),
     });
   }
@@ -225,8 +231,9 @@ export async function POST(request: Request) {
     outlineText = (outlineRow?.content as string | undefined) ?? null;
   }
 
-  // Actions surfaced beneath the streamed reply: outline link for course answers, and a
-  // tappable chip per friend (drill into their full list) for comparison answers.
+  // Actions surfaced beneath the streamed reply: outline link for course answers, a
+  // tappable chip per friend (drill into their full list) for comparison answers, and
+  // "take me there" chips when the message asks where a feature lives.
   const actions: ChatAction[] = [];
   if (answerCourse) {
     const link = outlineLinkAction(answerCourse);
@@ -234,6 +241,11 @@ export async function POST(request: Request) {
   }
   if (friendRows.length) {
     actions.push(...friendAskActions(friendRows.map((r) => r.name)));
+  }
+  for (const nav of navActions(message)) {
+    if (!actions.some((a) => a.type === 'navigate' && a.target === nav.target)) {
+      actions.push(nav);
+    }
   }
 
   const messages = buildMessages({

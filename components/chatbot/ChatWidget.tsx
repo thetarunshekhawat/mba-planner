@@ -440,6 +440,7 @@ export function ChatWidget({
         action: action.type,
         ...(action.type === 'open_link' ? { course: action.courseCode } : {}),
         ...(action.type === 'export_subscription' ? { provider: action.provider } : {}),
+        ...(action.type === 'navigate' ? { target: action.target } : {}),
         ...(action.type === 'ask' ? { label: action.label } : {}),
       });
       // A drill-down chip just sends its question as the next message.
@@ -465,7 +466,7 @@ export function ChatWidget({
       (lastMsg.role === 'assistant' && !!lastMsg.streaming && !lastMsg.content));
 
   return (
-    <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end">
+    <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end print:hidden">
       {(open || closing) && (
         <div
           className={`mb-3 flex h-[min(72vh,40rem)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-xl ${closing ? 'animate-genie-out' : 'animate-genie-in'}`}

@@ -6,6 +6,7 @@
 import type { Course, SpecId } from '@/types';
 import { SPECS } from '@/data/courses';
 import { biddingNote, type TermId } from '@/lib/terms';
+import { APP_GUIDE, ASSISTANT_CAPABILITIES } from './appGuide';
 import type { ChatMessage } from './nemotron';
 
 // ── schedule / duration helpers ──────────────────────────────────────────────
@@ -112,10 +113,13 @@ Sources of truth:
 - Use the STUDENT CONTEXT, COURSE DATA and COURSE OUTLINE blocks provided in this conversation as the authoritative source for any course-specific fact (dates, schedule, faculty, grading, topics, workload).
 - For general concepts a student asks about (e.g. "what is logistic regression?", "explain agile"), use your own knowledge, but stay brief and connect back to the course when relevant.
 
-Beyond answering, you are proactive: the app shows the student tappable action buttons beneath your reply when relevant — to open a course outline document or export their schedule. When such an action fits, do the helpful thing and mention it naturally (e.g. "tap Open outline below" or "use the export buttons below"). Never paste raw URLs — the buttons carry the links.
+Beyond answering, you are proactive: the app shows the student tappable action buttons beneath your reply when relevant — to open a course outline document, export their schedule (as a PDF, .ics file, or a Google/Apple Calendar subscription), or take them straight to a tab ("take me there"). When such an action fits, do the helpful thing and mention it naturally (e.g. "tap Open outline below", "use the export buttons below", or "I can take you there — tap the button below"). Never paste raw URLs — the buttons carry the links.
 
 Rules:
 - You already know who the student is and what they are taking (see STUDENT CONTEXT). Never ask them to reintroduce themselves, restate their specialization, or list their courses — work from the context you were given.
+- The STUDENT CONTEXT holds the student's own details, including their name and their personal friend code. That is THEIR data — answer questions like "what is my friend code?" or "what's my name on file?" directly from it. Never say you don't have access to the student's own information.
+- Use the APP GUIDE to answer "where do I find X?" / "how do I get to X?" questions with the exact location (which tab, where on it). When a matching "take me there" button is shown beneath your reply, invite the student to tap it.
+- Use ASSISTANT CAPABILITIES to be honest about what you can do here versus what the student must do themselves in the app. You cannot select/drop/bid courses, change specializations, add/remove friends, or edit their profile — never claim you did. Instead, tell them exactly where to do it and offer the "take me there" button.
 - Respect the bidding state in the STUDENT CONTEXT: the current term's courses are locked, so never suggest dropping, swapping, or reconsidering them — help the student prepare for and get the most out of them. For later terms (still open for bidding) it is fine to weigh options, compare courses, and discuss fit.
 - Never invent course specifics. If a detail is not present in the provided data (for example, the number of credits is not in these outlines), say plainly that it is not specified in the outline rather than guessing.
 - The "Approximate number of class days/sessions" figure is an estimate derived from the schedule — present it as approximate.
@@ -141,6 +145,12 @@ function courseLine(c: Course): string {
 }
 
 export interface StudentContext {
+  /** The student's display name, if on file. */
+  name?: string | null;
+  /** The student's login email, if on file. */
+  email?: string | null;
+  /** The student's own shareable friend code (from profiles.friend_code). */
+  friendCode?: string | null;
   specializations: SpecId[];
   currentTerm: TermId;
   /** Courses the student is taking in the current term (locked after bidding). */
@@ -151,7 +161,19 @@ export interface StudentContext {
 
 /** A system block telling the model who the student is and the bidding scenario. */
 export function buildStudentContext(ctx: StudentContext): string {
-  const parts: string[] = ['STUDENT CONTEXT (who you are helping):'];
+  const parts: string[] = ['STUDENT CONTEXT (who you are helping — this is the student\'s own data):'];
+
+  const name = ctx.name?.trim();
+  const email = ctx.email?.trim();
+  if (name || email) {
+    parts.push(`You are helping ${name || 'this student'}${email ? ` (${email})` : ''}.`);
+  }
+  const code = ctx.friendCode?.trim();
+  if (code) {
+    parts.push(
+      `Their own friend code is ${code} — they share it on the Friends tab so classmates can add them. This is the student's data; answer "what is my friend code?" with it directly.`,
+    );
+  }
 
   parts.push(
     ctx.specializations.length
@@ -250,7 +272,13 @@ export function buildMessages(opts: {
   /** Specialization-options block (only present on recommend intent). */
   progressBlock?: string | null;
 }): ChatMessage[] {
-  const messages: ChatMessage[] = [{ role: 'system', content: buildSystemPrompt() }];
+  const messages: ChatMessage[] = [
+    { role: 'system', content: buildSystemPrompt() },
+    // Always-on: where things live in the app + what the assistant can/can't do, so the
+    // model can answer "where is X?" and offer to navigate without guessing.
+    { role: 'system', content: APP_GUIDE },
+    { role: 'system', content: ASSISTANT_CAPABILITIES },
+  ];
 
   if (opts.studentContext) {
     messages.push({ role: 'system', content: buildStudentContext(opts.studentContext) });

@@ -55,6 +55,11 @@ export default function PlannerPage() {
   const [activeModal, setActiveModal] = useState<Course | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('plan');
   const [selectedTerms, setSelectedTerms] = useState<Set<4 | 5 | 6>>(() => new Set([getCurrentTerm()]));
+  // Controlled Export dialog so the chatbot's "Open Export" action can open it.
+  const [exportOpen, setExportOpen] = useState(false);
+  // Set when a chat-triggered PDF export needs the schedule view to render first
+  // (window.print only captures the schedule layout, which is rendered in that view).
+  const [pendingPdf, setPendingPdf] = useState(false);
 
   const { trackEvent } = useAnalytics(userId);
   const filtersDirtyRef = useRef(false);
@@ -300,15 +305,39 @@ export default function PlannerPage() {
     window.print();
   };
 
+  // A chat-triggered PDF export needs the schedule view mounted before window.print can
+  // capture it. Once we've switched to that view, print on the next frame (layout settled).
+  useEffect(() => {
+    if (!pendingPdf || viewMode !== 'schedule') return;
+    const id = requestAnimationFrame(() => {
+      handleExportPDF();
+      setPendingPdf(false);
+    });
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPdf, viewMode]);
+
   // Runs an action the chatbot proposed. Reuses the same export handlers as the UI, so
   // chat-triggered exports honor the current term selection. (open_link actions open via
   // their own anchor in the chat — they don't reach here.)
   const handleChatAction = (action: ChatAction) => {
-    if (action.type === 'export_ics') {
+    if (action.type === 'export_pdf') {
+      // Ensure the schedule view is rendered first; the effect above does the print.
+      setViewMode('schedule');
+      setPendingPdf(true);
+    } else if (action.type === 'export_ics') {
       handleExportCalendar();
     } else if (action.type === 'export_subscription') {
       const url = action.provider === 'google' ? getGoogleCalendarUrl() : getAppleCalendarUrl();
       if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
+    } else if (action.type === 'navigate') {
+      trackEvent('chatbot_navigate', { target: action.target });
+      if (action.target === 'export') {
+        setViewMode('schedule');
+        setExportOpen(true);
+      } else {
+        setViewMode(action.target);
+      }
     }
   };
 
@@ -406,7 +435,7 @@ export default function PlannerPage() {
           )}
           {viewMode === 'schedule' && (
             <>
-              <Dialog onOpenChange={(open) => { if (open) trackEvent('export_dialog_opened'); }}>
+              <Dialog open={exportOpen} onOpenChange={(open) => { setExportOpen(open); if (open) trackEvent('export_dialog_opened'); }}>
                 <DialogTrigger render={
                   <button
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all border border-white/10"

@@ -10,6 +10,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { useRouter } from 'next/navigation';
+import { AskAiPanel } from './AskAiPanel';
 
 interface MemberSelection {
   user_id: string;
@@ -57,12 +58,22 @@ interface FriendshipRow {
   created_at: string;
 }
 
+interface AdminAiQueryRow {
+  id: string;
+  actor_id: string | null;
+  question: string;
+  generated_sql: string | null;
+  row_count: number | null;
+  error: string | null;
+  created_at: string;
+}
+
 interface GroupedSession {
   session: SessionRow;
   events: EventRow[];
 }
 
-type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot';
+type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot' | 'ask-ai';
 type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
 
 
@@ -383,8 +394,10 @@ export function AdminDashboard({
   const [courseListSort, setCourseListSort] = useState<'popular' | 'alpha'>('popular');
   const [courseTermFilter, setCourseTermFilter] = useState<number | 'all'>('all');
 
-  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel' | 'friends-social' | 'ai-chatbot';
+  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel' | 'friends-social' | 'ai-chatbot' | 'admin-ai-activity';
   const [inDepthSection, setInDepthSection] = useState<InDepthSection | null>(null);
+  const [adminAiQueries, setAdminAiQueries] = useState<AdminAiQueryRow[]>([]);
+  const [adminAiExpanded, setAdminAiExpanded] = useState<string | null>(null);
   const [selectedChatUser, setSelectedChatUser] = useState<string | null>(null);
   const [chatbotUserDrillOpen, setChatbotUserDrillOpen] = useState(false);
   const [expandedConvos, setExpandedConvos] = useState<Set<string>>(new Set());
@@ -525,6 +538,23 @@ export function AdminDashboard({
         setAdminViewLogs(logs);
       });
   }, [memberSubTab, isSuperAdmin, selectedMember?.id]);
+
+  // Load the Admin AI activity log when that In-Depth section opens (super-admin only).
+  const loadAdminAiQueries = () => {
+    supabase
+      .from('admin_ai_queries')
+      .select('id, actor_id, question, generated_sql, row_count, error, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100)
+      .then(({ data }) => setAdminAiQueries((data ?? []) as AdminAiQueryRow[]));
+  };
+
+  useEffect(() => {
+    if (tab === 'in-depth' && inDepthSection === 'admin-ai-activity' && isSuperAdmin) {
+      loadAdminAiQueries();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, inDepthSection, isSuperAdmin]);
 
   // ── Audit tracking useEffects ──────────────────────────────────────────────
 
@@ -1184,6 +1214,15 @@ export function AdminDashboard({
             >
               <Sparkles className="w-3 h-3" />
               AI Chatbot
+            </button>
+            <button
+              onClick={() => setTab('ask-ai')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+                tab === 'ask-ai' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Sparkles className="w-3 h-3" />
+              Ask AI
             </button>
           </div>
 
@@ -2874,6 +2913,7 @@ export function AdminDashboard({
                       { key: 'term1-panel' as InDepthSection, label: 'Term 1 Panel', desc: 'Who toggled Term 1 courses, how long they kept it on, engagement intent', color: 'text-indigo-400', border: 'border-indigo-500/30 hover:border-indigo-500/60' },
                       { key: 'friends-social' as InDepthSection, label: 'Friends & Social', desc: 'Network graph, who visited, copy/reset/overlay usage, full connection list', color: 'text-rose-400', border: 'border-rose-500/30 hover:border-rose-500/60' },
                       { key: 'ai-chatbot' as InDepthSection, label: 'AI Course Assistant', desc: 'Per-user chat history, intent patterns, engagement depth, power users', color: 'text-indigo-400', border: 'border-indigo-500/30 hover:border-indigo-500/60' },
+                      ...(isSuperAdmin ? [{ key: 'admin-ai-activity' as InDepthSection, label: 'Admin AI Activity', desc: 'Every Ask-AI query across admins — question, results, and the SQL it ran', color: 'text-amber-400', border: 'border-amber-500/30 hover:border-amber-500/60' }] : []),
                     ].map(({ key, label, desc, color, border }) => (
                       <button
                         key={key}
@@ -2907,7 +2947,75 @@ export function AdminDashboard({
                     {inDepthSection === 'term1-panel' && 'Term 1 Panel'}
                     {inDepthSection === 'friends-social' && 'Friends & Social'}
                     {inDepthSection === 'ai-chatbot' && 'AI Course Assistant'}
+                    {inDepthSection === 'admin-ai-activity' && 'Admin AI Activity'}
                   </span>
+                </div>
+              )}
+
+              {/* ── Admin AI Activity In-Depth (super-admin only) ── */}
+              {inDepthSection === 'admin-ai-activity' && isSuperAdmin && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-slate-400">Every Ask-AI query across admins. Click a row to see the SQL it ran.</p>
+                    <button
+                      onClick={loadAdminAiQueries}
+                      className="px-2 py-1 rounded text-[10px] font-semibold bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                  {adminAiQueries.length === 0 ? (
+                    <div className="bg-slate-800 rounded-xl p-6 border border-white/5 text-center">
+                      <p className="text-slate-400 text-sm">No AI queries yet.</p>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-white/5 text-left text-slate-400">
+                              <th className="px-3 py-2 font-semibold">Admin</th>
+                              <th className="px-3 py-2 font-semibold">Question</th>
+                              <th className="px-3 py-2 font-semibold whitespace-nowrap">Result</th>
+                              <th className="px-3 py-2 font-semibold whitespace-nowrap">When</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {adminAiQueries.map(r => {
+                              const actor = r.actor_id ? profiles.find(p => p.id === r.actor_id) : null;
+                              const who = actor?.name || actor?.email?.split('@')[0] || 'Unknown';
+                              const open = adminAiExpanded === r.id;
+                              return (
+                                <tr
+                                  key={r.id}
+                                  onClick={() => setAdminAiExpanded(open ? null : r.id)}
+                                  className="border-b border-white/[0.03] cursor-pointer hover:bg-white/[0.02] align-top"
+                                >
+                                  <td className="px-3 py-2 text-slate-200 whitespace-nowrap">{who}</td>
+                                  <td className="px-3 py-2 text-slate-300">
+                                    <span className="line-clamp-2">{r.question}</span>
+                                    {open && r.generated_sql && (
+                                      <pre className="mt-1 overflow-x-auto rounded bg-slate-900/70 p-2 text-[10px] leading-relaxed text-emerald-300/90 whitespace-pre-wrap">
+                                        {r.generated_sql}
+                                      </pre>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap">
+                                    {r.error ? (
+                                      <span className="text-red-400">error</span>
+                                    ) : (
+                                      <span className="text-slate-400">{r.row_count ?? 0} rows</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-2 text-slate-500 whitespace-nowrap">{fmtRelative(r.created_at)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -4868,6 +4976,8 @@ export function AdminDashboard({
               })()}
             </div>
           )}
+
+          {tab === 'ask-ai' && <AskAiPanel />}
 
           {tab === 'member' && !selectedMember && (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-slate-500 text-sm gap-2">

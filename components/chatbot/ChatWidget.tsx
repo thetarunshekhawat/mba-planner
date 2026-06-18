@@ -7,6 +7,7 @@ import type { EventType } from '@/hooks/useAnalytics';
 import { Button } from '@/components/ui/button';
 import { useChatNudges, type ActiveNudge } from '@/hooks/useChatNudges';
 import { ChatMessage } from './ChatMessage';
+import { TypingIndicator } from './TypingIndicator';
 import { ChatInput } from './ChatInput';
 import { DisambiguationChips, type Chip } from './DisambiguationChips';
 import { NudgeBubble } from './NudgeBubble';
@@ -94,7 +95,7 @@ export function ChatWidget({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, open]);
+  }, [messages, open, busy]);
 
   // ── Proactive "mood" nudges ─────────────────────────────────────────────────
   const { loadPool, nextNudge } = useChatNudges(userId, courses, specializations);
@@ -380,6 +381,16 @@ export function ChatWidget({
 
   if (!userId) return null;
 
+  // Show the "typing" dots while a request is in flight and no answer text has
+  // streamed back yet — covers both the pre-response wait and the empty streaming
+  // placeholder. Flips off the moment the first chunk lands or a reply is appended.
+  const lastMsg = messages[messages.length - 1];
+  const showTyping =
+    busy &&
+    (!lastMsg ||
+      lastMsg.role === 'user' ||
+      (lastMsg.role === 'assistant' && !!lastMsg.streaming && !lastMsg.content));
+
   return (
     <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end">
       {open && (
@@ -434,7 +445,7 @@ export function ChatWidget({
                         <button
                           key={c.id}
                           disabled={busy}
-                          onClick={() => onSend(`Tell me about ${c.code ?? c.name}`)}
+                          onClick={() => setPrefill({ text: `${c.name} `, key: Date.now() })}
                           className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <span className="shrink-0 text-[10px] font-semibold text-muted-foreground bg-muted rounded px-1 py-0.5 tabular-nums">
@@ -452,7 +463,10 @@ export function ChatWidget({
               </div>
             )}
 
-            {messages.map((m) => (
+            {messages.map((m) => {
+              // Empty streaming placeholder is represented by the typing indicator below.
+              if (m.role === 'assistant' && m.streaming && !m.content) return null;
+              return (
               <div key={m.id} className="space-y-1">
                 <div className="group relative">
                   <ChatMessage role={m.role} content={m.content} streaming={m.streaming} />
@@ -482,10 +496,13 @@ export function ChatWidget({
                   />
                 )}
               </div>
-            ))}
+              );
+            })}
+
+            {showTyping && <TypingIndicator />}
           </div>
 
-          <ChatInput disabled={busy} onSend={onSend} prefill={prefill ?? undefined} />
+          <ChatInput disabled={busy} onSend={onSend} prefill={prefill ?? undefined} myCourses={courses} />
         </div>
       )}
 

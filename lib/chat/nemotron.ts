@@ -9,6 +9,12 @@
 // family as the 550B ultra, so the request/SSE shape below is identical.
 // Alternatives on the free tier: 'openai/gpt-oss-120b', 'nvidia/nemotron-3-ultra-550b-a55b'.
 export const CHAT_MODEL = 'nvidia/nemotron-3-super-120b-a12b';
+
+// Model used by the admin "Ask the database" assistant (text-to-SQL). Strong
+// instruction-following for SQL generation; reached through the same NVIDIA
+// OpenAI-compatible endpoint, so only the model id differs.
+export const ADMIN_MODEL = 'minimaxai/minimax-m3';
+
 const BASE_URL = 'https://integrate.api.nvidia.com/v1';
 
 export interface ChatMessage {
@@ -21,6 +27,8 @@ export interface StreamOptions {
   temperature?: number;
   /** Overall request timeout (ms). Guards against the free tier hanging. */
   timeoutMs?: number;
+  /** Override the model id. Defaults to CHAT_MODEL (the student chatbot model). */
+  model?: string;
 }
 
 /** Thrown when the provider returns a non-2xx (e.g. 429 rate limit, 5xx). */
@@ -47,6 +55,7 @@ export async function* streamCompletion(
   const apiKey = process.env.NVIDIA_API_KEY;
   if (!apiKey) throw new Error('NVIDIA_API_KEY is not set');
 
+  const model = opts.model ?? CHAT_MODEL;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 45_000);
 
@@ -59,15 +68,15 @@ export async function* streamCompletion(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: CHAT_MODEL,
+        model,
         messages,
         temperature: opts.temperature ?? 0.4,
         top_p: 0.95,
         max_tokens: opts.maxTokens ?? 1024,
         stream: true,
-        // Disable extended "thinking" for chat latency. Kept here so it's the one
-        // knob to flip if we ever want deeper (slower) reasoning.
-        chat_template_kwargs: { enable_thinking: false },
+        // Disable extended "thinking" for chat latency. Nemotron-specific knob —
+        // other families (e.g. MiniMax) reject it, so only send it for Nemotron.
+        ...(model.includes('nemotron') ? { chat_template_kwargs: { enable_thinking: false } } : {}),
       }),
       signal: controller.signal,
     });

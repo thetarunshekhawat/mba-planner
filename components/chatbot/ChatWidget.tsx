@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageCircle, X, Sparkles, SquarePen } from 'lucide-react';
+import { MessageCircle, X, Sparkles, SquarePen, Copy, Check } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,8 @@ type TrackEvent = (eventType: EventType, payload?: Record<string, unknown>) => v
 // Proactive-nudge cadence (Gentle): first tug shortly after landing, then occasional,
 // capped per session, and only while the chat has never been opened.
 const NUDGE_FIRST_DELAY  = 2500;   // ms after mount
-const NUDGE_INTERVAL     = 75_000; // ms between subsequent nudges
-const NUDGE_MAX_PER_SESSION = 3;
+const NUDGE_INTERVAL     = 35_000; // ms between subsequent nudges (deterministic engine → free, so show more often)
+const NUDGE_MAX_PER_SESSION = 8;
 const NUDGE_REVEAL_MS    = 360;    // bubble appears on animation's rebound
 const NUDGE_FADE_OUT_MS  = 260;    // bubble exit animation duration
 const NUDGE_GAP_MS       = 2000;   // pause after old bubble exits before new one appears
@@ -78,6 +78,7 @@ export function ChatWidget({
 }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // AI-generated opening line — regenerated each time a fresh conversation opens.
   const [greeting, setGreeting] = useState<string | null>(null);
@@ -102,6 +103,9 @@ export function ChatWidget({
   const [nudgeFadingOut, setNudgeFadingOut] = useState(false);
   // Pre-fills the chat input when a nudge is tapped (key forces re-trigger on repeats).
   const [prefill, setPrefill] = useState<{ text: string; key: number } | null>(null);
+  // Session timing for engagement analytics
+  const openTimeRef = useRef<number | null>(null);
+  const firstMsgTrackedRef = useRef(false);
   // Once the user opens the chat, we stop nudging entirely (they're engaged).
   const openedOnceRef = useRef(false);
   const nudgeCountRef = useRef(0);
@@ -142,6 +146,8 @@ export function ChatWidget({
   const openWidget = useCallback(() => {
     setOpen(true);
     openedOnceRef.current = true; // engaged — no more proactive nudges this session
+    openTimeRef.current = Date.now();
+    firstMsgTrackedRef.current = false;
     clearNudge();
     trackEvent('chatbot_opened', { specializations });
     // Only (re)generate the greeting when opening onto a fresh conversation.
@@ -245,6 +251,12 @@ export function ChatWidget({
   const closeWidget = useCallback(() => {
     setOpen(false);
     trackEvent('chatbot_closed');
+    if (openTimeRef.current !== null) {
+      const duration_ms = Date.now() - openTimeRef.current;
+      const message_count = messagesRef.current.filter(m => m.role === 'user').length;
+      trackEvent('chatbot_session_ended', { duration_ms, message_count, had_interaction: message_count > 0 });
+      openTimeRef.current = null;
+    }
   }, [trackEvent]);
 
   function buildHistory(msgs: Msg[]) {
@@ -340,11 +352,15 @@ export function ChatWidget({
 
   const onSend = useCallback(
     (text: string) => {
+      if (!firstMsgTrackedRef.current && openTimeRef.current !== null) {
+        firstMsgTrackedRef.current = true;
+        trackEvent('chatbot_first_message_delay', { delay_ms: Date.now() - openTimeRef.current });
+      }
       const prior = messagesRef.current;
       setMessages((prev) => [...prev, { id: newId(), role: 'user', content: text }]);
       void request(text, null, prior);
     },
-    [request],
+    [request, trackEvent],
   );
 
   const onPickChip = useCallback(
@@ -438,7 +454,26 @@ export function ChatWidget({
 
             {messages.map((m) => (
               <div key={m.id} className="space-y-1">
-                <ChatMessage role={m.role} content={m.content} streaming={m.streaming} />
+                <div className="group relative">
+                  <ChatMessage role={m.role} content={m.content} streaming={m.streaming} />
+                  {m.role === 'assistant' && !m.streaming && m.content && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(m.content);
+                        trackEvent('chatbot_message_copied');
+                        setCopiedMsgId(m.id);
+                        setTimeout(() => setCopiedMsgId(prev => prev === m.id ? null : prev), 1500);
+                      }}
+                      className="absolute -bottom-1 right-1 hidden group-hover:flex items-center justify-center rounded p-0.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                      aria-label="Copy message"
+                      title="Copy"
+                    >
+                      {copiedMsgId === m.id
+                        ? <Check className="size-3 text-green-400" />
+                        : <Copy className="size-3" />}
+                    </button>
+                  )}
+                </div>
                 {m.chips && m.chips.length > 0 && (
                   <DisambiguationChips
                     courses={m.chips}

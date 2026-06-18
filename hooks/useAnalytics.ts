@@ -50,7 +50,10 @@ export type EventType =
   | 'chatbot_rate_limited'
   | 'chatbot_nudge_shown'
   | 'chatbot_nudge_clicked'
-  | 'chatbot_nudge_dismissed';
+  | 'chatbot_nudge_dismissed'
+  | 'chatbot_session_ended'
+  | 'chatbot_first_message_delay'
+  | 'chatbot_message_copied';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

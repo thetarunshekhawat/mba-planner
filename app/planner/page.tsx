@@ -564,7 +564,7 @@ export default function PlannerPage() {
               overlayIds={overlayIds}
               onToggleOverlay={(friend) => handleToggleOverlay(friend, 'friends')}
               onAddByCode={addByCode}
-              onRemove={(friend) => removeFriend(friend.id)}
+              onRemove={(friend) => { removeFriend(friend.id); trackEvent('friend_removed', { friend_id: friend.id, friend_name: friend.name || friend.email }); }}
               onRegenerate={handleRegenerateCode}
               onOpenDetail={setFriendDetail}
               trackEvent={trackEvent}

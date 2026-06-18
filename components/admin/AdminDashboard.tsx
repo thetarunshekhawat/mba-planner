@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle } from 'lucide-react';
+import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle, MousePointerClick, Copy, Zap, BarChart2, User2 } from 'lucide-react';
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -383,8 +383,20 @@ export function AdminDashboard({
   const [courseListSort, setCourseListSort] = useState<'popular' | 'alpha'>('popular');
   const [courseTermFilter, setCourseTermFilter] = useState<number | 'all'>('all');
 
-  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel';
+  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel' | 'friends-social' | 'ai-chatbot';
   const [inDepthSection, setInDepthSection] = useState<InDepthSection | null>(null);
+  const [selectedChatUser, setSelectedChatUser] = useState<string | null>(null);
+  const [chatbotUserDrillOpen, setChatbotUserDrillOpen] = useState(false);
+  const [expandedConvos, setExpandedConvos] = useState<Set<string>>(new Set());
+  const [friendStatDrill, setFriendStatDrill] = useState<'connections' | 'mutual' | 'oneway' | 'members' | null>(null);
+  const [friendInDepthDrill, setFriendInDepthDrill] = useState<'copy' | 'reset' | 'overlay' | 'clashes' | 'detail' | 'connections' | 'mutual' | 'oneway' | 'members' | null>(null);
+  const [friendGraphExpanded, setFriendGraphExpanded] = useState(false);
+  const [friendGraphHover, setFriendGraphHover] = useState<string | null>(null);
+  const [friendGraphScale, setFriendGraphScale] = useState(1);
+  const [friendGraphOffset, setFriendGraphOffset] = useState({ x: 0, y: 0 });
+  const [friendGraphDragging, setFriendGraphDragging] = useState(false);
+  const friendGraphDragStart = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
+  const [friendHistoryFilter, setFriendHistoryFilter] = useState<'all' | 'added' | 'removed'>('all');
   const [whitelistEmails, setWhitelistEmails] = useState<{ email: string; display_name: string }[]>([]);
   const [memberEngagementFilter, setMemberEngagementFilter] = useState<'all' | '7d' | '30d' | 'never'>('all');
   const [drawerSpecFilter, setDrawerSpecFilter] = useState<string>('all');
@@ -2182,6 +2194,42 @@ export function AdminDashboard({
                   .sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1))
                   .slice(0, 12);
 
+                // Compute connection lists for drill-down
+                const allPairs: [string, string][] = [];
+                const mutualPairs: [string, string][] = [];
+                const oneWayPairs: [string, string][] = [];
+                const seenPairs = new Set<string>();
+                edges.forEach(e => {
+                  const key = [e.viewer_id, e.friend_id].sort().join('|');
+                  if (seenPairs.has(key)) return;
+                  seenPairs.add(key);
+                  allPairs.push([e.viewer_id, e.friend_id]);
+                  if (edgeSet.has(`${e.friend_id}|${e.viewer_id}`)) {
+                    mutualPairs.push([e.viewer_id, e.friend_id]);
+                  } else {
+                    // figure out which direction
+                    if (edgeSet.has(`${e.viewer_id}|${e.friend_id}`)) {
+                      oneWayPairs.push([e.viewer_id, e.friend_id]);
+                    } else {
+                      oneWayPairs.push([e.friend_id, e.viewer_id]);
+                    }
+                  }
+                });
+                const memberList = [...new Set(edges.map(e => e.viewer_id))];
+
+                const clickableStat = (label: string, value: number | string, color: string, drillKey: typeof friendStatDrill) => (
+                  <button
+                    className={`bg-slate-800 rounded-xl p-4 border text-left transition-all w-full ${friendStatDrill === drillKey ? 'border-white/20 ring-1 ring-white/20' : 'border-white/5 hover:border-white/15'}`}
+                    onClick={() => setFriendStatDrill(friendStatDrill === drillKey ? null : drillKey)}
+                  >
+                    <div className={`text-2xl font-bold ${color}`}>{value}</div>
+                    <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
+                      <span>{label}</span>
+                      {friendStatDrill === drillKey ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-600" />}
+                    </div>
+                  </button>
+                );
+
                 const stat = (label: string, value: number | string, color: string) => (
                   <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                     <div className={`text-2xl font-bold ${color}`}>{value}</div>
@@ -2193,12 +2241,58 @@ export function AdminDashboard({
                   <div>
                     <h3 className="text-sm font-semibold text-slate-200 mb-3">👥 Friends &amp; Social</h3>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                      {stat('Connections', seen.size, 'text-blue-400')}
-                      {stat('Mutual pairs', mutual, 'text-green-400')}
-                      {stat('One-way (after removal)', oneWay, 'text-orange-400')}
-                      {stat('Members with friends', membersWithFriends, 'text-purple-400')}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
+                      {clickableStat('Connections', seen.size, 'text-blue-400', 'connections')}
+                      {clickableStat('Mutual pairs', mutual, 'text-green-400', 'mutual')}
+                      {clickableStat('One-way (after removal)', oneWay, 'text-orange-400', 'oneway')}
+                      {clickableStat('Members with friends', membersWithFriends, 'text-purple-400', 'members')}
                     </div>
+
+                    {/* Stat drill-down panel */}
+                    {friendStatDrill && (
+                      <div className="bg-slate-900 border border-white/10 rounded-xl p-4 mb-4 text-sm text-slate-200">
+                        {friendStatDrill === 'connections' && (
+                          <>
+                            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">All connections ({allPairs.length})</p>
+                            <ul className="space-y-1">
+                              {allPairs.map(([a, b], i) => (
+                                <li key={i}><span className="font-semibold">{nameOf(a)}</span> <span className="text-slate-500">&amp;</span> <span className="font-semibold">{nameOf(b)}</span></li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {friendStatDrill === 'mutual' && (
+                          <>
+                            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">Mutual pairs ({mutualPairs.length})</p>
+                            <ul className="space-y-1">
+                              {mutualPairs.map(([a, b], i) => (
+                                <li key={i}><span className="font-semibold">{nameOf(a)}</span> <span className="text-green-400">↔</span> <span className="font-semibold">{nameOf(b)}</span></li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {friendStatDrill === 'oneway' && (
+                          <>
+                            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">One-way connections ({oneWayPairs.length})</p>
+                            <ul className="space-y-1">
+                              {oneWayPairs.map(([from, to], i) => (
+                                <li key={i}><span className="font-semibold">{nameOf(from)}</span> <span className="text-orange-400">→</span> <span className="font-semibold">{nameOf(to)}</span> <span className="text-slate-600 text-xs">(hasn&apos;t added back)</span></li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {friendStatDrill === 'members' && (
+                          <>
+                            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">Members with at least one friend ({memberList.length})</p>
+                            <ul className="space-y-1">
+                              {memberList.map((id, i) => (
+                                <li key={i} className="font-semibold">{nameOf(id)}</li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                       {/* Who added whom */}
@@ -2207,16 +2301,34 @@ export function AdminDashboard({
                         {initiations.length === 0 ? (
                           <p className="text-slate-500 text-sm">No friend connections yet.</p>
                         ) : (
-                          <ul className="space-y-1.5 max-h-72 overflow-y-auto">
-                            {initiations.map((e, i) => (
-                              <li key={i} className="flex items-center justify-between gap-2 text-sm">
-                                <span className="text-slate-200 truncate">
-                                  <strong>{nameOf(e.viewer_id)}</strong> <span className="text-slate-500">added</span> <strong>{nameOf(e.friend_id)}</strong>
-                                </span>
-                                <span className="text-[11px] text-slate-500 flex-shrink-0">{fmtTs(e.created_at)}</span>
-                              </li>
-                            ))}
-                          </ul>
+                          <>
+                            <ul className="space-y-1.5">
+                              {initiations.slice(0, 4).map((e, i) => (
+                                <li key={i} className="flex items-center justify-between gap-2 text-sm">
+                                  <span className="text-slate-200 truncate">
+                                    <strong>{nameOf(e.viewer_id)}</strong> <span className="text-slate-500">added</span> <strong>{nameOf(e.friend_id)}</strong>
+                                  </span>
+                                  <span className="text-[11px] text-slate-500 flex-shrink-0">{fmtTs(e.created_at)}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            {initiations.length > 4 && (
+                              <button
+                                onClick={() => { setTab('in-depth'); setInDepthSection('friends-social'); }}
+                                className="text-xs text-blue-400 hover:text-blue-300 mt-3 underline"
+                              >
+                                View all {initiations.length} in In-Depth →
+                              </button>
+                            )}
+                            {initiations.length <= 4 && (
+                              <button
+                                onClick={() => { setTab('in-depth'); setInDepthSection('friends-social'); }}
+                                className="text-xs text-blue-400 hover:text-blue-300 mt-3 underline block"
+                              >
+                                View full analytics in In-Depth →
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
 
@@ -2760,6 +2872,8 @@ export function AdminDashboard({
                       { key: 'user-status' as InDepthSection, label: 'User Status', desc: 'New this week, yet to log in from cohort whitelist', color: 'text-green-400', border: 'border-green-500/30 hover:border-green-500/60' },
                       { key: 'mobile-drawer' as InDepthSection, label: 'Mobile Drawer', desc: 'All members who used the drawer, sessions, specs tapped, filters', color: 'text-cyan-400', border: 'border-cyan-500/30 hover:border-cyan-500/60' },
                       { key: 'term1-panel' as InDepthSection, label: 'Term 1 Panel', desc: 'Who toggled Term 1 courses, how long they kept it on, engagement intent', color: 'text-indigo-400', border: 'border-indigo-500/30 hover:border-indigo-500/60' },
+                      { key: 'friends-social' as InDepthSection, label: 'Friends & Social', desc: 'Network graph, who visited, copy/reset/overlay usage, full connection list', color: 'text-rose-400', border: 'border-rose-500/30 hover:border-rose-500/60' },
+                      { key: 'ai-chatbot' as InDepthSection, label: 'AI Course Assistant', desc: 'Per-user chat history, intent patterns, engagement depth, power users', color: 'text-indigo-400', border: 'border-indigo-500/30 hover:border-indigo-500/60' },
                     ].map(({ key, label, desc, color, border }) => (
                       <button
                         key={key}
@@ -2791,6 +2905,8 @@ export function AdminDashboard({
                     {inDepthSection === 'user-status' && 'User Status'}
                     {inDepthSection === 'mobile-drawer' && 'Mobile Drawer'}
                     {inDepthSection === 'term1-panel' && 'Term 1 Panel'}
+                    {inDepthSection === 'friends-social' && 'Friends & Social'}
+                    {inDepthSection === 'ai-chatbot' && 'AI Course Assistant'}
                   </span>
                 </div>
               )}
@@ -3675,6 +3791,729 @@ export function AdminDashboard({
                   </div>
                 );
               })()}
+
+              {/* ── FRIENDS & SOCIAL In-Depth ── */}
+              {/* ── AI Course Assistant In-Depth ── */}
+              {inDepthSection === 'ai-chatbot' && (() => {
+                const cName2 = (code: string) => ALL_COURSES.find(c => c.code === code)?.name ?? code;
+                const pName2 = (uid: string) => {
+                  const p = profiles.find(pr => pr.id === uid);
+                  return p?.name || p?.email?.split('@')[0] || 'Unknown';
+                };
+
+                const allMsgs = chatbotMessages;
+                const allUserMsgs = allMsgs.filter(m => m.role === 'user');
+                const allInteractedIds = new Set(allUserMsgs.map(m => m.user_id));
+                const adoptionPct = profiles.length > 0 ? Math.round((allInteractedIds.size / profiles.length) * 100) : 0;
+                const totalConvs = new Set(allMsgs.map(m => m.conversation_id)).size;
+
+                const chatEvts = events.filter(e => e.event_type.startsWith('chatbot_'));
+                const sessEndedEvts = chatEvts.filter(e => e.event_type === 'chatbot_session_ended');
+                const avgSessMs = sessEndedEvts.length
+                  ? Math.round(sessEndedEvts.reduce((s, e) => s + ((e.payload?.duration_ms as number) ?? 0), 0) / sessEndedEvts.length) : null;
+                const firstDelayEvts = chatEvts.filter(e => e.event_type === 'chatbot_first_message_delay');
+                const avgFirstMs = firstDelayEvts.length
+                  ? Math.round(firstDelayEvts.reduce((s, e) => s + ((e.payload?.delay_ms as number) ?? 0), 0) / firstDelayEvts.length) : null;
+
+                // Build per-user rows
+                const perUser2 = [...allInteractedIds].map(uid => {
+                  const uMsgs = allMsgs.filter(m => m.user_id === uid);
+                  const uUserMsgs = uMsgs.filter(m => m.role === 'user');
+                  const uConvIds = new Set(uMsgs.map(m => m.conversation_id));
+                  const courseCounts2 = new Map<string, number>();
+                  for (const m of uUserMsgs) if (m.course_code) courseCounts2.set(m.course_code, (courseCounts2.get(m.course_code) ?? 0) + 1);
+                  const topCourse2 = [...courseCounts2.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+                  const lastActive2 = uMsgs.reduce((mx, m) => m.created_at > mx ? m.created_at : mx, '');
+                  const firstActive = uMsgs.reduce((mn, m) => !mn || m.created_at < mn ? m.created_at : mn, '');
+                  const intentCnts2 = { general: 0, course_specific: 0 };
+                  for (const m of uUserMsgs) {
+                    if ((m.intent ?? 'general') === 'course_specific') intentCnts2.course_specific++;
+                    else intentCnts2.general++;
+                  }
+                  const isPower = uUserMsgs.length >= 10;
+                  return { uid, name: pName2(uid), questions: uUserMsgs.length, conversations: uConvIds.size, topCourse: topCourse2, lastActive: lastActive2, firstActive, intentCnts: intentCnts2, isPower };
+                }).sort((a, b) => b.questions - a.questions);
+
+                const selUser = selectedChatUser ? perUser2.find(u => u.uid === selectedChatUser) : null;
+
+                // Build full chat history for selected user
+                const selMsgs = selectedChatUser ? allMsgs.filter(m => m.user_id === selectedChatUser) : [];
+                const convsByDate = new Map<string, typeof selMsgs>();
+                for (const m of selMsgs) {
+                  const existing = convsByDate.get(m.conversation_id) ?? [];
+                  existing.push(m);
+                  convsByDate.set(m.conversation_id, existing);
+                }
+                const sortedConvs = [...convsByDate.entries()]
+                  .map(([cid, msgs2]) => ({ cid, msgs: msgs2.sort((a, b) => a.created_at < b.created_at ? -1 : 1), date: msgs2[0]?.created_at ?? '' }))
+                  .sort((a, b) => b.date < a.date ? -1 : 1);
+
+                return (
+                  <div className="space-y-5">
+                    {/* Adoption stats header */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        { label: 'Adopters', value: `${allInteractedIds.size} / ${profiles.length}`, sub: `${adoptionPct}% of cohort`, color: 'text-indigo-400' },
+                        { label: 'Conversations', value: totalConvs, sub: `${allUserMsgs.length} total questions`, color: 'text-blue-400' },
+                        { label: 'Avg session', value: avgSessMs != null ? `${Math.round(avgSessMs / 1000)}s` : '—', sub: 'open → close', color: 'text-green-400' },
+                        { label: 'Avg to 1st msg', value: avgFirstMs != null ? `${(avgFirstMs / 1000).toFixed(1)}s` : '—', sub: 'open → first send', color: 'text-purple-400' },
+                      ].map(s => (
+                        <div key={s.label} className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                          <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                          {s.sub && <p className="text-[10px] text-slate-600 mt-0.5">{s.sub}</p>}
+                          <p className="text-[11px] text-slate-400 mt-0.5">{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Per-user table or history view */}
+                    {!selectedChatUser ? (
+                      <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                        <div className="px-4 py-2.5 border-b border-white/5">
+                          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+                            Members who used the chatbot
+                          </span>
+                        </div>
+                        {perUser2.length === 0 ? (
+                          <p className="text-slate-500 text-sm p-4">No chatbot interactions yet.</p>
+                        ) : (
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="border-b border-white/10 text-slate-500 text-left">
+                                <th className="py-2.5 px-4 font-medium">Member</th>
+                                <th className="py-2.5 px-4 font-medium text-right">Questions</th>
+                                <th className="py-2.5 px-4 font-medium text-right">Convos</th>
+                                <th className="py-2.5 px-4 font-medium hidden lg:table-cell">Top Course</th>
+                                <th className="py-2.5 px-4 font-medium hidden lg:table-cell">Intent split</th>
+                                <th className="py-2.5 px-4 font-medium">Last active</th>
+                                <th className="py-2.5 px-4 font-medium"></th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {perUser2.map(u => (
+                                <tr
+                                  key={u.uid}
+                                  className="hover:bg-slate-700/30 transition-colors cursor-pointer"
+                                  onClick={() => setSelectedChatUser(u.uid)}
+                                >
+                                  <td className="py-2.5 px-4">
+                                    <span className="text-slate-200 font-medium flex items-center gap-1.5">
+                                      {u.name}
+                                      {u.isPower && <span className="text-[9px] bg-yellow-500/20 text-yellow-400 rounded px-1 py-0.5 font-bold">POWER</span>}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 px-4 text-indigo-400 font-semibold text-right">{u.questions}</td>
+                                  <td className="py-2.5 px-4 text-slate-300 text-right">{u.conversations}</td>
+                                  <td className="py-2.5 px-4 text-slate-400 hidden lg:table-cell truncate max-w-[140px]" title={u.topCourse ? cName2(u.topCourse) : undefined}>
+                                    {u.topCourse ? cName2(u.topCourse) : <span className="text-slate-600">General</span>}
+                                  </td>
+                                  <td className="py-2.5 px-4 hidden lg:table-cell">
+                                    <div className="flex items-center gap-1">
+                                      <div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${u.questions > 0 ? Math.round((u.intentCnts.general / u.questions) * 40) : 0}px` }} />
+                                      <div className="h-1.5 rounded-full bg-indigo-500" style={{ width: `${u.questions > 0 ? Math.round((u.intentCnts.course_specific / u.questions) * 40) : 0}px` }} />
+                                      <span className="text-slate-600 text-[10px]">
+                                        {u.questions > 0 ? `${Math.round((u.intentCnts.course_specific / u.questions) * 100)}% course` : '—'}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="py-2.5 px-4 text-slate-500">{fmtRelative(u.lastActive)}</td>
+                                  <td className="py-2.5 px-4">
+                                    <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    ) : (
+                      /* Per-user full chat history */
+                      <div className="space-y-4">
+                        {/* Back + user header */}
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setSelectedChatUser(null)}
+                            className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-xs"
+                          >
+                            <ArrowLeft className="w-3 h-3" /> All users
+                          </button>
+                          <span className="text-slate-600">/</span>
+                          <span className="text-white font-semibold text-sm">{selUser?.name ?? pName2(selectedChatUser)}</span>
+                        </div>
+
+                        {/* User stats bar */}
+                        {selUser && (
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            {[
+                              { label: 'Questions asked', value: selUser.questions, color: 'text-indigo-400' },
+                              { label: 'Conversations', value: selUser.conversations, color: 'text-blue-400' },
+                              { label: 'Top course', value: selUser.topCourse ? cName2(selUser.topCourse) : 'General', color: 'text-slate-200' },
+                              { label: 'Last active', value: fmtRelative(selUser.lastActive), color: 'text-slate-400' },
+                            ].map(s => (
+                              <div key={s.label} className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                                <p className={`text-base font-bold ${s.color} truncate`}>{s.value}</p>
+                                <p className="text-[11px] text-slate-500 mt-0.5">{s.label}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Conversations */}
+                        {sortedConvs.length === 0 ? (
+                          <p className="text-slate-500 text-sm">No messages found.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {sortedConvs.map(({ cid, msgs: cMsgs, date }) => {
+                              const isExpanded = expandedConvos.has(cid) || sortedConvs.length === 1;
+                              const toggle = () => setExpandedConvos(prev => {
+                                const next = new Set(prev);
+                                if (next.has(cid)) next.delete(cid); else next.add(cid);
+                                return next;
+                              });
+                              const uCount = cMsgs.filter(m => m.role === 'user').length;
+                              return (
+                                <div key={cid} className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                                  <button
+                                    onClick={toggle}
+                                    className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-700/30 transition-colors"
+                                  >
+                                    <span className="text-xs text-slate-300 font-medium">
+                                      {new Date(date).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                      <span className="ml-2 text-slate-500">{uCount} question{uCount !== 1 ? 's' : ''}</span>
+                                    </span>
+                                    <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                  </button>
+                                  {isExpanded && (
+                                    <div className="px-3 pb-3 space-y-2 border-t border-white/5 pt-2">
+                                      {cMsgs.map((m, mi) => (
+                                        <div key={mi} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                          <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                                            m.role === 'user'
+                                              ? 'rounded-br-sm bg-indigo-600/30 text-slate-200'
+                                              : 'rounded-bl-sm bg-slate-700/60 text-slate-300'
+                                          }`}>
+                                            <p>{m.content}</p>
+                                            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] opacity-70">
+                                              {m.course_code && (
+                                                <span className="bg-indigo-500/20 text-indigo-300 rounded px-1 py-0.5">{cName2(m.course_code)}</span>
+                                              )}
+                                              {m.intent && m.intent !== 'general' && (
+                                                <span className="bg-slate-600/50 text-slate-400 rounded px-1 py-0.5">{m.intent}</span>
+                                              )}
+                                              {m.role === 'assistant' && m.latency_ms != null && (
+                                                <span className="text-slate-600">{(m.latency_ms / 1000).toFixed(1)}s</span>
+                                              )}
+                                              <span className="text-slate-600 ml-auto">{fmtRelative(m.created_at)}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {inDepthSection === 'friends-social' && (() => {
+                const nameMap = new Map(profiles.map(p => [p.id, p.name || p.email]));
+                const nameOf = (id: string) => nameMap.get(id) ?? id.slice(0, 8);
+
+                const fEdges = friendships;
+                const fEdgeSet = new Set(fEdges.map(e => `${e.viewer_id}|${e.friend_id}`));
+
+                // Compute relationship sets
+                const fAllPairs: [string, string][] = [];
+                const fMutualPairs: [string, string][] = [];
+                const fOneWayPairs: [string, string][] = [];
+                const fSeen = new Set<string>();
+                fEdges.forEach(e => {
+                  const key = [e.viewer_id, e.friend_id].sort().join('|');
+                  if (fSeen.has(key)) return;
+                  fSeen.add(key);
+                  fAllPairs.push([e.viewer_id, e.friend_id]);
+                  if (fEdgeSet.has(`${e.friend_id}|${e.viewer_id}`)) {
+                    fMutualPairs.push([e.viewer_id, e.friend_id]);
+                  } else if (fEdgeSet.has(`${e.viewer_id}|${e.friend_id}`)) {
+                    fOneWayPairs.push([e.viewer_id, e.friend_id]);
+                  } else {
+                    fOneWayPairs.push([e.friend_id, e.viewer_id]);
+                  }
+                });
+                const fMemberList = [...new Set(fEdges.map(e => e.viewer_id))];
+                const fInitiations = fEdges
+                  .filter(e => e.created_by && e.created_by === e.viewer_id)
+                  .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
+                // Friend events
+                const fEvents = events.filter(e => e.event_type.startsWith('friend_'));
+
+                // Tab visitors
+                const tabVisits = fEvents.filter(e => e.event_type === 'friend_tab_opened');
+                const tabByUser = new Map<string, { count: number; first: string; last: string }>();
+                tabVisits.forEach(e => {
+                  const cur = tabByUser.get(e.user_id);
+                  if (!cur) {
+                    tabByUser.set(e.user_id, { count: 1, first: e.occurred_at, last: e.occurred_at });
+                  } else {
+                    tabByUser.set(e.user_id, {
+                      count: cur.count + 1,
+                      first: e.occurred_at < cur.first ? e.occurred_at : cur.first,
+                      last: e.occurred_at > cur.last ? e.occurred_at : cur.last,
+                    });
+                  }
+                });
+                const tabVisitors = [...tabByUser.entries()].sort((a, b) => b[1].count - a[1].count);
+
+                // Code interactions
+                const copyEvents = fEvents.filter(e => e.event_type === 'friend_code_copied');
+                const resetEvents = fEvents.filter(e => e.event_type === 'friend_code_regenerated');
+                const addAttempts = fEvents.filter(e => e.event_type === 'friend_add_attempted');
+                const addSuccess = fEvents.filter(e => e.event_type === 'friend_added');
+                const addFailed = fEvents.filter(e => e.event_type === 'friend_add_failed');
+
+                const copyByUser = new Map<string, number>();
+                copyEvents.forEach(e => copyByUser.set(e.user_id, (copyByUser.get(e.user_id) ?? 0) + 1));
+                const resetByUser = new Map<string, number>();
+                resetEvents.forEach(e => resetByUser.set(e.user_id, (resetByUser.get(e.user_id) ?? 0) + 1));
+
+                const failReasons = new Map<string, number>();
+                addFailed.forEach(e => {
+                  const r = (e.payload as Record<string, unknown> | null)?.reason as string ?? 'unknown';
+                  failReasons.set(r, (failReasons.get(r) ?? 0) + 1);
+                });
+
+                // Overlay interactions
+                const overlayOnEvents = fEvents.filter(
+                  e => e.event_type === 'friend_overlay_toggled' && Boolean((e.payload as Record<string, unknown> | null)?.on),
+                );
+                const overlayByUser = new Map<string, { count: number; friends: Set<string> }>();
+                overlayOnEvents.forEach(e => {
+                  const fid = (e.payload as Record<string, unknown> | null)?.friend_id as string | undefined;
+                  const cur = overlayByUser.get(e.user_id) ?? { count: 0, friends: new Set<string>() };
+                  cur.count++;
+                  if (fid) cur.friends.add(fid);
+                  overlayByUser.set(e.user_id, cur);
+                });
+
+                const clashEvents = fEvents.filter(e => e.event_type === 'friend_overlay_conflict_detected');
+
+                // Friend detail views
+                const detailEvents = fEvents
+                  .filter(e => e.event_type === 'friend_detail_viewed')
+                  .sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1));
+
+                // Social graph SVG
+                const graphNodes = [...new Set([...fEdges.map(e => e.viewer_id), ...fEdges.map(e => e.friend_id)])];
+                const nodeCount = graphNodes.length;
+                const svgSize = Math.max(320, Math.min(480, nodeCount * 80));
+                const cx = svgSize / 2;
+                const cy = svgSize / 2;
+                const radius = svgSize * 0.35;
+                const nodePos = new Map<string, { x: number; y: number }>();
+                graphNodes.forEach((id, i) => {
+                  const angle = (2 * Math.PI * i) / nodeCount - Math.PI / 2;
+                  nodePos.set(id, { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) });
+                });
+
+                const isMutual = (a: string, b: string) =>
+                  fEdgeSet.has(`${a}|${b}`) && fEdgeSet.has(`${b}|${a}`);
+
+                const drillSection = (key: typeof friendInDepthDrill, label: string, count: number, color: string, children: React.ReactNode) => (
+                  <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                    <button
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-700/30 transition-colors"
+                      onClick={() => setFriendInDepthDrill(friendInDepthDrill === key ? null : key)}
+                    >
+                      <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">{label}</span>
+                      <span className="flex items-center gap-2">
+                        <span className={`text-lg font-bold ${color}`}>{count}</span>
+                        {friendInDepthDrill === key ? <ChevronDown className="w-3.5 h-3.5 text-slate-500" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-600" />}
+                      </span>
+                    </button>
+                    {friendInDepthDrill === key && (
+                      <div className="px-4 pb-4 border-t border-white/5 pt-3 text-slate-200">
+                        {children}
+                      </div>
+                    )}
+                  </div>
+                );
+
+                return (
+                  <div className="space-y-6">
+                    {/* Relationship overview */}
+                    <div>
+                      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Relationship Overview</h4>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                          { key: 'connections' as const, label: 'Total connections', value: fAllPairs.length, color: 'text-blue-400' },
+                          { key: 'mutual' as const, label: 'Mutual pairs', value: fMutualPairs.length, color: 'text-green-400' },
+                          { key: 'oneway' as const, label: 'One-way', value: fOneWayPairs.length, color: 'text-orange-400' },
+                          { key: 'members' as const, label: 'Members with friends', value: fMemberList.length, color: 'text-purple-400' },
+                        ].map(({ key, label, value, color }) => (
+                          <button
+                            key={key}
+                            className={`bg-slate-800 rounded-xl p-4 border text-left transition-all w-full ${friendInDepthDrill === key ? 'border-white/20 ring-1 ring-white/20' : 'border-white/5 hover:border-white/15'}`}
+                            onClick={() => setFriendInDepthDrill(friendInDepthDrill === key ? null : key)}
+                          >
+                            <div className={`text-2xl font-bold ${color}`}>{value}</div>
+                            <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
+                              <span>{label}</span>
+                              {friendInDepthDrill === key ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-600" />}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      {friendInDepthDrill === 'connections' && (
+                        <div className="mt-3 bg-slate-900 rounded-xl p-4 border border-white/10 text-sm text-slate-200 space-y-1">
+                          {fAllPairs.map(([a, b], i) => (
+                            <div key={i}><span className="font-semibold">{nameOf(a)}</span> <span className="text-slate-500">&amp;</span> <span className="font-semibold">{nameOf(b)}</span></div>
+                          ))}
+                        </div>
+                      )}
+                      {friendInDepthDrill === 'mutual' && (
+                        <div className="mt-3 bg-slate-900 rounded-xl p-4 border border-white/10 text-sm text-slate-200 space-y-1">
+                          {fMutualPairs.length === 0 ? <p className="text-slate-500">No mutual pairs yet.</p> : fMutualPairs.map(([a, b], i) => (
+                            <div key={i}><span className="font-semibold">{nameOf(a)}</span> <span className="text-green-400">↔</span> <span className="font-semibold">{nameOf(b)}</span></div>
+                          ))}
+                        </div>
+                      )}
+                      {friendInDepthDrill === 'oneway' && (
+                        <div className="mt-3 bg-slate-900 rounded-xl p-4 border border-white/10 text-sm text-slate-200 space-y-1">
+                          {fOneWayPairs.length === 0 ? <p className="text-slate-500">No one-way connections.</p> : fOneWayPairs.map(([from, to], i) => (
+                            <div key={i}><span className="font-semibold">{nameOf(from)}</span> <span className="text-orange-400">→</span> <span className="font-semibold">{nameOf(to)}</span> <span className="text-slate-600 text-xs">(hasn&apos;t added back)</span></div>
+                          ))}
+                        </div>
+                      )}
+                      {friendInDepthDrill === 'members' && (
+                        <div className="mt-3 bg-slate-900 rounded-xl p-4 border border-white/10 text-sm text-slate-200 space-y-1">
+                          {fMemberList.map((id, i) => <div key={i} className="font-semibold">{nameOf(id)}</div>)}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Social network graph */}
+                    {graphNodes.length > 0 && (() => {
+                      const renderGraph = (interactive: boolean) => (
+                        <svg
+                          width={svgSize} height={svgSize}
+                          viewBox={`0 0 ${svgSize} ${svgSize}`}
+                          style={interactive ? { transform: `scale(${friendGraphScale}) translate(${friendGraphOffset.x}px, ${friendGraphOffset.y}px)`, transformOrigin: 'center', cursor: friendGraphDragging ? 'grabbing' : 'grab' } : { maxWidth: '100%' }}
+                          onMouseDown={interactive ? (ev) => { setFriendGraphDragging(true); friendGraphDragStart.current = { mx: ev.clientX, my: ev.clientY, ox: friendGraphOffset.x, oy: friendGraphOffset.y }; } : undefined}
+                          onMouseMove={interactive ? (ev) => { if (!friendGraphDragging || !friendGraphDragStart.current) return; const s = friendGraphDragStart.current; setFriendGraphOffset({ x: s.ox + (ev.clientX - s.mx) / friendGraphScale, y: s.oy + (ev.clientY - s.my) / friendGraphScale }); } : undefined}
+                          onMouseUp={interactive ? () => { setFriendGraphDragging(false); friendGraphDragStart.current = null; } : undefined}
+                          onMouseLeave={interactive ? () => { setFriendGraphDragging(false); friendGraphDragStart.current = null; } : undefined}
+                        >
+                          <defs>
+                            <marker id={`arrow-gray${interactive ? '-m' : ''}`} markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                              <path d="M0,0 L0,6 L8,3 z" fill="#64748b" />
+                            </marker>
+                            <marker id={`arrow-green${interactive ? '-m' : ''}`} markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                              <path d="M0,0 L0,6 L8,3 z" fill="#4ade80" />
+                            </marker>
+                          </defs>
+                          {fEdges.map((e, i) => {
+                            const from = nodePos.get(e.viewer_id);
+                            const to = nodePos.get(e.friend_id);
+                            if (!from || !to) return null;
+                            const mutual = isMutual(e.viewer_id, e.friend_id);
+                            if (mutual && e.viewer_id > e.friend_id) return null;
+                            const nodeR = 20;
+                            const dx = to.x - from.x; const dy = to.y - from.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            const ux = dx / dist; const uy = dy / dist;
+                            return (
+                              <line key={i}
+                                x1={from.x + ux * nodeR} y1={from.y + uy * nodeR}
+                                x2={to.x - ux * (nodeR + 8)} y2={to.y - uy * (nodeR + 8)}
+                                stroke={mutual ? '#4ade80' : '#64748b'}
+                                strokeWidth={mutual ? 2.5 : 1.5}
+                                markerEnd={mutual ? `url(#arrow-green${interactive ? '-m' : ''})` : `url(#arrow-gray${interactive ? '-m' : ''})`}
+                                strokeDasharray={mutual ? undefined : '4 2'}
+                              />
+                            );
+                          })}
+                          {graphNodes.map((id) => {
+                            const pos = nodePos.get(id);
+                            if (!pos) return null;
+                            const hasMutual = fMutualPairs.some(([a, b]) => a === id || b === id);
+                            const sends = fEdges.some(e => e.viewer_id === id);
+                            const receives = fEdges.some(e => e.friend_id === id);
+                            const fill = hasMutual ? '#3b82f6' : sends && !receives ? '#f97316' : '#a855f7';
+                            const firstName = nameOf(id).split(' ')[0];
+                            return (
+                              <g key={id}
+                                onMouseEnter={() => setFriendGraphHover(id)}
+                                onMouseLeave={() => setFriendGraphHover(null)}
+                                style={{ cursor: 'default' }}
+                              >
+                                <circle cx={pos.x} cy={pos.y} r={friendGraphHover === id ? 24 : 20} fill={fill} fillOpacity={0.9} stroke={friendGraphHover === id ? 'white' : '#1e293b'} strokeWidth={friendGraphHover === id ? 2.5 : 2} style={{ transition: 'r 0.15s, stroke 0.15s' }} />
+                                <text x={pos.x} y={pos.y + 4} textAnchor="middle" fill="white" fontSize={9} fontWeight="bold" style={{ pointerEvents: 'none' }}>
+                                  {firstName.slice(0, 6)}
+                                </text>
+                                {friendGraphHover === id && (
+                                  <foreignObject x={pos.x - 60} y={pos.y - 44} width={120} height={28} style={{ pointerEvents: 'none' }}>
+                                    <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '3px 8px', fontSize: 11, color: 'white', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      {nameOf(id)}
+                                    </div>
+                                  </foreignObject>
+                                )}
+                              </g>
+                            );
+                          })}
+                        </svg>
+                      );
+
+                      const legend = (
+                        <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-400">
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> Mutual friends</span>
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-500 inline-block" /> Only sends</span>
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-purple-500 inline-block" /> Only receives</span>
+                          <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-green-400 inline-block" /> Mutual edge</span>
+                          <span className="flex items-center gap-1.5"><span className="w-4 border-t border-dashed border-slate-500 inline-block" /> One-way</span>
+                        </div>
+                      );
+
+                      return (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Social Network Graph</h4>
+                            <button
+                              onClick={() => { setFriendGraphExpanded(true); setFriendGraphScale(1); setFriendGraphOffset({ x: 0, y: 0 }); }}
+                              className="text-xs text-slate-400 hover:text-white border border-white/10 hover:border-white/30 rounded-lg px-3 py-1 transition-all"
+                            >
+                              Expand ↗
+                            </button>
+                          </div>
+                          <div className="bg-slate-800 rounded-xl border border-white/5 p-4 flex flex-col items-center overflow-hidden">
+                            {renderGraph(false)}
+                            {legend}
+                          </div>
+
+                          {/* Full-screen expanded modal */}
+                          {friendGraphExpanded && (
+                            <div className="fixed inset-0 z-50 bg-black/80 flex flex-col" style={{ backdropFilter: 'blur(4px)' }}>
+                              {/* Toolbar */}
+                              <div className="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-white/10 flex-shrink-0">
+                                <span className="text-sm font-semibold text-slate-200">Social Network Graph</span>
+                                <div className="flex items-center gap-2 ml-auto">
+                                  <button onClick={() => setFriendGraphScale(s => Math.min(s + 0.25, 4))} className="text-xs border border-white/20 text-slate-300 hover:text-white rounded px-2.5 py-1 transition-colors">+ Zoom In</button>
+                                  <button onClick={() => setFriendGraphScale(s => Math.max(s - 0.25, 0.25))} className="text-xs border border-white/20 text-slate-300 hover:text-white rounded px-2.5 py-1 transition-colors">− Zoom Out</button>
+                                  <button onClick={() => { setFriendGraphScale(1); setFriendGraphOffset({ x: 0, y: 0 }); }} className="text-xs border border-white/20 text-slate-400 hover:text-white rounded px-2.5 py-1 transition-colors">Reset</button>
+                                  <button onClick={() => setFriendGraphExpanded(false)} className="text-xs border border-red-500/40 text-red-400 hover:text-red-300 rounded px-2.5 py-1 transition-colors ml-2">✕ Close</button>
+                                </div>
+                              </div>
+                              {/* Graph area */}
+                              <div className="flex-1 overflow-hidden flex items-center justify-center bg-slate-950 select-none">
+                                {renderGraph(true)}
+                              </div>
+                              {/* Legend */}
+                              <div className="px-4 py-3 bg-slate-900 border-t border-white/10 flex-shrink-0 flex justify-center">
+                                {legend}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Friend tab visitors */}
+                    <div>
+                      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                        Friends Tab Visitors <span className="text-slate-600 font-normal ml-1">{tabVisitors.length} unique</span>
+                      </h4>
+                      <div className="bg-slate-800 rounded-xl border border-white/5 overflow-hidden">
+                        {tabVisitors.length === 0 ? (
+                          <p className="text-slate-500 text-sm p-4">No visits recorded yet.</p>
+                        ) : (
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="border-b border-white/10 text-slate-500 text-left">
+                                <th className="py-2.5 px-4 font-medium">Member</th>
+                                <th className="py-2.5 px-4 font-medium">Times opened</th>
+                                <th className="py-2.5 px-4 font-medium">First visit</th>
+                                <th className="py-2.5 px-4 font-medium">Last visit</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {tabVisitors.map(([uid, d]) => (
+                                <tr key={uid} className="hover:bg-slate-700/30 transition-colors">
+                                  <td className="py-2.5 px-4 text-slate-200 font-medium">{nameOf(uid)}</td>
+                                  <td className="py-2.5 px-4 text-rose-400 font-semibold">{d.count}</td>
+                                  <td className="py-2.5 px-4 text-slate-400">{fmtTs(d.first)}</td>
+                                  <td className="py-2.5 px-4 text-slate-400">{fmtTs(d.last)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Code interactions */}
+                    <div>
+                      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Code Interactions</h4>
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-3">
+                        {drillSection('copy', 'Code Copied', copyEvents.length, 'text-sky-400',
+                          <div className="space-y-1 text-sm">
+                            {[...copyByUser.entries()].sort((a, b) => b[1] - a[1]).map(([uid, cnt]) => (
+                              <div key={uid} className="flex justify-between"><strong>{nameOf(uid)}</strong><span className="text-sky-400">{cnt}×</span></div>
+                            ))}
+                          </div>
+                        )}
+                        {drillSection('reset', 'Code Reset', resetEvents.length, 'text-amber-400',
+                          <div className="space-y-1 text-sm">
+                            {[...resetByUser.entries()].sort((a, b) => b[1] - a[1]).map(([uid, cnt]) => (
+                              <div key={uid} className="flex justify-between"><strong>{nameOf(uid)}</strong><span className="text-amber-400">{cnt}×</span></div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="bg-slate-800 rounded-xl border border-white/5 p-4">
+                          <p className="text-xs font-semibold text-slate-300 uppercase tracking-wide mb-3">Add funnel</p>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between"><span className="text-slate-400">Attempted</span><span className="text-slate-200 font-semibold">{addAttempts.length}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-400">Succeeded</span><span className="text-green-400 font-semibold">{addSuccess.length}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-400">Failed</span><span className="text-red-400 font-semibold">{addFailed.length}</span></div>
+                            {[...failReasons.entries()].map(([reason, cnt]) => (
+                              <div key={reason} className="flex justify-between pl-3 text-xs text-slate-500">
+                                <span>{reason}</span><span>{cnt}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Overlay / Watch Schedule */}
+                    <div>
+                      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Watch Schedule Overlay</h4>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        {drillSection('overlay', 'Overlay Activations', overlayOnEvents.length, 'text-indigo-400',
+                          <div className="space-y-2 text-sm">
+                            {[...overlayByUser.entries()].sort((a, b) => b[1].count - a[1].count).map(([uid, d]) => (
+                              <div key={uid}>
+                                <div className="flex justify-between mb-0.5">
+                                  <strong>{nameOf(uid)}</strong>
+                                  <span className="text-indigo-400">{d.count}×</span>
+                                </div>
+                                {d.friends.size > 0 && (
+                                  <div className="text-[11px] text-slate-500 pl-2">
+                                    Watched: {[...d.friends].map(fid => nameOf(fid)).join(', ')}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {drillSection('clashes', 'Schedule Clashes Seen', clashEvents.length, 'text-red-400',
+                          <div className="space-y-2 text-sm">
+                            {clashEvents.slice(0, 20).map((e, i) => {
+                              const p = e.payload as Record<string, unknown> | null;
+                              return (
+                                <div key={i} className="border-b border-white/5 pb-2 last:border-0">
+                                  <div className="text-slate-200"><strong>{nameOf(e.user_id)}</strong></div>
+                                  {p && (
+                                    <div className="text-[11px] text-slate-500">
+                                      {p.day as string} · {p.slot as string} · their course: <em>{p.friend_course as string}</em> vs yours: <em>{p.my_course as string}</em>
+                                    </div>
+                                  )}
+                                  <div className="text-[11px] text-slate-600">{fmtTs(e.occurred_at)}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Friend detail views */}
+                    <div>
+                      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                        Friend Detail Views <span className="text-slate-600 font-normal ml-1">{detailEvents.length} total</span>
+                      </h4>
+                      {drillSection('detail', 'Friend Detail Views', detailEvents.length, 'text-violet-400',
+                        <div className="space-y-1.5 text-sm max-h-48 overflow-y-auto">
+                          {detailEvents.map((e, i) => {
+                            const fid = (e.payload as Record<string, unknown> | null)?.friend_id as string | undefined;
+                            return (
+                              <div key={i} className="flex justify-between text-xs">
+                                <span><strong>{nameOf(e.user_id)}</strong>{fid ? <> <span className="text-slate-500">viewed</span> <strong>{nameOf(fid)}</strong></> : ' viewed a friend'}</span>
+                                <span className="text-slate-500 flex-shrink-0">{fmtTs(e.occurred_at)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Full add + remove history */}
+                    {(() => {
+                      const removeEvts = fEvents.filter(e => e.event_type === 'friend_removed');
+                      type HistItem = { type: 'added' | 'removed'; actor: string; target: string; ts: string };
+                      const addItems: HistItem[] = fInitiations.map(e => ({ type: 'added', actor: e.viewer_id, target: e.friend_id, ts: e.created_at }));
+                      const removeItems: HistItem[] = removeEvts.map(e => ({
+                        type: 'removed',
+                        actor: e.user_id,
+                        target: (e.payload as Record<string, unknown> | null)?.friend_id as string ?? '?',
+                        ts: e.occurred_at,
+                      }));
+                      const allItems = [...addItems, ...removeItems].sort((a, b) => (a.ts < b.ts ? 1 : -1));
+                      const displayed = friendHistoryFilter === 'added' ? addItems : friendHistoryFilter === 'removed' ? removeItems : allItems;
+                      const totalAll = allItems.length;
+
+                      return (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                              Connection History <span className="text-slate-600 font-normal ml-1">{totalAll} events</span>
+                            </h4>
+                            <div className="flex gap-1">
+                              {(['all', 'added', 'removed'] as const).map(f => (
+                                <button
+                                  key={f}
+                                  onClick={() => setFriendHistoryFilter(f)}
+                                  className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${friendHistoryFilter === f ? 'bg-rose-500/20 border-rose-500/50 text-rose-400' : 'border-white/10 text-slate-400 hover:text-slate-200'}`}
+                                >
+                                  {f === 'all' ? 'All' : f === 'added' ? 'Added' : 'Removed'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="bg-slate-800 rounded-xl border border-white/5 p-4">
+                            {displayed.length === 0 ? (
+                              <p className="text-slate-500 text-sm">No {friendHistoryFilter === 'all' ? '' : friendHistoryFilter + ' '}events yet.
+                                {friendHistoryFilter === 'removed' && removeEvts.length === 0 && <span className="text-slate-600 text-xs block mt-1">Removal tracking was just added — future removals will appear here.</span>}
+                              </p>
+                            ) : (
+                              <ul className="space-y-1.5 max-h-80 overflow-y-auto">
+                                {displayed.map((item, i) => (
+                                  <li key={i} className="flex items-center justify-between gap-2 text-sm">
+                                    <span className="text-slate-200 truncate flex items-center gap-1.5">
+                                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${item.type === 'added' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {item.type === 'added' ? '+ added' : '− removed'}
+                                      </span>
+                                      <span className="font-semibold">{nameOf(item.actor)}</span>
+                                      <span className="text-slate-500">{item.type === 'added' ? '→' : '✕'}</span>
+                                      <span className="font-semibold">{nameOf(item.target)}</span>
+                                    </span>
+                                    <span className="text-[11px] text-slate-500 flex-shrink-0">{fmtTs(item.ts)}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -3692,12 +4531,33 @@ export function AdminDashboard({
                 const userMsgs = msgs.filter(m => m.role === 'user');
                 const asstMsgs = msgs.filter(m => m.role === 'assistant');
                 const convCount = new Set(msgs.map(m => m.conversation_id)).size;
-                const userCount = new Set(msgs.map(m => m.user_id)).size;
+                const interactedUserIds = new Set(userMsgs.map(m => m.user_id));
+                const userCount = interactedUserIds.size;
 
                 const chatbotEvents = events.filter(e => e.event_type.startsWith('chatbot_'));
-                const opens = chatbotEvents.filter(e => e.event_type === 'chatbot_opened').length;
+                const openEvents = chatbotEvents.filter(e => e.event_type === 'chatbot_opened');
+                const opens = openEvents.length;
+                const openedUserIds = new Set(openEvents.map(e => e.user_id));
+                const bouncedCount = [...openedUserIds].filter(uid => !interactedUserIds.has(uid)).length;
+                const engagementRate = openedUserIds.size > 0
+                  ? Math.round((interactedUserIds.size / openedUserIds.size) * 100) : 0;
+
                 const disambig = chatbotEvents.filter(e => e.event_type === 'chatbot_disambiguation_shown').length;
                 const errors = chatbotEvents.filter(e => e.event_type === 'chatbot_error').length;
+                const copies = chatbotEvents.filter(e => e.event_type === 'chatbot_message_copied').length;
+
+                const sessionEndedEvents = chatbotEvents.filter(e => e.event_type === 'chatbot_session_ended');
+                const idleSessions = sessionEndedEvents.filter(e => !e.payload?.had_interaction).length;
+                const avgSessionMs = sessionEndedEvents.length
+                  ? Math.round(sessionEndedEvents.reduce((s, e) => s + ((e.payload?.duration_ms as number) ?? 0), 0) / sessionEndedEvents.length) : null;
+
+                const firstMsgDelayEvents = chatbotEvents.filter(e => e.event_type === 'chatbot_first_message_delay');
+                const avgFirstMsgDelayMs = firstMsgDelayEvents.length
+                  ? Math.round(firstMsgDelayEvents.reduce((s, e) => s + ((e.payload?.delay_ms as number) ?? 0), 0) / firstMsgDelayEvents.length) : null;
+
+                const nudgesShown = chatbotEvents.filter(e => e.event_type === 'chatbot_nudge_shown').length;
+                const nudgesClicked = chatbotEvents.filter(e => e.event_type === 'chatbot_nudge_clicked').length;
+                const nudgesDismissed = chatbotEvents.filter(e => e.event_type === 'chatbot_nudge_dismissed').length;
 
                 const latencies = asstMsgs
                   .map(m => m.latency_ms)
@@ -3715,6 +4575,14 @@ export function AdminDashboard({
                   .sort((a, b) => b.count - a.count);
                 const maxCourse = Math.max(1, ...courseRows.map(r => r.count));
 
+                // Intent breakdown
+                const intentCounts = { general: 0, course_specific: 0, disambiguation: 0 };
+                for (const m of userMsgs) {
+                  const k = (m.intent ?? 'general') as keyof typeof intentCounts;
+                  if (k in intentCounts) intentCounts[k]++;
+                }
+                const totalIntents = Math.max(1, userMsgs.length);
+
                 const byQ = new Map<string, { text: string; count: number }>();
                 for (const m of userMsgs) {
                   const key = m.content.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -3724,17 +4592,37 @@ export function AdminDashboard({
                   else byQ.set(key, { text: m.content.trim(), count: 1 });
                 }
                 const topQuestions = [...byQ.values()].sort((a, b) => b.count - a.count).slice(0, 8);
-                const recent = userMsgs.slice(0, 30);
+                const recent = userMsgs.slice(0, 10);
 
-                const kpis: { label: string; value: string | number }[] = [
+                // Per-user data for the drill-down panel
+                const perUserData = [...interactedUserIds].map(uid => {
+                  const uMsgs = msgs.filter(m => m.user_id === uid);
+                  const uUserMsgs = uMsgs.filter(m => m.role === 'user');
+                  const uConvIds = new Set(uMsgs.map(m => m.conversation_id));
+                  const courseCounts = new Map<string, number>();
+                  for (const m of uUserMsgs) if (m.course_code) courseCounts.set(m.course_code, (courseCounts.get(m.course_code) ?? 0) + 1);
+                  const topCourse = [...courseCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+                  const lastActive = uMsgs.reduce((max, m) => m.created_at > max ? m.created_at : max, '');
+                  return { uid, name: pName(uid), questions: uUserMsgs.length, conversations: uConvIds.size, topCourse, lastActive };
+                }).sort((a, b) => b.questions - a.questions);
+
+                const kpis: { label: string; value: string | number; clickable?: boolean }[] = [
                   { label: 'Conversations', value: convCount },
                   { label: 'Messages', value: msgs.length },
                   { label: 'Questions asked', value: userMsgs.length },
-                  { label: 'Unique users', value: userCount },
+                  { label: 'Unique users', value: userCount, clickable: true },
                   { label: 'Chat opens', value: opens },
                   { label: 'Course prompts', value: disambig },
                   { label: 'Errors', value: errors },
                   { label: 'Avg reply', value: avgLatency != null ? `${(avgLatency / 1000).toFixed(1)}s` : '—' },
+                ];
+                const funnel: { label: string; value: string | number; color: string }[] = [
+                  { label: 'Engagement rate', value: openedUserIds.size > 0 ? `${engagementRate}%` : '—', color: 'text-green-400' },
+                  { label: 'Bounce sessions', value: bouncedCount, color: 'text-amber-400' },
+                  { label: 'Idle opens', value: idleSessions, color: 'text-orange-400' },
+                  { label: 'Avg session', value: avgSessionMs != null ? `${Math.round(avgSessionMs / 1000)}s` : '—', color: 'text-blue-400' },
+                  { label: 'Avg to 1st msg', value: avgFirstMsgDelayMs != null ? `${(avgFirstMsgDelayMs / 1000).toFixed(1)}s` : '—', color: 'text-purple-400' },
+                  { label: 'Copies', value: copies, color: 'text-indigo-400' },
                 ];
 
                 if (msgs.length === 0 && opens === 0) {
@@ -3754,12 +4642,82 @@ export function AdminDashboard({
                       AI Course Assistant — Usage
                     </h2>
 
-                    {/* KPI cards */}
+                    {/* Primary KPI cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {kpis.map(k => (
-                        <div key={k.label} className="bg-slate-800 rounded-xl p-3 border border-white/5">
-                          <p className="text-2xl font-bold text-white">{k.value}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">{k.label}</p>
+                      {kpis.map(k => {
+                        const isUnique = k.label === 'Unique users';
+                        if (isUnique) {
+                          return (
+                            <button
+                              key={k.label}
+                              onClick={() => setChatbotUserDrillOpen(v => !v)}
+                              className={`bg-slate-800 rounded-xl p-3 border text-left transition-all ${chatbotUserDrillOpen ? 'border-indigo-500/50 ring-1 ring-indigo-500/20' : 'border-white/5 hover:border-white/15'}`}
+                            >
+                              <p className="text-2xl font-bold text-indigo-400 flex items-center gap-1.5">
+                                {k.value}
+                                <ChevronDown className={`w-4 h-4 transition-transform ${chatbotUserDrillOpen ? 'rotate-180' : ''}`} />
+                              </p>
+                              <p className="text-[11px] text-slate-400 mt-0.5">{k.label} — click to expand</p>
+                            </button>
+                          );
+                        }
+                        return (
+                          <div key={k.label} className="bg-slate-800 rounded-xl p-3 border border-white/5">
+                            <p className="text-2xl font-bold text-white">{k.value}</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">{k.label}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Unique users drill-down panel */}
+                    {chatbotUserDrillOpen && (
+                      <div className="bg-slate-800/60 rounded-xl border border-indigo-500/20 overflow-hidden">
+                        <div className="px-4 py-2.5 border-b border-white/5 flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <User2 className="w-3.5 h-3.5 text-indigo-400" />
+                            Chatbot Users — {perUserData.length} member{perUserData.length !== 1 ? 's' : ''}
+                          </span>
+                          <button onClick={() => setChatbotUserDrillOpen(false)} className="text-slate-500 hover:text-slate-300">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <div className="divide-y divide-white/5">
+                          {perUserData.map(u => (
+                            <div key={u.uid} className="px-4 py-2.5 flex items-center gap-3 hover:bg-white/3 transition-colors">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-slate-200 font-medium truncate">{u.name}</p>
+                                <p className="text-[11px] text-slate-500 mt-0.5">
+                                  {u.topCourse ? cName(u.topCourse) : 'General questions'}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0 text-[11px] text-slate-400">
+                                <span>{u.questions} Q</span>
+                                <span>{u.conversations} conv</span>
+                                <span className="text-slate-600">{fmtRelative(u.lastActive)}</span>
+                                <button
+                                  onClick={() => { setSelectedChatUser(u.uid); setInDepthSection('ai-chatbot'); setTab('in-depth'); setChatbotUserDrillOpen(false); }}
+                                  className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                                  title="View full history"
+                                >
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          {perUserData.length === 0 && (
+                            <p className="px-4 py-3 text-xs text-slate-500">No interactions yet.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Engagement funnel row */}
+                    <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
+                      {funnel.map(f => (
+                        <div key={f.label} className="bg-slate-800/60 rounded-xl p-3 border border-white/5">
+                          <p className={`text-xl font-bold ${f.color}`}>{f.value}</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">{f.label}</p>
                         </div>
                       ))}
                     </div>
@@ -3788,32 +4746,90 @@ export function AdminDashboard({
                         )}
                       </div>
 
-                      {/* Top questions */}
+                      {/* Intent breakdown */}
                       <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                         <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-indigo-400" />
-                          Most-asked Questions
+                          <BarChart2 className="w-4 h-4 text-indigo-400" />
+                          Intent Breakdown
                         </h3>
-                        {topQuestions.length === 0 ? (
-                          <p className="text-xs text-slate-500">No questions yet.</p>
-                        ) : (
-                          <div className="space-y-2">
-                            {topQuestions.map((q, i) => (
-                              <div key={i} className="flex items-start gap-2">
-                                <span className="text-xs font-semibold text-indigo-300 w-6 shrink-0">{q.count}×</span>
-                                <span className="text-xs text-slate-300 leading-snug">{q.text}</span>
+                        <div className="space-y-2.5">
+                          {([
+                            { key: 'general', label: 'General', color: 'bg-blue-500' },
+                            { key: 'course_specific', label: 'Course-specific', color: 'bg-indigo-500' },
+                            { key: 'disambiguation', label: 'Disambiguation', color: 'bg-purple-500' },
+                          ] as const).map(row => {
+                            const cnt = intentCounts[row.key];
+                            const pct = Math.round((cnt / totalIntents) * 100);
+                            return (
+                              <div key={row.key} className="flex items-center gap-3">
+                                <span className="text-xs text-slate-400 w-28 shrink-0">{row.label}</span>
+                                <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                  <div className={`h-full rounded-full ${row.color} transition-all`} style={{ width: `${pct}%` }} />
+                                </div>
+                                <span className="text-xs text-slate-300 w-14 text-right">{cnt} ({pct}%)</span>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Recent questions feed */}
+                    {/* Top questions */}
+                    <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                      <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-indigo-400" />
+                        Most-asked Questions
+                      </h3>
+                      {topQuestions.length === 0 ? (
+                        <p className="text-xs text-slate-500">No questions yet.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                          {topQuestions.map((q, i) => (
+                            <div key={i} className="flex items-start gap-2">
+                              <span className="text-xs font-semibold text-indigo-300 w-6 shrink-0">{q.count}×</span>
+                              <span className="text-xs text-slate-300 leading-snug">{q.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Nudge performance — only shown if there's nudge activity */}
+                    {nudgesShown > 0 && (
+                      <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
+                        <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-yellow-400" />
+                          Nudge Performance
+                        </h3>
+                        <div className="flex items-center gap-6">
+                          <div>
+                            <p className="text-xl font-bold text-slate-200">{nudgesShown}</p>
+                            <p className="text-[11px] text-slate-500">Shown</p>
+                          </div>
+                          <div>
+                            <p className="text-xl font-bold text-green-400">{nudgesClicked}</p>
+                            <p className="text-[11px] text-slate-500">Clicked</p>
+                          </div>
+                          <div>
+                            <p className="text-xl font-bold text-red-400">{nudgesDismissed}</p>
+                            <p className="text-[11px] text-slate-500">Dismissed</p>
+                          </div>
+                          <div>
+                            <p className="text-xl font-bold text-yellow-400">
+                              {nudgesShown > 0 ? `${Math.round((nudgesClicked / nudgesShown) * 100)}%` : '—'}
+                            </p>
+                            <p className="text-[11px] text-slate-500">Click rate</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recent questions feed (capped to 10) */}
                     <div className="bg-slate-800 rounded-xl p-4 border border-white/5">
                       <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4 text-indigo-400" />
                         Recent Questions
+                        <span className="text-[10px] text-slate-600 ml-1">last 10</span>
                         {errors > 0 && (
                           <span className="ml-auto text-[11px] text-amber-400 flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" /> {errors} error{errors > 1 ? 's' : ''}
@@ -3828,9 +4844,17 @@ export function AdminDashboard({
                             <div key={i} className="rounded-lg bg-slate-900/60 border border-white/5 px-3 py-2">
                               <p className="text-sm text-slate-200">{m.content}</p>
                               <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
-                                <span className="text-slate-400">{pName(m.user_id)}</span>
+                                <button
+                                  onClick={() => { setSelectedChatUser(m.user_id); setInDepthSection('ai-chatbot'); setTab('in-depth'); }}
+                                  className="text-slate-400 hover:text-indigo-300 transition-colors font-medium"
+                                >
+                                  {pName(m.user_id)}
+                                </button>
                                 {m.course_code && (
                                   <span className="rounded bg-indigo-500/15 text-indigo-300 px-1.5 py-0.5">{cName(m.course_code)}</span>
+                                )}
+                                {m.intent && m.intent !== 'general' && (
+                                  <span className="rounded bg-slate-700 text-slate-400 px-1.5 py-0.5">{m.intent}</span>
                                 )}
                                 <span className="ml-auto">{fmtRelative(m.created_at)}</span>
                               </div>

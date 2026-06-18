@@ -25,10 +25,12 @@ function withIds(nudges: Nudge[]): ActiveNudge[] {
   return nudges.map((n) => ({ ...n, id: nudgeId(n.text) }));
 }
 
+// Seen-ids persist in localStorage (not sessionStorage) so an insight a student has already been
+// shown isn't repeated on later visits/days — the whole point of the curated engine.
 function readSeen(): Set<string> {
-  if (typeof sessionStorage === 'undefined') return new Set();
+  if (typeof localStorage === 'undefined') return new Set();
   try {
-    return new Set(JSON.parse(sessionStorage.getItem(SEEN_KEY) ?? '[]') as string[]);
+    return new Set(JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]') as string[]);
   } catch {
     return new Set();
   }
@@ -36,7 +38,7 @@ function readSeen(): Set<string> {
 
 function writeSeen(seen: Set<string>): void {
   try {
-    sessionStorage?.setItem(SEEN_KEY, JSON.stringify([...seen]));
+    localStorage?.setItem(SEEN_KEY, JSON.stringify([...seen]));
   } catch {
     /* storage full / unavailable — de-dupe degrades to in-memory only */
   }
@@ -108,11 +110,16 @@ export function useChatNudges(userId: string | null, courses: Course[], specs: S
     loadingRef.current = false;
   }, [userId, sig]);
 
-  /** The next unseen nudge (marks it seen), or null if the pool is exhausted/unloaded. */
+  /** The next not-yet-seen nudge (marks it seen). When the whole pool has been seen across past
+   *  sessions, the seen-set resets so the catalogue cycles fresh instead of running dry. */
   const nextNudge = useCallback((): ActiveNudge | null => {
     const pool = poolRef.current ?? localPool();
-    const next = pool.find((n) => !seenRef.current.has(n.id));
-    if (!next) return null;
+    if (pool.length === 0) return null;
+    let next = pool.find((n) => !seenRef.current.has(n.id));
+    if (!next) {
+      seenRef.current = new Set();
+      next = pool[0];
+    }
     seenRef.current.add(next.id);
     writeSeen(seenRef.current);
     return next;

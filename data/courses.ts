@@ -173,6 +173,21 @@ export const ALL_COURSES: Course[] = [
       summary: 'Would recommend, one of the better courses at BITSoM. Professor is knowledgeable in this domain.',
     },
   },
+  // WaW — Block 18
+  {
+    id: 105, term: 4, week: 5,
+    startDate: '2026-07-27', endDate: '2026-08-06',
+    dates: 'Jul 27–Aug 6', block: 18,
+    name: 'Expression through Theatre',
+    code: 'EXTT',
+    faculty: 'Drama School Mumbai',
+    seats: null, specs: [], type: 'waw', conflictGroup: null,
+    timings: [
+      { slot: '17:00–18:30', room: 'MPH', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
+      { slot: '19:00–20:30', room: 'MPH', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+    ],
+    review: null,
+  },
 
   {
     id: 7, term: 4, week: 5,

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, PlusCircle, Star, BookOpen, Users } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
+import { fileHref } from '@/lib/storageLinks';
 
 interface Props {
   course: Course | null;
@@ -82,11 +83,7 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
 
           {course.outlineUrl && (
             <a
-              href={
-                course.outlineUrl.endsWith('.pdf')
-                  ? course.outlineUrl
-                  : `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(course.outlineUrl)}`
-              }
+              href={fileHref(course.outlineUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:text-orange-300 transition-colors text-sm font-medium border border-orange-500/20 w-full justify-center"
@@ -103,7 +100,7 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
                 {course.seatingCharts.map(chart => (
                   <a
                     key={chart.section}
-                    href={chart.url}
+                    href={fileHref(chart.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 hover:text-sky-200 transition-colors text-sm font-medium border border-sky-500/20"

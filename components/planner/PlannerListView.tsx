@@ -6,6 +6,7 @@ import type { Course, SpecId } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
+import { fileHref } from '@/lib/storageLinks';
 import { Term1GanttPanel } from './Term1GanttPanel';
 
 // Maps Plan-tab Term 4 week numbers → TERM1_WEEKS array indices
@@ -229,11 +230,7 @@ function CourseCard({
             : <span />}
           {course.outlineUrl && (
             <a
-              href={
-                course.outlineUrl.endsWith('.pdf')
-                  ? course.outlineUrl
-                  : `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(course.outlineUrl)}`
-              }
+              href={fileHref(course.outlineUrl)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}

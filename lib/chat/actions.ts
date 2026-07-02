@@ -7,6 +7,7 @@
 // explicit confirm step; v1 intentionally ships only read/link/export actions.
 
 import type { Course } from '@/types';
+import { fileHref } from '@/lib/storageLinks';
 
 /** Control char (RS) separating streamed prose from a trailing actions JSON payload.
  *  It never appears in LLM prose, so the client can split the stream cleanly without a
@@ -34,7 +35,7 @@ export function outlineLinkAction(course: Course): ChatAction | null {
   return {
     type: 'open_link',
     label: `Open ${course.name} outline`,
-    url: course.outlineUrl,
+    url: fileHref(course.outlineUrl),
     courseCode: course.code,
   };
 }

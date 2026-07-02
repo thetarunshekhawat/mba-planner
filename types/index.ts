@@ -46,6 +46,7 @@ export interface Course {
   conflictGroup: string | null;
   timings?: SessionSlot[]; // time slot + room data from timetable (Term 4 has this)
   outlineUrl?: string;
+  seatingCharts?: { section: string; url: string }[]; // registrar seating chart PDFs per section
   review: CourseReview | null;
 }
 

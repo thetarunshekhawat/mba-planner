@@ -1,4 +1,4 @@
-import type { Course } from '@/types';
+import type { Course, SessionSlot } from '@/types';
 
 function slotMinutes(timeStr: string): [number, number] {
   const [start, end] = timeStr.split('–').map(t => {
@@ -75,4 +75,21 @@ export function getSectionAdvisories(
   }
 
   return advisories;
+}
+
+/**
+ * Whether a course's timing entry should be shown for this user.
+ * A real recorded section assignment always wins; otherwise falls back to
+ * the existing "likely Section B" heuristic (advisories only ever hides part A).
+ */
+export function isTimingVisible(
+  courseId: number,
+  timing: SessionSlot,
+  assignedSections: Map<number, string>,
+  advisories: Map<number, SectionAdvisory>,
+): boolean {
+  const assigned = assignedSections.get(courseId);
+  if (assigned) return timing.part === assigned;
+  if (advisories.has(courseId) && timing.part === 'A') return false;
+  return true;
 }

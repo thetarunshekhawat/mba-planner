@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useSelections } from '@/hooks/useSelections';
+import { useCourseSections } from '@/hooks/useCourseSections';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useFriends } from '@/hooks/useFriends';
 import { useFriendSelections } from '@/hooks/useFriendSelections';
@@ -70,6 +71,7 @@ export default function PlannerPage() {
     userId,
     (type, courseId) => trackEvent(type, { course_id: courseId }),
   );
+  const { sections: courseSections } = useCourseSections(userId);
 
   // ── Friends ──────────────────────────────────────────────
   const { friends, loading: friendsLoading, addByCode, removeFriend, regenerateCode } = useFriends(userId);
@@ -670,6 +672,7 @@ export default function PlannerPage() {
                   overlayIds={overlayIds}
                   onToggleOverlay={(friend) => handleToggleOverlay(friend, 'schedule')}
                   trackEvent={trackEvent}
+                  courseSections={courseSections}
                 />
               )}
             </>

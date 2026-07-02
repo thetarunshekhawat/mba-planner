@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Info, BookOpen, Users, Eye, EyeOff } from 'lucide-react';
+import { AlertTriangle, Info, CheckCircle2, BookOpen, Users, Eye, EyeOff } from 'lucide-react';
 import type { Course, SpecId, Friend, FriendOverlay } from '@/types';
 import { colorForFriend } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { EventType } from '@/hooks/useAnalytics';
 import { Term1GanttPanel } from './Term1GanttPanel';
-import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
+import { getSectionAdvisories, isTimingVisible, type SectionAdvisory } from '@/lib/conflicts';
 
 interface Props {
   selected: Set<number>;
@@ -20,6 +20,7 @@ interface Props {
   overlayIds?: Set<string>;
   onToggleOverlay?: (friend: Friend) => void;
   trackEvent?: (type: EventType, payload?: Record<string, unknown>) => void;
+  courseSections?: Map<number, string>;
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -49,10 +50,14 @@ function courseInBlock(c: Course, start: string, end: string) {
   return parseTs(c.startDate) <= parseTs(end) && parseTs(c.endDate) >= parseTs(start);
 }
 
-function getUniqueSlots(courses: Course[], advisories?: Map<number, SectionAdvisory>): string[] {
+function getUniqueSlots(
+  courses: Course[],
+  advisories?: Map<number, SectionAdvisory>,
+  assignedSections?: Map<number, string>,
+): string[] {
   const set = new Set<string>();
   courses.forEach(c => c.timings?.forEach(t => {
-    if (advisories?.has(c.id) && t.part === 'A') return;
+    if (!isTimingVisible(c.id, t, assignedSections ?? new Map(), advisories ?? new Map())) return;
     set.add(t.slot);
   }));
   return [...set].sort((a, b) => {
@@ -203,11 +208,12 @@ function FriendCoursePill({ course, overlay, state, onClick }: {
   );
 }
 
-function CoursePill({ course, room, hasConflict, sectionAdvisory, userSpecs, onClick }: {
+function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSection, userSpecs, onClick }: {
   course: Course;
   room: string;
   hasConflict: boolean;
   sectionAdvisory: SectionAdvisory | undefined;
+  confirmedSection: string | undefined;
   userSpecs: SpecId[];
   onClick: () => void;
 }) {
@@ -236,7 +242,7 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, userSpecs, onC
     <button
       onClick={onClick}
       className="w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1.5"
-      title={sectionAdvisory?.message}
+      title={confirmedSection ? `Confirmed: Section ${confirmedSection}` : sectionAdvisory?.message}
       style={{
         background: isWaw ? WAW_GRADIENT : bg,
         borderLeft: `4px solid ${accent}`,
@@ -245,12 +251,18 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, userSpecs, onC
     >
       <div className="flex items-center gap-1">
         {hasConflict && <AlertTriangle className="w-2.5 h-2.5 text-red-500 flex-shrink-0" />}
-        {sectionAdvisory && !hasConflict && <Info className="w-2.5 h-2.5 text-amber-500 flex-shrink-0" />}
+        {confirmedSection && !hasConflict && <CheckCircle2 className="w-2.5 h-2.5 flex-shrink-0" style={{ color: '#059669' }} />}
+        {!confirmedSection && sectionAdvisory && !hasConflict && <Info className="w-2.5 h-2.5 text-amber-500 flex-shrink-0" />}
         <span className="font-bold text-[12px] leading-tight" style={{ color: accent }}>
           {course.code ?? course.name.slice(0, 4).toUpperCase()}
         </span>
       </div>
-      {sectionAdvisory && !hasConflict && (
+      {confirmedSection && !hasConflict && (
+        <div className="text-[9px] font-semibold mt-0.5" style={{ color: '#059669' }}>
+          Section {confirmedSection}
+        </div>
+      )}
+      {!confirmedSection && sectionAdvisory && !hasConflict && (
         <div className="text-[9px] font-semibold mt-0.5" style={{ color: '#d97706' }}>
           Sec B likely
         </div>
@@ -269,12 +281,13 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, userSpecs, onC
   );
 }
 
-function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, userSpecs, friendOverlays, onCourseClick }: {
+function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs, friendOverlays, onCourseClick }: {
   blockInfo: typeof TERM4_BLOCKS[0];
   courses: Course[];
   visibleIds: Set<number>;
   conflictIds: Set<number>;
   advisories: Map<number, SectionAdvisory>;
+  assignedSections: Map<number, string>;
   userSpecs: SpecId[];
   friendOverlays: FriendOverlay[];
   onCourseClick: (c: Course) => void;
@@ -291,6 +304,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, u
   const slots = getUniqueSlots(
     [...blockCourses, ...friendBlock.flatMap(f => f.courses)],
     advisories,
+    assignedSections,
   );
 
   const blockHeader = (
@@ -364,7 +378,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, u
                   const dayCourses = blockCourses.filter(c =>
                     c.timings?.some(t => {
                       const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
-                      return t.slot === slot && effectiveDays.includes(day) && !(advisories.has(c.id) && t.part === 'A');
+                      return t.slot === slot && effectiveDays.includes(day) && isTimingVisible(c.id, t, assignedSections, advisories);
                     })
                   );
                   return (
@@ -400,7 +414,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, u
                             {dayCourses.map(c => {
                               const timing = c.timings!.find(t => {
                                 const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
-                                return t.slot === slot && effectiveDays.includes(day) && !(advisories.has(c.id) && t.part === 'A');
+                                return t.slot === slot && effectiveDays.includes(day) && isTimingVisible(c.id, t, assignedSections, advisories);
                               });
                               return (
                                 <CoursePill
@@ -408,7 +422,8 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, u
                                   course={c}
                                   room={timing?.room ?? ''}
                                   hasConflict={conflictIds.has(c.id)}
-                                  sectionAdvisory={advisories.get(c.id)}
+                                  sectionAdvisory={assignedSections.has(c.id) ? undefined : advisories.get(c.id)}
+                                  confirmedSection={assignedSections.get(c.id)}
                                   userSpecs={userSpecs}
                                   onClick={() => onCourseClick(c)}
                                 />
@@ -590,6 +605,7 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
 export function TimetableView({
   selected, visibleIds, userSpecs, onCourseClick, selectedTerms,
   friendOverlays = [], friends = [], overlayIds, onToggleOverlay, trackEvent,
+  courseSections,
 }: Props) {
   const [showTerm1, setShowTerm1] = useState(false);
 
@@ -600,6 +616,7 @@ export function TimetableView({
   const allVisible = ALL_COURSES.filter(c => visibleIds.has(c.id));
   const conflictIds = getConflictIds(allVisible, visibleIds);
   const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
+  const assignedSections = courseSections ?? new Map<number, string>();
 
   const hasTerm4Content =
     TERM4_BLOCKS.some(b => term4.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)))
@@ -777,6 +794,7 @@ export function TimetableView({
                           visibleIds={visibleIds}
                           conflictIds={conflictIds}
                           advisories={advisories}
+                          assignedSections={assignedSections}
                           userSpecs={userSpecs}
                           friendOverlays={friendOverlays}
                           onCourseClick={onCourseClick}
@@ -795,6 +813,7 @@ export function TimetableView({
                       visibleIds={visibleIds}
                       conflictIds={conflictIds}
                       advisories={advisories}
+                      assignedSections={assignedSections}
                       userSpecs={userSpecs}
                       friendOverlays={friendOverlays}
                       onCourseClick={onCourseClick}

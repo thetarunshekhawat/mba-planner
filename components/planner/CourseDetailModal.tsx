@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, PlusCircle, Star, BookOpen } from 'lucide-react';
+import { CheckCircle2, PlusCircle, Star, BookOpen, Users } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 
@@ -85,7 +85,7 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               href={
                 course.outlineUrl.endsWith('.pdf')
                   ? course.outlineUrl
-                  : `https://docs.google.com/viewer?url=${encodeURIComponent(course.outlineUrl)}`
+                  : `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(course.outlineUrl)}`
               }
               target="_blank"
               rel="noopener noreferrer"
@@ -94,6 +94,26 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               <BookOpen className="w-4 h-4 flex-shrink-0" />
               Open Course Outline
             </a>
+          )}
+
+          {course.seatingCharts && course.seatingCharts.length > 0 && (
+            <div className="mt-3">
+              <p className="text-slate-400 text-xs font-medium mb-1.5">Seating Chart</p>
+              <div className="flex gap-2">
+                {course.seatingCharts.map(chart => (
+                  <a
+                    key={chart.section}
+                    href={chart.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 hover:text-sky-200 transition-colors text-sm font-medium border border-sky-500/20"
+                  >
+                    <Users className="w-4 h-4 flex-shrink-0" />
+                    Section {chart.section}
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
         </SheetHeader>
 

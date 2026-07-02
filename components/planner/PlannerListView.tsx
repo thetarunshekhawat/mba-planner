@@ -232,7 +232,7 @@ function CourseCard({
               href={
                 course.outlineUrl.endsWith('.pdf')
                   ? course.outlineUrl
-                  : `https://docs.google.com/viewer?url=${encodeURIComponent(course.outlineUrl)}`
+                  : `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(course.outlineUrl)}`
               }
               target="_blank"
               rel="noopener noreferrer"

@@ -98,18 +98,22 @@ export const ALL_COURSES: Course[] = [
       summary: 'General consensus: Recommended. New concept — how being sustainable drives profits.',
     },
   },
-  // WaW — Block 17
+  // WaW — Block 17 (Winning at Workplace, two sections A/B)
   {
     id: 101, term: 4, week: 3,
     startDate: '2026-07-13', endDate: '2026-07-26',
     dates: 'Jul 13–26', block: 17,
-    name: 'AI Tools for Managers',
+    name: 'Winning at Workplace',
     code: 'AITM',
     faculty: 'TBD',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
       { slot: '13:30–15:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
       { slot: '17:00–18:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+    ],
+    seatingCharts: [
+      { section: 'A', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/aitm-section-a.pdf' },
+      { section: 'B', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/aitm-section-b.pdf' },
     ],
     review: null,
   },
@@ -127,6 +131,10 @@ export const ALL_COURSES: Course[] = [
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/sadt.docx',
+    seatingCharts: [
+      { section: 'A', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/sadt-section-a.pdf' },
+      { section: 'B', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/sadt-section-b.pdf' },
+    ],
     review: {
       learningDepth: 5, workload: 'Moderate', careerRelevance: 5,
       whatYouLearn: ['Sales Strategies/Frameworks', 'Distribution Channels & Value Chain'],
@@ -278,22 +286,6 @@ export const ALL_COURSES: Course[] = [
     faculty: '', seats: null, specs: [], type: 'exam', conflictGroup: null, review: null,
   },
 
-  // Block 20 Week 1 — Aug 31  (mandatory)
-  {
-    id: 12, term: 4, week: 10,
-    startDate: '2026-08-31', endDate: '2026-09-13',
-    dates: 'Aug 31–Sep 13', block: 20,
-    name: 'AI in Business: From Models to Agents',
-    code: 'ABMA',
-    faculty: 'Prof. Daniel Ringel',
-    seats: null, specs: [], type: 'mandatory', conflictGroup: null,
-    timings: [
-      { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
-      { slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
-    ],
-    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/abma.docx',
-    review: null,
-  },
   // WaW — Block 20
   {
     id: 102, term: 4, week: 10,

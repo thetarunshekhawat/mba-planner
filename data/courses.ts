@@ -161,7 +161,7 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Prithwiraj Choudhury',
     seats: 120, specs: ['ENT', 'LSTR'], mandatoryFor: ['LSTR'], type: 'elective', conflictGroup: null,
     timings: [
-      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '09:30–12:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/fwkj.pdf',
@@ -191,8 +191,8 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Drama School Mumbai',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
-      { slot: '17:00–18:30', room: 'MPH', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
-      { slot: '19:00–20:30', room: 'MPH', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+      { slot: '17:00–18:30', room: 'MPH / Moot Court', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
+      { slot: '19:00–20:30', room: 'MPH / Moot Court', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
     ],
     review: null,
   },
@@ -205,7 +205,11 @@ export const ALL_COURSES: Course[] = [
     code: 'FSAT',
     faculty: 'Prof. Prabhu Venkatachalam',
     seats: 120, specs: ['FIN'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Wed', 'Fri'], week2Days: ['Tue', 'Thu'] }],
+    // Section B mornings / A afternoons; spans Blocks 18 & 19 with different week-1 days per block
+    timings: [
+      { slot: '09:30–12:30', room: 'S02', days: ['Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Thu'], block2Days: ['Wed', 'Fri'], block2Week2Days: ['Mon', 'Tue', 'Thu'], part: 'B' },
+      { slot: '13:30–16:30', room: 'S02', days: ['Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Thu'], block2Days: ['Wed', 'Fri'], block2Week2Days: ['Mon', 'Tue', 'Thu'], part: 'A' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/fsat.docx',
     review: {
       learningDepth: 5, workload: 'High', careerRelevance: 5,
@@ -223,6 +227,22 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
+  // SADM makeup — one-off session on Wed Aug 05 (Block 18 Week 2)
+  {
+    id: 109, term: 4, week: 6,
+    startDate: '2026-08-05', endDate: '2026-08-05',
+    dates: 'Aug 5', block: 18,
+    name: 'Sales & Distribution (Makeup)',
+    code: 'SADT',
+    faculty: 'Prof. Mudit Mathur',
+    seats: 120, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:30–12:30', room: 'S02', days: [], week2Days: ['Wed'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S02', days: [], week2Days: ['Wed'], part: 'B' },
+    ],
+    review: null,
+  },
+
   // Block 19 (Aug 10 – Aug 23) — BECB, MHLG, + FSAT continues
   {
     id: 8, term: 4, week: 7,
@@ -232,9 +252,10 @@ export const ALL_COURSES: Course[] = [
     code: 'BECB',
     faculty: 'Prof. Lil Mohan',
     seats: 120, specs: ['ENT', 'ECOM'], type: 'elective', conflictGroup: null,
+    // Section A mornings (09:00 start in week 1, 09:30 in week 2 per timetable), B afternoons
     timings: [
-      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
-      { slot: '17:00–20:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+      { slot: '09:30–12:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/becb.pdf',
     review: {
@@ -256,11 +277,11 @@ export const ALL_COURSES: Course[] = [
     id: 9, term: 4, week: 7,
     startDate: '2026-08-10', endDate: '2026-08-23',
     dates: 'Aug 10–23', block: 19,
-    name: 'Machine Learning',
+    name: 'Machine Learning for Managers',
     code: 'MHLG',
     faculty: 'Prof. Meenakshi Balakrishna',
     seats: 60, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
+    timings: [{ slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/mhlg.docx',
     review: {
       learningDepth: 3, workload: 'Moderate', careerRelevance: 2,
@@ -286,14 +307,30 @@ export const ALL_COURSES: Course[] = [
     faculty: '', seats: null, specs: [], type: 'exam', conflictGroup: null, review: null,
   },
 
+  // Block 20 (Aug 31 – Sep 13) — ABMA + PSWT (WaW)
+  {
+    id: 10, term: 4, week: 10,
+    startDate: '2026-08-31', endDate: '2026-09-11',
+    dates: 'Aug 31–Sep 11', block: 20,
+    name: 'AI in Business: From Models to Agents',
+    code: 'ABMA',
+    faculty: 'Prof. Daniel Ringel',
+    seats: null, specs: [], type: 'mandatory', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    review: null,
+  },
+
   // WaW — Block 20
   {
     id: 102, term: 4, week: 10,
     startDate: '2026-08-31', endDate: '2026-09-11',
     dates: 'Aug 31–Sep 11', block: 20,
-    name: 'Persuasive Writing',
+    name: 'Persuasive Writing for Managers',
     code: 'PSWT',
-    faculty: 'TBD',
+    faculty: 'Prof. Somak Ghoshal',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
       { slot: '09:00–10:30', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
@@ -313,7 +350,7 @@ export const ALL_COURSES: Course[] = [
     seats: 60, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: null,
     timings: [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
-      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/pdmt.pdf',
     review: {
@@ -330,22 +367,6 @@ export const ALL_COURSES: Course[] = [
       summary: 'Prof(s) will change for Co27, not sure if fate of the course will change.',
     },
   },
-  // WaW — Block 21
-  {
-    id: 103, term: 4, week: 12,
-    startDate: '2026-09-14', endDate: '2026-09-27',
-    dates: 'Sep 14–27', block: 21,
-    name: 'Design Thinking',
-    code: 'DSTK',
-    faculty: 'TBD',
-    seats: null, specs: [], type: 'waw', conflictGroup: null,
-    timings: [
-      { slot: '13:30–16:30', room: 'S03', days: ['Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed'], part: 'A' },
-      { slot: '17:00–20:00', room: 'S03', days: ['Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed'], part: 'B' },
-    ],
-    review: null,
-  },
-
   {
     id: 15, term: 4, week: 12,
     startDate: '2026-09-14', endDate: '2026-09-27',

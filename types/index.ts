@@ -26,6 +26,8 @@ export interface SessionSlot {
   days: string[];     // Week 1 days (or all weeks if identical)
   part?: string;      // 'A' | 'B' for two-section courses
   week2Days?: string[]; // Week 2 days if different from week 1
+  block2Days?: string[];      // For a course spanning two blocks: week 1 days in its second block
+  block2Week2Days?: string[]; // For a course spanning two blocks: week 2 days in its second block
 }
 
 export interface Course {

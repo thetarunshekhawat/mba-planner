@@ -210,6 +210,20 @@ export const PROFESSORS: Professor[] = [
     ],
   },
   {
+    id: 'somak-ghoshal',
+    name: 'Prof. Somak Ghoshal',
+    course: 'Persuasive Writing for Managers',
+    initials: 'SG',
+    color: '#5d4037',
+    imagePath: '/professors/somak-ghoshal.jpg',
+    facts: [
+      'Writer, editor, and reporter with a long career across leading publications',
+      'Gallup-certified coach specializing in strengths-based development',
+      'Education consultant and curriculum designer',
+      'Teaches managers to write with clarity, structure, and persuasive impact',
+    ],
+  },
+  {
     id: 'srinivas-pingali',
     name: 'Prof. Srinivas Pingali',
     course: 'Product Management',

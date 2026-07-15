@@ -50,6 +50,17 @@ function courseInBlock(c: Course, start: string, end: string) {
   return parseTs(c.startDate) <= parseTs(end) && parseTs(c.endDate) >= parseTs(start);
 }
 
+// Days a timing runs on for a given block/week. Courses spanning two blocks can
+// override their second block's pattern via block2Days / block2Week2Days.
+function effectiveDaysFor(c: Course, t: NonNullable<Course['timings']>[number], blockStart: string, weekNum: 1 | 2): string[] {
+  const inSecondBlock = parseTs(blockStart) - parseTs(c.startDate) >= 14 * 86400000;
+  if (inSecondBlock) {
+    if (weekNum === 2 && t.block2Week2Days) return t.block2Week2Days;
+    if (t.block2Days) return t.block2Days;
+  }
+  return weekNum === 2 && t.week2Days ? t.week2Days : t.days;
+}
+
 function getUniqueSlots(
   courses: Course[],
   advisories?: Map<number, SectionAdvisory>,
@@ -104,9 +115,9 @@ function initialsOf(name: string): string {
 }
 
 // Does a course have a timing in this slot on this day, for this week of the block?
-function matchesSlotDay(c: Course, slot: string, day: string, weekNum: 1 | 2): boolean {
+function matchesSlotDay(c: Course, slot: string, day: string, weekNum: 1 | 2, blockStart: string): boolean {
   return !!c.timings?.some(t => {
-    const eff = weekNum === 2 && t.week2Days ? t.week2Days : t.days;
+    const eff = effectiveDaysFor(c, t, blockStart, weekNum);
     return t.slot === slot && eff.includes(day);
   });
 }
@@ -147,10 +158,10 @@ function computeClashes(visibleIds: Set<number>, overlays: FriendOverlay[]): Cla
       const slots = getUniqueSlots([...mine, ...theirs]);
       for (const slot of slots) {
         for (const day of DAYS) {
-          const myHere = mine.filter(c => matchesSlotDay(c, slot, day, block.weekNum));
+          const myHere = mine.filter(c => matchesSlotDay(c, slot, day, block.weekNum, block.start));
           if (myHere.length === 0) continue;
           for (const tc of theirs) {
-            if (!matchesSlotDay(tc, slot, day, block.weekNum)) continue;
+            if (!matchesSlotDay(tc, slot, day, block.weekNum, block.start)) continue;
             if (myHere.some(mc => mc.id === tc.id)) continue; // same class — together
             out.push({
               friendId: overlay.id,
@@ -377,7 +388,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                 {DAYS.map((day, di) => {
                   const dayCourses = blockCourses.filter(c =>
                     c.timings?.some(t => {
-                      const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
+                      const effectiveDays = effectiveDaysFor(c, t, blockInfo.start, blockInfo.weekNum);
                       return t.slot === slot && effectiveDays.includes(day) && isTimingVisible(c.id, t, assignedSections, advisories);
                     })
                   );
@@ -391,7 +402,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                       {(() => {
                         const friendPills = friendBlock.flatMap(({ overlay, courses: fcs }) =>
                           fcs
-                            .filter(c => matchesSlotDay(c, slot, day, blockInfo.weekNum))
+                            .filter(c => matchesSlotDay(c, slot, day, blockInfo.weekNum, blockInfo.start))
                             .map(c => {
                               const together = dayCourses.some(mc => mc.id === c.id);
                               const state: FriendCellState = together
@@ -413,7 +424,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                           <div className="flex flex-col gap-1">
                             {dayCourses.map(c => {
                               const timing = c.timings!.find(t => {
-                                const effectiveDays = (blockInfo.weekNum === 2 && t.week2Days) ? t.week2Days : t.days;
+                                const effectiveDays = effectiveDaysFor(c, t, blockInfo.start, blockInfo.weekNum);
                                 return t.slot === slot && effectiveDays.includes(day) && isTimingVisible(c.id, t, assignedSections, advisories);
                               });
                               return (

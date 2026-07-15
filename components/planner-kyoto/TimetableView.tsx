@@ -223,7 +223,12 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, userSpecs, on
                 </td>
                 {DAYS.map((day, di) => {
                   const dayCourses = blockCourses.filter(c =>
-                    c.timings?.some(t => t.slot === slot && t.days.includes(day)),
+                    c.timings?.some(t => {
+                      // Courses spanning two blocks can override their second block's days
+                      const inSecondBlock = new Date(blockInfo.start).getTime() - new Date(c.startDate).getTime() >= 14 * 86400000;
+                      const days = inSecondBlock && t.block2Days ? t.block2Days : t.days;
+                      return t.slot === slot && days.includes(day);
+                    }),
                   );
                   const isWeekend = di >= 5;
 

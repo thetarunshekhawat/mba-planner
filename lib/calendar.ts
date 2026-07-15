@@ -37,8 +37,20 @@ export function generateScheduleICS(courses: Course[]): string {
       let currentDay = start;
       while (currentDay <= end) {
         const dayName = Object.keys(DAY_MAP).find(key => DAY_MAP[key] === getDay(currentDay));
-        
-        if (dayName && timing.days.includes(dayName)) {
+
+        // Pick the day pattern for this week: week 1/2 of the block, and the
+        // second-block overrides for courses spanning two blocks
+        const daysElapsed = Math.round((currentDay.getTime() - start.getTime()) / 86400000);
+        const inSecondBlock = daysElapsed >= 14;
+        const isWeek2 = Math.floor(daysElapsed / 7) % 2 === 1;
+        let effectiveDays = timing.days;
+        if (inSecondBlock && (isWeek2 ? timing.block2Week2Days : timing.block2Days)) {
+          effectiveDays = (isWeek2 ? timing.block2Week2Days : timing.block2Days)!;
+        } else if (isWeek2 && timing.week2Days) {
+          effectiveDays = timing.week2Days;
+        }
+
+        if (dayName && effectiveDays.includes(dayName)) {
            const dtStart = formatICSDate(currentDay, startTime);
            const dtEnd = formatICSDate(currentDay, endTime);
            

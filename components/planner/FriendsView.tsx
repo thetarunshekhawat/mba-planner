@@ -7,7 +7,8 @@ import {
 import type { Friend } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 import type { AddFriendResult } from '@/hooks/useFriends';
-import { SPECS } from '@/data/courses';
+import { ALL_COURSES, SPECS } from '@/data/courses';
+import { normalize } from '@/lib/courseSearch';
 import { colorForFriend } from '@/types';
 
 interface Props {
@@ -22,6 +23,13 @@ interface Props {
   onRegenerate: () => Promise<string | null>;
   onOpenDetail: (friend: Friend) => void;
   trackEvent: (type: EventType, payload?: Record<string, unknown>) => void;
+  /** Friends picked as chips in the header search. */
+  searchFriendIds?: Set<string>;
+  /** Course chips — keeps friends who selected any of these courses. */
+  searchCourseIds?: Set<number>;
+  /** Free text, matched against friend names and specialization labels. */
+  searchText?: string;
+  onClearSearch?: () => void;
 }
 
 const ADD_ERRORS: Record<string, string> = {
@@ -41,6 +49,7 @@ function formatDate(iso: string): string {
 export function FriendsView({
   myCode, friends, loading, friendSelections, overlayIds,
   onToggleOverlay, onAddByCode, onRemove, onRegenerate, onOpenDetail, trackEvent,
+  searchFriendIds, searchCourseIds, searchText, onClearSearch,
 }: Props) {
   const [codeInput, setCodeInput] = useState('');
   const [adding, setAdding] = useState(false);
@@ -68,6 +77,32 @@ export function FriendsView({
     ];
     return quips[Math.floor(Math.random() * quips.length)];
   }, []);
+
+  // ── Header search: narrow the list to matching friends ──────
+  const chippedCourses = useMemo(
+    () => ALL_COURSES.filter(c => searchCourseIds?.has(c.id)),
+    [searchCourseIds],
+  );
+  const searchQ = normalize(searchText ?? '');
+  const searchOn = (searchFriendIds?.size ?? 0) > 0 || chippedCourses.length > 0 || searchQ.length > 0;
+
+  // Friends that survive the search, each with the chipped courses they're taking
+  // (so the card can say *why* it matched).
+  const shownFriends = useMemo(() => {
+    if (!searchOn) return friends.map(friend => ({ friend, sharedCourses: [] as typeof chippedCourses }));
+
+    return friends.flatMap(friend => {
+      const sharedCourses = chippedCourses.filter(c => friendSelections.get(friend.id)?.has(c.id));
+      const byChip = searchFriendIds?.has(friend.id) ?? false;
+      const byName = searchQ.length > 0 && (
+        normalize(friend.name).includes(searchQ) ||
+        SPECS.some(s => friend.specializations.includes(s.id) &&
+          (normalize(s.label).includes(searchQ) || s.id.toLowerCase().startsWith(searchQ)))
+      );
+      if (!byChip && !byName && sharedCourses.length === 0) return [];
+      return [{ friend, sharedCourses }];
+    });
+  }, [searchOn, friends, chippedCourses, friendSelections, searchFriendIds, searchQ]);
 
   async function handleCopy() {
     if (!code) return;
@@ -192,9 +227,21 @@ export function FriendsView({
         <section>
           <div className="flex items-baseline gap-2 mb-3 px-1">
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
-              Your friends {friends.length > 0 && <span className="text-slate-400">({friends.length})</span>}
+              Your friends {friends.length > 0 && (
+                <span className="text-slate-400">
+                  ({searchOn ? `${shownFriends.length} of ${friends.length}` : friends.length})
+                </span>
+              )}
             </h2>
             <span className="text-[10px] text-slate-400 italic">{friendsQuip}</span>
+            {searchOn && onClearSearch && (
+              <button
+                onClick={onClearSearch}
+                className="ml-auto text-[11px] font-semibold text-orange-600 hover:text-orange-800 underline underline-offset-2"
+              >
+                Clear search
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -207,9 +254,19 @@ export function FriendsView({
                 Ask a classmate for their code and add it above — once added, you can overlay their schedule on yours.
               </p>
             </div>
+          ) : searchOn && shownFriends.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center">
+              <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-600 font-medium">No friends match your search</p>
+              <p className="text-slate-400 text-sm mt-1 max-w-sm mx-auto">
+                {chippedCourses.length > 0
+                  ? `None of your friends have ${chippedCourses.map(c => c.name).join(' or ')} selected yet.`
+                  : 'Try a different name or course.'}
+              </p>
+            </div>
           ) : (
             <ul className="space-y-2">
-              {friends.map(friend => {
+              {shownFriends.map(({ friend, sharedCourses }) => {
                 const specObjs = SPECS.filter(s => friend.specializations.includes(s.id));
                 const count = friendSelections.get(friend.id)?.size ?? 0;
                 const color = colorForFriend(friend.id);
@@ -258,6 +315,15 @@ export function FriendsView({
                           <span className="text-[10px] text-slate-400 inline-flex items-center gap-0.5">
                             <BookOpen className="w-3 h-3" /> {count}
                           </span>
+                          {sharedCourses.map(c => (
+                            <span
+                              key={c.id}
+                              title={c.name}
+                              className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 border border-orange-200"
+                            >
+                              takes {c.code ?? c.name}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     </button>

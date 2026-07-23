@@ -14,9 +14,11 @@ import { FriendDetailModal } from '@/components/planner/FriendDetailModal';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
 import { MobileDrawer } from '@/components/planner/MobileDrawer';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
+import { CourseSearch, EMPTY_SEARCH, type SearchState } from '@/components/planner/CourseSearch';
+import { matchesQuery } from '@/lib/courseSearch';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { generateScheduleICS } from '@/lib/calendar';
-import { GraduationCap, LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users } from 'lucide-react';
+import { GraduationCap, LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -61,6 +63,8 @@ export default function PlannerPage() {
   // Set when a chat-triggered PDF export needs the schedule view to render first
   // (window.print only captures the schedule layout, which is rendered in that view).
   const [pendingPdf, setPendingPdf] = useState(false);
+  // Course/friend search — one control in the header, shared across all three views.
+  const [search, setSearch] = useState<SearchState>(EMPTY_SEARCH);
 
   const { trackEvent } = useAnalytics(userId);
   const filtersDirtyRef = useRef(false);
@@ -72,6 +76,18 @@ export default function PlannerPage() {
     (type, courseId) => trackEvent(type, { course_id: courseId }),
   );
   const { sections: courseSections } = useCourseSections(userId);
+
+  // Courses the search is pointing at: every picked chip, plus anything the
+  // free text matches while the user is still typing (so results update live).
+  const searchMatchIds = new Set<number>(search.courseIds);
+  if (search.text.trim()) {
+    for (const c of ALL_COURSES) {
+      if (matchesQuery(c, search.text)) searchMatchIds.add(c.id);
+    }
+  }
+  // Only narrow the course views when the search actually points at courses — a
+  // friend-name search on the Friends tab must not blank out the course lists.
+  const courseSearchActive = searchMatchIds.size > 0;
 
   // ── Friends ──────────────────────────────────────────────
   const { friends, loading: friendsLoading, addByCode, removeFriend, regenerateCode } = useFriends(userId);
@@ -145,7 +161,8 @@ export default function PlannerPage() {
     if (!userId || !filtersDirtyRef.current) return;
     const timer = setTimeout(() => {
       trackEvent('filters_applied', { ...filters });
-      if (planVisibleCountRef.current === 0) {
+      // An empty list caused by a search isn't a filter dead end.
+      if (planVisibleCountRef.current === 0 && !courseSearchActive) {
         trackEvent('filter_dead_end', { ...filters });
       }
     }, 800);
@@ -234,6 +251,7 @@ export default function PlannerPage() {
     ALL_COURSES
       .filter(c => {
         if (c.type === 'exam' || c.type === 'free') return false;
+        if (courseSearchActive && !searchMatchIds.has(c.id)) return false;
         if (filters.showMandatoryOnly) {
           return c.type === 'mandatory' || (c.mandatoryFor && c.mandatoryFor.length > 0);
         }
@@ -435,6 +453,16 @@ export default function PlannerPage() {
               <span className="hidden sm:inline">Admin</span>
             </button>
           )}
+          <CourseSearch
+            viewMode={viewMode}
+            friends={friends}
+            boostIds={selected}
+            scheduleVisibleIds={scheduleVisibleIds}
+            value={search}
+            onChange={setSearch}
+            onGoToPlan={() => { setViewMode('plan'); trackEvent('view_changed', { to: 'plan', from: 'search' }); }}
+            trackEvent={trackEvent}
+          />
           {viewMode === 'schedule' && (
             <>
               <Dialog open={exportOpen} onOpenChange={(open) => { setExportOpen(open); if (open) trackEvent('export_dialog_opened'); }}>
@@ -622,14 +650,32 @@ export default function PlannerPage() {
         <main className="flex-1 overflow-y-auto min-h-0 max-lg:pb-20 print:overflow-visible print:h-auto">
           <div key={viewMode} className="h-full animate-view-fade-in">
           {viewMode === 'plan' ? (
-            <PlannerListView
-              selected={selected}
-              userSpecs={profile.specializations}
-              visibleIds={planVisibleIds}
-              onToggle={toggle}
-              onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
-              trackEvent={trackEvent}
-            />
+            <>
+              {courseSearchActive && (
+                <div className="sticky top-0 z-20 flex items-center gap-2 px-4 lg:px-6 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-800 print:hidden">
+                  <Search className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="font-semibold">
+                    {planVisibleIds.size === 0
+                      ? 'No courses match your search'
+                      : `${planVisibleIds.size} course${planVisibleIds.size === 1 ? '' : 's'} matching your search`}
+                  </span>
+                  <button
+                    onClick={() => { setSearch(EMPTY_SEARCH); trackEvent('search_cleared', { view: 'plan', source: 'banner' }); }}
+                    className="ml-auto font-semibold text-orange-600 hover:text-orange-800 underline underline-offset-2"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              )}
+              <PlannerListView
+                selected={selected}
+                userSpecs={profile.specializations}
+                visibleIds={planVisibleIds}
+                onToggle={toggle}
+                onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
+                trackEvent={trackEvent}
+              />
+            </>
           ) : viewMode === 'friends' ? (
             <FriendsView
               myCode={profile.friend_code}
@@ -643,6 +689,10 @@ export default function PlannerPage() {
               onRegenerate={handleRegenerateCode}
               onOpenDetail={setFriendDetail}
               trackEvent={trackEvent}
+              searchFriendIds={search.friendIds}
+              searchCourseIds={search.courseIds}
+              searchText={search.text}
+              onClearSearch={() => { setSearch(EMPTY_SEARCH); trackEvent('search_cleared', { view: 'friends', source: 'banner' }); }}
             />
           ) : (
             <>
@@ -673,6 +723,7 @@ export default function PlannerPage() {
                   onToggleOverlay={(friend) => handleToggleOverlay(friend, 'schedule')}
                   trackEvent={trackEvent}
                   courseSections={courseSections}
+                  highlightIds={courseSearchActive ? searchMatchIds : undefined}
                 />
               )}
             </>

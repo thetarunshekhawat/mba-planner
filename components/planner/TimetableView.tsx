@@ -21,9 +21,22 @@ interface Props {
   onToggleOverlay?: (friend: Friend) => void;
   trackEvent?: (type: EventType, payload?: Record<string, unknown>) => void;
   courseSections?: Map<number, string>;
+  /** Search hits. When set, matching pills are ringed and everything else dims. */
+  highlightIds?: Set<number>;
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** Orange ring drawn around courses matching the header search. */
+const SEARCH_RING = '#f97316';
+
+type SearchState = 'hit' | 'miss';
+
+/** 'hit' / 'miss' when a search is running, undefined otherwise. */
+function searchStateFor(highlightIds: Set<number> | undefined, id: number): SearchState | undefined {
+  if (!highlightIds || highlightIds.size === 0) return undefined;
+  return highlightIds.has(id) ? 'hit' : 'miss';
+}
 
 const TERM4_BLOCKS: { block: number; weekNum: 1 | 2; dates: string; start: string; end: string }[] = [
   { block: 16, weekNum: 1, dates: 'Jun 29 – Jul 5',  start: '2026-06-29', end: '2026-07-05' },
@@ -219,13 +232,15 @@ function FriendCoursePill({ course, overlay, state, onClick }: {
   );
 }
 
-function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSection, userSpecs, onClick }: {
+function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSection, userSpecs, searchState, onClick }: {
   course: Course;
   room: string;
   hasConflict: boolean;
   sectionAdvisory: SectionAdvisory | undefined;
   confirmedSection: string | undefined;
   userSpecs: SpecId[];
+  /** 'hit'/'miss' while a search is running; undefined when no search is active. */
+  searchState?: SearchState;
   onClick: () => void;
 }) {
   const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
@@ -252,12 +267,18 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
   return (
     <button
       onClick={onClick}
+      data-course-id={course.id}
+      data-search-hit={searchState === 'hit' ? 'true' : undefined}
       className="w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1.5"
       title={confirmedSection ? `Confirmed: Section ${confirmedSection}` : sectionAdvisory?.message}
       style={{
         background: isWaw ? WAW_GRADIENT : bg,
         borderLeft: `4px solid ${accent}`,
-        boxShadow: isWaw ? '0 1px 4px rgba(251,191,36,0.3)' : undefined,
+        boxShadow: searchState === 'hit'
+          ? `0 0 0 4px ${SEARCH_RING}33`
+          : isWaw ? '0 1px 4px rgba(251,191,36,0.3)' : undefined,
+        outline: searchState === 'hit' ? `2px solid ${SEARCH_RING}` : undefined,
+        opacity: searchState === 'miss' ? 0.25 : undefined,
       }}
     >
       <div className="flex items-center gap-1">
@@ -292,7 +313,7 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
   );
 }
 
-function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs, friendOverlays, onCourseClick }: {
+function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs, friendOverlays, highlightIds, onCourseClick }: {
   blockInfo: typeof TERM4_BLOCKS[0];
   courses: Course[];
   visibleIds: Set<number>;
@@ -301,6 +322,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
   assignedSections: Map<number, string>;
   userSpecs: SpecId[];
   friendOverlays: FriendOverlay[];
+  highlightIds?: Set<number>;
   onCourseClick: (c: Course) => void;
 }) {
   const blockCourses = courses
@@ -436,6 +458,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                                   sectionAdvisory={assignedSections.has(c.id) ? undefined : advisories.get(c.id)}
                                   confirmedSection={assignedSections.get(c.id)}
                                   userSpecs={userSpecs}
+                                  searchState={searchStateFor(highlightIds, c.id)}
                                   onClick={() => onCourseClick(c)}
                                 />
                               );
@@ -492,12 +515,13 @@ function SpecLegend() {
 }
 
 // Simple week-based list for terms without timing data
-function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, onCourseClick }: {
+function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, highlightIds, onCourseClick }: {
   courses: Course[];
   visibleIds: Set<number>;
   userSpecs: SpecId[];
   friendOverlays: FriendOverlay[];
   term: 4 | 5 | 6;
+  highlightIds?: Set<number>;
   onCourseClick: (c: Course) => void;
 }) {
   const visible = courses.filter(c => visibleIds.has(c.id));
@@ -541,10 +565,13 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
                 );
                 const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
                 const accent = isMandatoryForUserSpec ? '#dc2626' : getCourseAccent(c);
+                const searchState = searchStateFor(highlightIds, c.id);
                 return (
                   <button
                     key={c.id}
                     onClick={() => onCourseClick(c)}
+                    data-course-id={c.id}
+                    data-search-hit={searchState === 'hit' ? 'true' : undefined}
                     className="rounded-xl border-2 px-3 py-2 text-left hover:shadow-md transition-all"
                     style={{
                       borderColor: isMandatoryForUserSpec ? '#dc2626aa' : c.type === 'waw' ? '#fbbf24' : accent + '44',
@@ -552,9 +579,13 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
                         ? `linear-gradient(135deg, #fee2e2 0%, #fff5f5 60%, ${getCourseAccent(c)}10 100%)`
                         : c.type === 'waw' ? WAW_GRADIENT : accent + '0d',
                       minWidth: 160,
-                      boxShadow: isMandatoryForUserSpec
+                      boxShadow: searchState === 'hit'
+                        ? `0 0 0 4px ${SEARCH_RING}33`
+                        : isMandatoryForUserSpec
                         ? '0 2px 8px #dc262628'
                         : c.type === 'waw' ? '0 1px 4px rgba(251,191,36,0.3)' : undefined,
+                      outline: searchState === 'hit' ? `2px solid ${SEARCH_RING}` : undefined,
+                      opacity: searchState === 'miss' ? 0.25 : undefined,
                     }}
                   >
                     <div className="flex flex-wrap gap-1 mb-0.5">
@@ -616,9 +647,21 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
 export function TimetableView({
   selected, visibleIds, userSpecs, onCourseClick, selectedTerms,
   friendOverlays = [], friends = [], overlayIds, onToggleOverlay, trackEvent,
-  courseSections,
+  courseSections, highlightIds,
 }: Props) {
   const [showTerm1, setShowTerm1] = useState(false);
+
+  // Bring the first search hit into view once the grid has rendered with it.
+  const highlightSig = highlightIds ? [...highlightIds].sort((a, b) => a - b).join(',') : '';
+  useEffect(() => {
+    if (!highlightSig) return;
+    const id = requestAnimationFrame(() => {
+      document
+        .querySelector('[data-search-hit="true"]')
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [highlightSig]);
 
   const term4 = ALL_COURSES.filter(c => c.term === 4 && c.type !== 'exam' && c.type !== 'free');
   const term5 = ALL_COURSES.filter(c => c.term === 5 && c.type !== 'exam' && c.type !== 'free');
@@ -808,6 +851,7 @@ export function TimetableView({
                           assignedSections={assignedSections}
                           userSpecs={userSpecs}
                           friendOverlays={friendOverlays}
+                          highlightIds={highlightIds}
                           onCourseClick={onCourseClick}
                         />
                       </div>
@@ -827,6 +871,7 @@ export function TimetableView({
                       assignedSections={assignedSections}
                       userSpecs={userSpecs}
                       friendOverlays={friendOverlays}
+                      highlightIds={highlightIds}
                       onCourseClick={onCourseClick}
                     />
                   )}
@@ -852,12 +897,12 @@ export function TimetableView({
 
       <div className={selectedTerms.has(5) ? '' : 'print:hidden'}>
         <TermDivider label="Term 5" dateRange="Sep 28 – Dec 27, 2026" />
-        <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={5} onCourseClick={onCourseClick} />
+        <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={5} highlightIds={highlightIds} onCourseClick={onCourseClick} />
       </div>
 
       <div className={selectedTerms.has(6) ? '' : 'print:hidden'}>
         <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
-        <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={6} onCourseClick={onCourseClick} />
+        <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={6} highlightIds={highlightIds} onCourseClick={onCourseClick} />
       </div>
     </div>
   );

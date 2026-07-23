@@ -55,7 +55,14 @@ export type EventType =
   | 'chatbot_first_message_delay'
   | 'chatbot_message_copied'
   | 'chatbot_action_clicked'
-  | 'chatbot_navigate';
+  | 'chatbot_navigate'
+  // Course search
+  | 'search_opened'
+  | 'search_query'
+  | 'search_chip_picked'
+  | 'search_chip_removed'
+  | 'search_no_results'
+  | 'search_cleared';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

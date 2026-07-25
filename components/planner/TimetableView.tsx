@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Info, CheckCircle2, BookOpen, Users, Eye, EyeOff } from 'lucide-react';
+import { AlertTriangle, Info, CheckCircle2, BookOpen, Users, Eye, EyeOff, CalendarDays } from 'lucide-react';
 import type { Course, SpecId, Friend, FriendOverlay } from '@/types';
 import { colorForFriend } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
@@ -58,6 +58,25 @@ const TERM4_BLOCKS: { block: number; weekNum: 1 | 2; dates: string; start: strin
 const TERM4_TO_TERM1_WEEK_IDX: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12];
 
 function parseTs(iso: string) { return new Date(iso).getTime(); }
+
+// Index of the first row in TERM4_BLOCKS to show by default. Snaps to Week 1 of the block
+// whose date range contains today (so "all of Block 17" is visible on Jul 25, not just W2).
+// If today falls between blocks (e.g. the Aug 24–30 exam gap), snap to the next upcoming
+// block. If today is past the last block, fall back to 0 (show everything).
+function currentBlockStartIndex(now: Date = new Date()): number {
+  const t = now.getTime();
+  const inside = TERM4_BLOCKS.findIndex(b => parseTs(b.start) <= t && t <= parseTs(b.end));
+  if (inside !== -1) {
+    const blockNum = TERM4_BLOCKS[inside].block;
+    return TERM4_BLOCKS.findIndex(b => b.block === blockNum);
+  }
+  const next = TERM4_BLOCKS.findIndex(b => parseTs(b.start) > t);
+  if (next !== -1) {
+    const blockNum = TERM4_BLOCKS[next].block;
+    return TERM4_BLOCKS.findIndex(b => b.block === blockNum);
+  }
+  return 0;
+}
 
 function courseInBlock(c: Course, start: string, end: string) {
   return parseTs(c.startDate) <= parseTs(end) && parseTs(c.endDate) >= parseTs(start);
@@ -232,7 +251,7 @@ function FriendCoursePill({ course, overlay, state, onClick }: {
   );
 }
 
-function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSection, userSpecs, searchState, onClick }: {
+function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSection, userSpecs, searchState, printHidden, onClick }: {
   course: Course;
   room: string;
   hasConflict: boolean;
@@ -241,6 +260,8 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
   userSpecs: SpecId[];
   /** 'hit'/'miss' while a search is running; undefined when no search is active. */
   searchState?: SearchState;
+  /** Hide from PDF export (print media) only; still visible on screen. */
+  printHidden?: boolean;
   onClick: () => void;
 }) {
   const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
@@ -269,7 +290,7 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
       onClick={onClick}
       data-course-id={course.id}
       data-search-hit={searchState === 'hit' ? 'true' : undefined}
-      className="w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1.5"
+      className={`w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1.5${printHidden ? ' print:hidden' : ''}`}
       title={confirmedSection ? `Confirmed: Section ${confirmedSection}` : sectionAdvisory?.message}
       style={{
         background: isWaw ? WAW_GRADIENT : bg,
@@ -459,6 +480,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                                   confirmedSection={assignedSections.get(c.id)}
                                   userSpecs={userSpecs}
                                   searchState={searchStateFor(highlightIds, c.id)}
+                                  printHidden={!!highlightIds && highlightIds.size > 0 && !highlightIds.has(c.id)}
                                   onClick={() => onCourseClick(c)}
                                 />
                               );
@@ -650,6 +672,9 @@ export function TimetableView({
   courseSections, highlightIds,
 }: Props) {
   const [showTerm1, setShowTerm1] = useState(false);
+  const [showAllBlocks, setShowAllBlocks] = useState(false);
+  const startIdx = showAllBlocks ? 0 : currentBlockStartIndex();
+  const searchActive = !!highlightIds && highlightIds.size > 0;
 
   // Bring the first search hit into view once the grid has rendered with it.
   const highlightSig = highlightIds ? [...highlightIds].sort((a, b) => a - b).join(',') : '';
@@ -813,15 +838,42 @@ export function TimetableView({
               Reference only — for students retaking Term 1 subjects alongside Term 4
             </span>
           )}
+          <button
+            onClick={() => setShowAllBlocks(v => !v)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+              border: showAllBlocks ? '1.5px solid #6366f1' : '1.5px solid #d1d5db',
+              backgroundColor: showAllBlocks ? '#eef2ff' : '#ffffff',
+              color: showAllBlocks ? '#4338ca' : '#6b7280',
+              fontSize: 12, fontWeight: 600,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            }}
+          >
+            <CalendarDays size={13} />
+            {showAllBlocks ? '✓ Show all blocks' : 'Show all blocks'}
+          </button>
+          {showAllBlocks && (
+            <span style={{ fontSize: 11, color: '#6b7280' }}>
+              Including past blocks
+            </span>
+          )}
         </div>
 
         {!hasTerm4Content ? (
           <p className="text-sm text-gray-400 italic px-1 mb-8">No Term 4 courses selected.</p>
         ) : (
           <>
-            {TERM4_BLOCKS.map((b, i) => (
-                <div key={`${b.block}-${b.weekNum}`}>
-                  {i === 8 && (
+            {TERM4_BLOCKS.map((b, i) => {
+              if (i < startIdx) return null;
+              const blockHasSearchHit = searchActive
+                ? term4.some(c => highlightIds!.has(c.id) && c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id))
+                : true;
+              const blockPrintHiddenClass = searchActive && !blockHasSearchHit ? 'print:hidden' : '';
+              const showExamBanner = b.block === 20 && b.weekNum === 1;
+              return (
+                <div key={`${b.block}-${b.weekNum}`} className={blockPrintHiddenClass}>
+                  {showExamBanner && (
                     showTerm1 ? (
                       <div className="flex flex-col lg:flex-row mb-3 rounded-lg overflow-hidden" style={{ border: '1px dashed #fca5a5' }}>
                         <div style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 14px', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center' }}>
@@ -855,9 +907,9 @@ export function TimetableView({
                           onCourseClick={onCourseClick}
                         />
                       </div>
-                      <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
-                      <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
-                      <div className="w-full lg:w-[300px] lg:flex-shrink-0">
+                      <div className={`lg:hidden h-px flex-shrink-0${searchActive ? ' print:hidden' : ''}`} style={{ backgroundColor: '#c7d2fe' }} />
+                      <div className={`hidden lg:block flex-shrink-0${searchActive ? ' print:hidden' : ''}`} style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+                      <div className={`w-full lg:w-[300px] lg:flex-shrink-0${searchActive ? ' print:hidden' : ''}`}>
                         <Term1GanttPanel activeWeekIndices={[TERM4_TO_TERM1_WEEK_IDX[i]]} />
                       </div>
                     </div>
@@ -876,7 +928,8 @@ export function TimetableView({
                     />
                   )}
                 </div>
-              ))}
+              );
+            })}
 
             {/* Term 1 Week 14 — runs one week after Term 4 ends */}
             {showTerm1 && (

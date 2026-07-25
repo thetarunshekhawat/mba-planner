@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Info, CheckCircle2, BookOpen, Users, Eye, EyeOff, CalendarDays } from 'lucide-react';
+import { AlertTriangle, Info, CheckCircle2, BookOpen, Users, Eye, EyeOff, CalendarDays, CalendarCheck } from 'lucide-react';
 import type { Course, SpecId, Friend, FriendOverlay } from '@/types';
 import { colorForFriend } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
@@ -76,6 +76,16 @@ function currentBlockStartIndex(now: Date = new Date()): number {
     return TERM4_BLOCKS.findIndex(b => b.block === blockNum);
   }
   return 0;
+}
+
+function todayUtc(now: Date = new Date()): Date {
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+}
+
+function isSameUtcDay(a: Date, b: Date): boolean {
+  return a.getUTCFullYear() === b.getUTCFullYear()
+    && a.getUTCMonth() === b.getUTCMonth()
+    && a.getUTCDate() === b.getUTCDate();
 }
 
 function courseInBlock(c: Course, start: string, end: string) {
@@ -402,17 +412,28 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                 const d = new Date(blockInfo.start);
                 d.setUTCDate(d.getUTCDate() + i);
                 const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-                
+                const isTodayCol = isSameUtcDay(d, todayUtc());
+
                 return (
                   <th key={day}
+                    data-today={isTodayCol ? 'true' : undefined}
                     className={`px-2 py-2 text-center border-r last:border-r-0 border-slate-600 ${
-                      i >= 5 ? 'bg-slate-800' : ''
+                      isTodayCol ? 'bg-orange-500 print:bg-slate-700' : i >= 5 ? 'bg-slate-800' : ''
                     }`}
                   >
-                    <div className={`text-[11px] font-bold uppercase tracking-wider ${i >= 5 ? 'text-slate-400' : 'text-slate-200'}`}>
+                    {isTodayCol && (
+                      <div className="text-[8px] font-black uppercase tracking-widest text-white bg-orange-700/60 rounded-sm px-1 mb-0.5 inline-block print:hidden">
+                        Today
+                      </div>
+                    )}
+                    <div className={`text-[11px] font-bold uppercase tracking-wider ${
+                      isTodayCol ? 'text-white print:text-slate-200' : i >= 5 ? 'text-slate-400' : 'text-slate-200'
+                    }`}>
                       {day}
                     </div>
-                    <div className={`text-[9px] font-medium mt-0.5 ${i >= 5 ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <div className={`text-[9px] font-medium mt-0.5 ${
+                      isTodayCol ? 'text-orange-100 print:text-slate-400' : i >= 5 ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
                       {dateStr}
                     </div>
                   </th>
@@ -429,6 +450,9 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                   {slot}
                 </td>
                 {DAYS.map((day, di) => {
+                  const dCol = new Date(blockInfo.start);
+                  dCol.setUTCDate(dCol.getUTCDate() + di);
+                  const isTodayCell = isSameUtcDay(dCol, todayUtc());
                   const dayCourses = blockCourses.filter(c =>
                     c.timings?.some(t => {
                       const effectiveDays = effectiveDaysFor(c, t, blockInfo.start, blockInfo.weekNum);
@@ -438,7 +462,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                   return (
                     <td key={day}
                       className={`px-1.5 py-1.5 border-r last:border-r-0 border-gray-100 align-top ${
-                        di >= 5 ? 'bg-gray-50/60' : ''
+                        isTodayCell ? 'bg-orange-50 print:bg-transparent' : di >= 5 ? 'bg-gray-50/60' : ''
                       }`}
                       style={{ minWidth: 90 }}
                     >
@@ -858,6 +882,36 @@ export function TimetableView({
               Including past blocks
             </span>
           )}
+          {(() => {
+            const todayTs = todayUtc().getTime();
+            const todayInTerm4 = TERM4_BLOCKS.some(b => parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end));
+            return (
+              <button
+                onClick={() => {
+                  const el = document.querySelector('[data-current-block="true"]')
+                    ?? document.querySelector('[data-today="true"]');
+                  el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                disabled={!todayInTerm4}
+                title={todayInTerm4 ? 'Scroll to today' : "Today isn't inside Term 4"}
+                className="print:hidden"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '5px 14px', borderRadius: 20,
+                  cursor: todayInTerm4 ? 'pointer' : 'not-allowed',
+                  border: '1.5px solid #f97316',
+                  backgroundColor: todayInTerm4 ? '#fff7ed' : '#f9fafb',
+                  color: todayInTerm4 ? '#c2410c' : '#9ca3af',
+                  fontSize: 12, fontWeight: 600,
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  opacity: todayInTerm4 ? 1 : 0.6,
+                }}
+              >
+                <CalendarCheck size={13} />
+                Today
+              </button>
+            );
+          })()}
         </div>
 
         {!hasTerm4Content ? (
@@ -871,8 +925,14 @@ export function TimetableView({
                 : true;
               const blockPrintHiddenClass = searchActive && !blockHasSearchHit ? 'print:hidden' : '';
               const showExamBanner = b.block === 20 && b.weekNum === 1;
+              const todayTs = todayUtc().getTime();
+              const isCurrentBlockWeek = parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end);
               return (
-                <div key={`${b.block}-${b.weekNum}`} className={blockPrintHiddenClass}>
+                <div
+                  key={`${b.block}-${b.weekNum}`}
+                  className={blockPrintHiddenClass}
+                  data-current-block={isCurrentBlockWeek ? 'true' : undefined}
+                >
                   {showExamBanner && (
                     showTerm1 ? (
                       <div className="flex flex-col lg:flex-row mb-3 rounded-lg overflow-hidden" style={{ border: '1px dashed #fca5a5' }}>

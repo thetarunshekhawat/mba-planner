@@ -5,7 +5,13 @@ import { createClient } from '@/lib/supabase/client';
 
 type OnEvent = (type: 'course_selected' | 'course_removed', courseId: number) => void;
 
-export function useSelections(userId: string | null, onEvent?: OnEvent) {
+/**
+ * `readOnly` is the demo account (lib/demo.ts). Toggles still move local
+ * state so the planner feels live, but nothing is written and no analytics
+ * event fires. The database refuses these writes anyway (migration 015);
+ * skipping them here just avoids a click that visibly snaps back.
+ */
+export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly = false) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -28,6 +34,13 @@ export function useSelections(userId: string | null, onEvent?: OnEvent) {
 
   const toggle = useCallback(async (courseId: number) => {
     if (!userId) return;
+
+    if (readOnly) {
+      const next = new Set(selected);
+      if (next.has(courseId)) next.delete(courseId); else next.add(courseId);
+      setSelected(next);
+      return;
+    }
 
     const next = new Set(selected);
     if (next.has(courseId)) {
@@ -55,7 +68,7 @@ export function useSelections(userId: string | null, onEvent?: OnEvent) {
         onEventRef.current?.('course_selected', courseId);
       }
     }
-  }, [userId, selected]);
+  }, [userId, selected, readOnly]);
 
   const selectBatch = useCallback(async (courseIds: number[]) => {
     if (!userId || courseIds.length === 0) return;
@@ -64,10 +77,11 @@ export function useSelections(userId: string | null, onEvent?: OnEvent) {
     const next = new Set(selected);
     toAdd.forEach(id => next.add(id));
     setSelected(next);
+    if (readOnly) return;
     await supabase
       .from('course_selections')
       .upsert(toAdd.map(course_id => ({ user_id: userId, course_id })));
-  }, [userId, selected]);
+  }, [userId, selected, readOnly]);
 
   const deselectBatch = useCallback(async (courseIds: number[]) => {
     if (!userId || courseIds.length === 0) return;
@@ -76,12 +90,13 @@ export function useSelections(userId: string | null, onEvent?: OnEvent) {
     const next = new Set(selected);
     toRemove.forEach(id => next.delete(id));
     setSelected(next);
+    if (readOnly) return;
     await supabase
       .from('course_selections')
       .delete()
       .eq('user_id', userId)
       .in('course_id', toRemove);
-  }, [userId, selected]);
+  }, [userId, selected, readOnly]);
 
   return { selected, loading, toggle, selectBatch, deselectBatch };
 }

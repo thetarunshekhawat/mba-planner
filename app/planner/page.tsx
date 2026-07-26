@@ -16,9 +16,10 @@ import { MobileDrawer } from '@/components/planner/MobileDrawer';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
 import { CourseSearch, EMPTY_SEARCH, type SearchState } from '@/components/planner/CourseSearch';
 import { matchesQuery } from '@/lib/courseSearch';
+import { isDemoEmail } from '@/lib/demo';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { generateScheduleICS } from '@/lib/calendar';
-import { LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search } from 'lucide-react';
+import { LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search, Eye } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -72,9 +73,13 @@ export default function PlannerPage() {
   const modalOpenTimeRef = useRef<number | null>(null);
   const modalCourseRef = useRef<Course | null>(null);
   const planVisibleCountRef = useRef(0);
+  // The shared demo login used by faculty reviewing the project. Everything
+  // renders and responds as usual, but no change is persisted.
+  const isDemo = isDemoEmail(profile?.email);
   const { selected, loading, toggle, selectBatch, deselectBatch } = useSelections(
     userId,
     (type, courseId) => trackEvent(type, { course_id: courseId }),
+    isDemo,
   );
   const { sections: courseSections } = useCourseSections(userId);
 
@@ -91,7 +96,7 @@ export default function PlannerPage() {
   const courseSearchActive = searchMatchIds.size > 0;
 
   // ── Friends ──────────────────────────────────────────────
-  const { friends, loading: friendsLoading, addByCode, removeFriend, regenerateCode } = useFriends(userId);
+  const { friends, loading: friendsLoading, addByCode, removeFriend, regenerateCode } = useFriends(userId, isDemo);
   const [overlayIds, setOverlayIds] = useState<Set<string>>(new Set());
   const [friendDetail, setFriendDetail] = useState<Friend | null>(null);
 
@@ -231,7 +236,9 @@ export default function PlannerPage() {
     }
     trackEvent('spec_toggled', { spec, action: current.includes(spec) ? 'removed' : 'added' });
     setProfile({ ...profile, specializations: next });
-    await supabase.from('profiles').update({ specializations: next }).eq('id', profile.id);
+    if (!isDemo) {
+      await supabase.from('profiles').update({ specializations: next }).eq('id', profile.id);
+    }
 
     // Auto-select/deselect mandatory courses for the toggled spec
     const mandatoryCourses = ALL_COURSES.filter(c => c.mandatoryFor?.includes(spec));
@@ -443,6 +450,18 @@ export default function PlannerPage() {
 
         {/* Right side actions */}
         <div className="flex-1 flex items-center justify-end gap-2">
+          {/* Honest label for the shared review login: everything works, but a
+              reviewer's clicks are not saved, and without this the plan
+              silently resetting on the next visit would read as a bug. */}
+          {isDemo && (
+            <span
+              title="Read-only demo. Selections are not saved."
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30"
+            >
+              <Eye className="w-3 h-3" />
+              Demo
+            </span>
+          )}
           {profile?.email && ADMIN_EMAILS.has(profile.email.toLowerCase()) && (
             <button
               onClick={() => { trackEvent('admin_dashboard_accessed'); router.push('/admin'); }}

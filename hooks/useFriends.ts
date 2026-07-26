@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Friend, SpecId } from '@/types';
 
-export type AddFriendReason = 'code_not_found' | 'self_add' | 'already_friends' | 'error';
+export type AddFriendReason = 'code_not_found' | 'self_add' | 'already_friends' | 'error' | 'demo_read_only';
 export type AddFriendResult =
   | { ok: true; friend: Friend }
   | { ok: false; reason: AddFriendReason };
@@ -15,8 +15,14 @@ export type AddFriendResult =
  *
  * Add is two-way (the SECURITY DEFINER rpc inserts both directed rows);
  * remove is one-way (a plain RLS delete of only the viewer's own edge).
+ *
+ * `readOnly` is the demo account: removes drop out of the local list so the
+ * UI responds, and adds are refused without touching the graph. Adding is
+ * the one action that would write to a *real* student's row, so it is the
+ * one place the demo shows a message instead of pretending. The RPCs also
+ * refuse it server-side (migration 015).
  */
-export function useFriends(userId: string | null) {
+export function useFriends(userId: string | null, readOnly = false) {
   const supabase = createClient();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +70,8 @@ export function useFriends(userId: string | null) {
       return { ok: false, reason: 'already_friends' };
     }
 
+    if (readOnly) return { ok: false, reason: 'demo_read_only' };
+
     const { data, error } = await supabase.rpc('add_friend_by_code', { p_code: trimmed });
     if (error) {
       const msg = error.message || '';
@@ -89,19 +97,21 @@ export function useFriends(userId: string | null) {
   const removeFriend = useCallback(async (friendId: string) => {
     if (!userId) return;
     setFriends(prev => prev.filter(f => f.id !== friendId)); // optimistic
+    if (readOnly) return;
     const { error } = await supabase
       .from('friendships')
       .delete()
       .eq('viewer_id', userId)
       .eq('friend_id', friendId);
     if (error) refresh(); // revert by reloading truth
-  }, [userId, refresh]);
+  }, [userId, refresh, readOnly]);
 
   const regenerateCode = useCallback(async (): Promise<string | null> => {
+    if (readOnly) return null;
     const { data, error } = await supabase.rpc('regenerate_friend_code');
     if (error) return null;
     return (data as string) ?? null;
-  }, []);
+  }, [readOnly]);
 
   return { friends, loading, addByCode, removeFriend, regenerateCode, refresh };
 }

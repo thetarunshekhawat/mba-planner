@@ -36,6 +36,9 @@ const ADD_ERRORS: Record<string, string> = {
   code_not_found: "No one found with that code. Double-check and try again.",
   self_add: "That's your own code 🙂",
   already_friends: "You're already friends.",
+  // Adding is the one demo action that would write to a real student's row,
+  // so it says so rather than faking success.
+  demo_read_only: 'This is a read-only demo, so friends cannot be added.',
   error: 'Something went wrong. Try again.',
 };
 

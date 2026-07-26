@@ -8,6 +8,7 @@ import { PROFESSORS } from '@/data/professors';
 import { ProfessorRing } from './ProfessorRing';
 import { FactTicker } from './FactTicker';
 import { useLandingAnalytics } from '@/hooks/useLandingAnalytics';
+import { isDemoEmail } from '@/lib/demo';
 
 const ANGLE_PER = 360 / PROFESSORS.length;
 
@@ -159,11 +160,51 @@ export function LoginForm() {
   }, [trackRingTouch, trackDragState]);
   const handleIntroComplete = useCallback(() => setIntroComplete(true), []);
 
+  // The demo account skips the code entirely: a server route mints its
+  // session, so faculty reviewing the project can get in without a mailbox.
+  // It lands in the planner read-only (see lib/demo.ts + migration 015).
+  async function signInAsDemo() {
+    const res = await fetch('/api/demo-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.toLowerCase().trim() }),
+    });
+
+    if (!res.ok) {
+      setStatus('error');
+      setErrorMsg('Demo sign-in unavailable.');
+      return;
+    }
+
+    const { token_hash } = await res.json();
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash,
+      type: 'magiclink',
+    });
+
+    if (error || !data.user) {
+      setStatus('error');
+      setErrorMsg('Demo sign-in failed.');
+      return;
+    }
+
+    trackLoginAttempted();
+    linkToUser(data.user.id);
+    setStatus('idle');
+    setDispersing(true);
+    setTimeout(() => router.push('/planner'), 850);
+  }
+
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
     setStatus('loading');
     setErrorMsg('');
+
+    if (isDemoEmail(email)) {
+      await signInAsDemo();
+      return;
+    }
 
     const { data: entry } = await supabase
       .from('cohort_whitelist')

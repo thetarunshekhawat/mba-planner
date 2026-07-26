@@ -10,9 +10,10 @@ import { FilterSidebar, type Filters } from '@/components/planner-kyoto/FilterSi
 import { CourseDetailModal } from '@/components/planner-kyoto/CourseDetailModal';
 import { generateScheduleICS } from '@/lib/calendar';
 import {
-  GraduationCap, LayoutList, CalendarDays, Menu, X,
+  LayoutList, CalendarDays, Menu, X,
   CalendarPlus, CalendarHeart, Download, ShieldCheck,
 } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -257,10 +258,19 @@ export default function KyotoPage() {
 
           <div className="flex items-center gap-2">
             <div
-              className="w-7 h-7 rounded-sm flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: 'var(--accent)' }}
+              className="flex items-center flex-shrink-0"
+              style={
+                {
+                  // Kyoto runs a warm paper palette, so the mark takes the
+                  // route's vermilion for the tile and paper for the glyph
+                  // rather than the default slate/amber.
+                  '--logo-tile': 'var(--accent)',
+                  '--logo-mark-from': 'var(--bg)',
+                  '--logo-mark-to': 'var(--surface)',
+                } as React.CSSProperties
+              }
             >
-              <GraduationCap className="w-4 h-4 text-white" />
+              <Logo size={28} radius={7} />
             </div>
             <span
               className="font-bold text-sm hidden sm:inline"

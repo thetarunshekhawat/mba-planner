@@ -18,7 +18,8 @@ import { CourseSearch, EMPTY_SEARCH, type SearchState } from '@/components/plann
 import { matchesQuery } from '@/lib/courseSearch';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { generateScheduleICS } from '@/lib/calendar';
-import { GraduationCap, LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search } from 'lucide-react';
+import { LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -375,9 +376,7 @@ export default function PlannerPage() {
       <header className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 bg-slate-900/95 backdrop-blur border-b border-white/10 sticky top-0 z-30 print:hidden">
         <div className="flex-1 flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
-              <GraduationCap className="w-4 h-4 text-white" />
-            </div>
+            <Logo size={28} className="rounded-lg flex-shrink-0" />
             <span className="text-white font-semibold text-sm hidden sm:inline">MBA Planner</span>
             <span className="text-slate-500 text-xs hidden sm:inline">· BITSoM Co&apos;27</span>
           </div>

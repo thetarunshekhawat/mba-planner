@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { GraduationCap, Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle, MousePointerClick, Copy, Zap, BarChart2, User2 } from 'lucide-react';
+import { Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle, MousePointerClick, Copy, Zap, BarChart2, User2 } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -1089,9 +1090,7 @@ export function AdminDashboard({
         </button>
         <div className="w-px h-4 bg-white/10" />
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center">
-            <GraduationCap className="w-4 h-4 text-white" />
-          </div>
+          <Logo size={28} className="rounded-lg flex-shrink-0" />
           <span className="text-white font-semibold text-sm">Admin Dashboard</span>
           <span className="text-slate-500 text-xs">· BITSoM Co&apos;27</span>
         </div>

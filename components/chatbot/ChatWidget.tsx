@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MessageCircle, X, Sparkles, SquarePen, Copy, Check } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
@@ -13,6 +13,7 @@ import { DisambiguationChips, type Chip } from './DisambiguationChips';
 import { ActionChips } from './ActionChips';
 import { NudgeBubble } from './NudgeBubble';
 import { ACTIONS_SENTINEL, type ChatAction } from '@/lib/chat/actions';
+import { isCourseCompleted } from '@/lib/terms';
 
 type TrackEvent = (eventType: EventType, payload?: Record<string, unknown>) => void;
 
@@ -104,6 +105,17 @@ export function ChatWidget({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, open, busy]);
+
+  // Greeting course list: the courses still ahead of the student come first, finished ones sink
+  // to the bottom marked "Done". They stay tappable — asking about a course you just finished is
+  // fair — but they no longer sit at the top of the list as if they were the thing to prep for.
+  const greetingCourses = useMemo(
+    () =>
+      courses
+        .map((course) => ({ course, done: isCourseCompleted(course) }))
+        .sort((a, b) => Number(a.done) - Number(b.done)),
+    [courses],
+  );
 
   // ── Proactive "mood" nudges ─────────────────────────────────────────────────
   const { loadPool, nextNudge } = useChatNudges(userId, courses, specializations);
@@ -520,15 +532,17 @@ export function ChatWidget({
                   <div className="rounded-xl border border-border bg-muted/30 p-2.5 space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground px-0.5">Your courses this term</p>
                     <div className="space-y-1">
-                      {courses.map((c) => (
+                      {greetingCourses.map(({ course: c, done }) => (
                         <button
                           key={c.id}
                           disabled={busy}
                           onClick={() => setPrefill({ text: `${c.name} `, key: Date.now() })}
-                          className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className={`w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed${
+                            done ? ' opacity-55' : ''
+                          }`}
                         >
                           <span className="shrink-0 text-[10px] font-semibold text-muted-foreground bg-muted rounded px-1 py-0.5 tabular-nums">
-                            Wk {c.week}
+                            {done ? 'Done' : `Wk ${c.week}`}
                           </span>
                           <span className="flex-1 font-medium truncate">{c.name}</span>
                           <span className="shrink-0 text-[10px] text-muted-foreground">

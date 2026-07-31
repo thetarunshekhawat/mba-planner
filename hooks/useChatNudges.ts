@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import type { Course, SpecId } from '@/types';
-import { campusToday, getCurrentTerm } from '@/lib/terms';
+import { campusToday, completedCourseCodes, getCurrentTerm } from '@/lib/terms';
 import { fallbackNudges, type Nudge } from '@/lib/chat/nudgeFallback';
 
 export interface ActiveNudge extends Nudge {
@@ -21,8 +21,17 @@ function nudgeId(text: string): string {
   return h.toString(36);
 }
 
-function withIds(nudges: Nudge[]): ActiveNudge[] {
-  return nudges.map((n) => ({ ...n, id: nudgeId(n.text) }));
+/**
+ * The single gate every nudge passes through before it can be shown — from the API, from the
+ * session cache, or from the local fallback. Anything pinned to a course whose last class has
+ * passed is dropped here, so a new nudge source can't reintroduce stale prep advice by
+ * forgetting to filter: the server-side engine filters too, this is the backstop.
+ */
+function prepare(nudges: Nudge[]): ActiveNudge[] {
+  const completed = completedCourseCodes();
+  return nudges
+    .filter((n) => n.staysAfterEnd || !n.courseCode || !completed.has(n.courseCode))
+    .map((n) => ({ ...n, id: nudgeId(n.text) }));
 }
 
 // Seen-ids persist in localStorage (not sessionStorage) so an insight a student has already been
@@ -70,7 +79,7 @@ export function useChatNudges(userId: string | null, courses: Course[], specs: S
   const sig = `${campusToday()}|${courses.map((c) => c.id).sort((a, b) => a - b).join(',')}`;
 
   const localPool = useCallback(
-    (): ActiveNudge[] => withIds(fallbackNudges(coursesRef.current, specsRef.current, getCurrentTerm())),
+    (): ActiveNudge[] => prepare(fallbackNudges(coursesRef.current, specsRef.current, getCurrentTerm())),
     [],
   );
 
@@ -83,7 +92,7 @@ export function useChatNudges(userId: string | null, courses: Course[], specs: S
       if (sessionStorage?.getItem(SIG_KEY) === sig) {
         const cached = JSON.parse(sessionStorage.getItem(POOL_KEY) ?? 'null') as Nudge[] | null;
         if (cached && cached.length) {
-          poolRef.current = withIds(cached);
+          poolRef.current = prepare(cached);
           loadingRef.current = false;
           return;
         }
@@ -102,7 +111,7 @@ export function useChatNudges(userId: string | null, courses: Course[], specs: S
     }
     if (pool.length === 0) pool = fallbackNudges(coursesRef.current, specsRef.current, getCurrentTerm());
 
-    poolRef.current = withIds(pool);
+    poolRef.current = prepare(pool);
     try {
       sessionStorage?.setItem(POOL_KEY, JSON.stringify(pool));
       sessionStorage?.setItem(SIG_KEY, sig);

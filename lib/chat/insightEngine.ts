@@ -193,5 +193,8 @@ export function selectInsightNudges(selectedCourses: Course[]): Nudge[] {
     text: pickVoice(r, daySeed),
     courseCode: r.primaryCourse,
     seedQuestion: r.seedQuestion,
+    // Forward-looking insights point at later terms, so they outlive their own course; the
+    // client gate needs to know that before it suppresses anything tied to a finished course.
+    ...(r.facet === 'forward' ? { staysAfterEnd: true } : {}),
   }));
 }

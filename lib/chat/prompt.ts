@@ -5,7 +5,7 @@
 
 import type { Course, SpecId } from '@/types';
 import { SPECS } from '@/data/courses';
-import { biddingNote, type TermId } from '@/lib/terms';
+import { biddingNote, campusToday, type TermId } from '@/lib/terms';
 import { APP_GUIDE, ASSISTANT_CAPABILITIES } from './appGuide';
 import type { ChatMessage } from './nemotron';
 
@@ -22,11 +22,38 @@ function uniqueDays(days: string[]): string[] {
   return Array.from(new Set(days));
 }
 
+/** Where a course sits relative to today. Course dates are plain YYYY-MM-DD strings,
+ *  so lexical compares against the campus date are exact calendar compares. */
+export type CourseStage = 'completed' | 'running' | 'upcoming';
+
+export function courseStage(c: Course, today: string = campusToday()): CourseStage {
+  if (c.endDate < today) return 'completed';
+  if (c.startDate > today) return 'upcoming';
+  return 'running';
+}
+
+/** Plain-English status, so the model never talks about a finished course as if it were
+ *  still ahead of the student. */
+function stageLabel(c: Course, today: string): string {
+  switch (courseStage(c, today)) {
+    case 'completed': return `COMPLETED — last class was ${c.endDate}`;
+    case 'running':   return 'RUNNING NOW';
+    case 'upcoming':  return 'not started yet';
+  }
+}
+
+/** The same status as a bracketed tag, appended wherever a course is listed. */
+function stageTag(c: Course, today: string): string {
+  return ` [${stageLabel(c, today)}]`;
+}
+
 /** Human-readable schedule + an explicit approximate session count so the model
  *  doesn't have to guess "how many days" — the trickiest factual question. */
 function describeSchedule(c: Course): string {
+  const today = campusToday();
   const lines: string[] = [];
   lines.push(`Dates: ${c.dates} (${c.startDate} to ${c.endDate})`);
+  lines.push(`Status as of today (${today}): ${stageLabel(c, today)}`);
 
   const span = daysBetweenInclusive(c.startDate, c.endDate);
   const weeks = Math.max(1, Math.round(span / 7));
@@ -120,6 +147,7 @@ Rules:
 - The STUDENT CONTEXT holds the student's own details, including their name and their personal friend code. That is THEIR data — answer questions like "what is my friend code?" or "what's my name on file?" directly from it. Never say you don't have access to the student's own information.
 - Use the APP GUIDE to answer "where do I find X?" / "how do I get to X?" questions with the exact location (which tab, where on it). When a matching "take me there" button is shown beneath your reply, invite the student to tap it.
 - Use ASSISTANT CAPABILITIES to be honest about what you can do here versus what the student must do themselves in the app. You cannot select/drop/bid courses, change specializations, add/remove friends, or edit their profile — never claim you did. Instead, tell them exactly where to do it and offer the "take me there" button.
+- Respect where each course sits on the calendar. Every course listing carries a status: [COMPLETED — last class was <date>], [RUNNING NOW], or [not started yet], measured against today's date in the STUDENT CONTEXT. For a COMPLETED course, speak in the past tense and never give preparation advice — no "install the software before day one", no "front-load your prep", no "attendance will matter". Answer factually about what it covered, or help the student build on it (what it sets up for later terms). Never imply a finished course is still ahead of them.
 - Respect the bidding state in the STUDENT CONTEXT: the current term's courses are locked, so never suggest dropping, swapping, or reconsidering them — help the student prepare for and get the most out of them. For later terms (still open for bidding) it is fine to weigh options, compare courses, and discuss fit.
 - Never invent course specifics. If a detail is not present in the provided data (for example, the number of credits is not in these outlines), say plainly that it is not specified in the outline rather than guessing.
 - The "Approximate number of class days/sessions" figure is an estimate derived from the schedule — present it as approximate.
@@ -138,10 +166,10 @@ function specLabelsFrom(ids: SpecId[]): string {
   return ids.map((id) => SPECS.find((s) => s.id === id)?.label ?? id).join(', ');
 }
 
-function courseLine(c: Course): string {
+function courseLine(c: Course, today: string): string {
   return `- ${c.name}${c.code ? ` (${c.code})` : ''} — Term ${c.term}, week ${c.week}, ${c.dates}${
     c.type === 'mandatory' ? ' [mandatory for all students]' : ''
-  }`;
+  }${stageTag(c, today)}`;
 }
 
 export interface StudentContext {
@@ -161,7 +189,9 @@ export interface StudentContext {
 
 /** A system block telling the model who the student is and the bidding scenario. */
 export function buildStudentContext(ctx: StudentContext): string {
+  const today = campusToday();
   const parts: string[] = ['STUDENT CONTEXT (who you are helping — this is the student\'s own data):'];
+  parts.push(`Today's date: ${today} (IST). Every course below carries its status as of today.`);
 
   const name = ctx.name?.trim();
   const email = ctx.email?.trim();
@@ -183,7 +213,9 @@ export function buildStudentContext(ctx: StudentContext): string {
 
   parts.push(`Current term: Term ${ctx.currentTerm}.`);
   if (ctx.termCourses.length) {
-    parts.push(`Courses this term (locked — bidding is done):\n${ctx.termCourses.map(courseLine).join('\n')}`);
+    parts.push(
+      `Courses this term (locked — bidding is done):\n${ctx.termCourses.map((c) => courseLine(c, today)).join('\n')}`,
+    );
   } else {
     parts.push('Courses this term: none on record.');
   }
@@ -191,7 +223,7 @@ export function buildStudentContext(ctx: StudentContext): string {
   const later = ctx.allSelected.filter((c) => c.term > ctx.currentTerm);
   if (later.length) {
     parts.push(
-      `Tentative picks for later terms (bidding still open, may change):\n${later.map(courseLine).join('\n')}`,
+      `Tentative picks for later terms (bidding still open, may change):\n${later.map((c) => courseLine(c, today)).join('\n')}`,
     );
   }
 
@@ -205,7 +237,10 @@ export function buildStudentContext(ctx: StudentContext): string {
  *  nudge in real data (grading weights live inside highlights/lowlights), without the
  *  full outline. Kept compact since this covers ALL of a student's selected courses. */
 function nudgeFacts(courses: Course[]): string {
+  // Finished courses are left out entirely — a nudge is prep advice, and prep advice for a
+  // course whose last class has passed is noise.
   return courses
+    .filter((c) => courseStage(c) !== 'completed')
     .map((c) => {
       const bits: string[] = [];
       bits.push(`${c.name}${c.code ? ` (${c.code})` : ''} — Term ${c.term}, ${c.dates}`);
@@ -298,8 +333,9 @@ export function buildMessages(opts: {
       content: `COURSE DATA for the course in question:\n\n${buildCourseContext(opts.course, opts.outlineText)}`,
     });
   } else if (opts.selectedCourses && opts.selectedCourses.length) {
+    const today = campusToday();
     const brief = opts.selectedCourses
-      .map((c) => `- ${c.name}${c.code ? ` (${c.code})` : ''}: ${c.dates}, faculty ${c.faculty || 'TBA'}, workload ${c.review?.workload ?? 'n/a'}`)
+      .map((c) => `- ${c.name}${c.code ? ` (${c.code})` : ''}: ${c.dates}, faculty ${c.faculty || 'TBA'}, workload ${c.review?.workload ?? 'n/a'}${stageTag(c, today)}`)
       .join('\n');
     messages.push({
       role: 'system',

@@ -16,6 +16,10 @@ export interface Nudge {
   courseCode: string | null;
   /** What to drop into the chat input when the student taps through. */
   seedQuestion: string;
+  /** Set when the nudge is about what comes AFTER its course ends (e.g. the Term 5 sequel), so
+   *  it stays relevant past the last class. Everything else is suppressed once the course is
+   *  over — see the gate in hooks/useChatNudges. */
+  staysAfterEnd?: boolean;
 }
 
 const HEAVY: ReadonlySet<string> = new Set(['Moderate-High', 'Moderate - High', 'High', 'Heavy']);

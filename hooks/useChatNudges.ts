@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import type { Course, SpecId } from '@/types';
-import { getCurrentTerm } from '@/lib/terms';
+import { campusToday, getCurrentTerm } from '@/lib/terms';
 import { fallbackNudges, type Nudge } from '@/lib/chat/nudgeFallback';
 
 export interface ActiveNudge extends Nudge {
@@ -65,7 +65,9 @@ export function useChatNudges(userId: string | null, courses: Course[], specs: S
   coursesRef.current = courses;
   specsRef.current = specs;
 
-  const sig = courses.map((c) => c.id).sort((a, b) => a - b).join(',');
+  // The date is part of the signature: the pool excludes courses that have already finished,
+  // so a pool cached before midnight must not be reused once another course has ended.
+  const sig = `${campusToday()}|${courses.map((c) => c.id).sort((a, b) => a - b).join(',')}`;
 
   const localPool = useCallback(
     (): ActiveNudge[] => withIds(fallbackNudges(coursesRef.current, specsRef.current, getCurrentTerm())),

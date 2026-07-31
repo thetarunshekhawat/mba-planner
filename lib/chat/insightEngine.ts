@@ -10,6 +10,7 @@
 
 import type { Course, SpecId } from '@/types';
 import type { Nudge } from './nudgeFallback';
+import { completedCourseCodes } from '@/lib/terms';
 import engine from '@/data/term4Insights.json';
 
 // --- Condition AST (produced offline; we only evaluate it here) ---------------
@@ -107,6 +108,17 @@ function evalAst(node: Ast, ctx: EvalCtx): boolean {
   }
 }
 
+// --- Staleness: drop insights about courses the student has already finished -------------------
+// Prep advice ("front-load this one", "attendance is strict", "40% is group work") is noise once
+// the last class is over, and "you skipped X" is moot for a course that can no longer be taken.
+// The one exception is forward-looking insights about a course the student actually took ("liked
+// FSA? here's the Term 5 sequel") — those only get MORE relevant after the course ends, so they
+// survive as long as every course they name is one of the student's own picks.
+function isStale(rec: InsightRecord, completed: Set<string>, selected: Set<string>): boolean {
+  if (!rec.courseCodes.some((c) => completed.has(c))) return false;
+  return !(rec.facet === 'forward' && rec.courseCodes.every((c) => selected.has(c)));
+}
+
 // --- Ordering: tier-weighted + diversity-aware greedy schedule ---------------------------------
 const TIER_WEIGHT: Record<Tier, number> = { Critical: 5, High: 4, Medium: 3, Low: 2, Flavor: 1 };
 const COURSE_GAP = 3;     // try not to repeat a course within this many slots
@@ -168,8 +180,11 @@ export function selectInsightNudges(selectedCourses: Course[]): Nudge[] {
   }
   if (selected.size === 0) return [];
 
+  // Conditions still see the full selection (portfolio facts like exam_count describe the whole
+  // term); only the resulting insights are filtered for staleness.
   const ctx: EvalCtx = { selected, specs, vars: portfolioVars([...selected]) };
-  const eligible = INSIGHTS.filter((r) => evalAst(r.cond, ctx));
+  const completed = completedCourseCodes();
+  const eligible = INSIGHTS.filter((r) => evalAst(r.cond, ctx) && !isStale(r, completed, selected));
   const ordered = orderForDisplay(eligible);
 
   const daySeed = Math.floor(Date.now() / 86_400_000);

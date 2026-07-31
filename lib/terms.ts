@@ -23,6 +23,36 @@ export function getCurrentTerm(now: Date = new Date()): TermId {
 }
 
 /**
+ * Today's date on the campus calendar as YYYY-MM-DD. Pinned to IST so the server
+ * (UTC on Vercel) and the student's browser agree on when a course has finished —
+ * both sides decide which nudges are still relevant, so they must not disagree.
+ */
+export function campusToday(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(now);
+}
+
+/** A course is "completed" once its last class day has passed. Course dates are plain
+ *  YYYY-MM-DD strings, so a lexical compare is an exact calendar-date compare. */
+export function isCourseCompleted(course: Course, today: string = campusToday()): boolean {
+  return course.endDate < today;
+}
+
+/**
+ * Course codes whose teaching is fully over. A code can appear on more than one row
+ * (e.g. SADT has an Aug 5 makeup session), so a course counts as finished only once
+ * every row carrying that code has ended.
+ */
+export function completedCourseCodes(today: string = campusToday()): Set<string> {
+  const lastDay = new Map<string, string>();
+  for (const c of ALL_COURSES) {
+    if (!c.code) continue;
+    const prev = lastDay.get(c.code);
+    if (!prev || c.endDate > prev) lastDay.set(c.code, c.endDate);
+  }
+  return new Set([...lastDay].filter(([, end]) => end < today).map(([code]) => code));
+}
+
+/**
  * The courses a student is taking in `term`, ordered by occurrence (earliest first).
  * Includes every globally-mandatory course for the term (e.g. "AI in Business") even
  * if the student hasn't explicitly selected it, plus their selected electives.

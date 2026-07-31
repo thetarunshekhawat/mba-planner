@@ -5,7 +5,7 @@
 
 import type { Course, SpecId } from '@/types';
 import { SPECS } from '@/data/courses';
-import type { TermId } from '@/lib/terms';
+import { isCourseCompleted, type TermId } from '@/lib/terms';
 
 export interface Nudge {
   /** "fact" = self-sufficient insight; "question" = curiosity hook to open the chat. */
@@ -49,8 +49,11 @@ function gradingNudge(c: Course): Nudge | null {
  * Build a small, varied pool of personalized nudges from the student's selected courses.
  * Ordering roughly reflects usefulness; the scheduler shuffles/de-dupes from here.
  */
-export function fallbackNudges(courses: Course[], specs: SpecId[], currentTerm: TermId): Nudge[] {
+export function fallbackNudges(allCourses: Course[], specs: SpecId[], currentTerm: TermId): Nudge[] {
   const out: Nudge[] = [];
+  // Courses whose last class has passed are dropped up front: grading, workload and
+  // "want the inside scoop" nudges are all prep advice, useless once the course is over.
+  const courses = allCourses.filter((c) => !isCourseCompleted(c));
   if (courses.length === 0) return out;
 
   // 1. Grading heads-up (only where the data actually carries a weight).
@@ -73,7 +76,8 @@ export function fallbackNudges(courses: Course[], specs: SpecId[], currentTerm: 
   // 3. Spec progress — how their picks ladder up to a specialization.
   if (specs.length) {
     const spec = specs[0];
-    const count = courses.filter((c) => c.specs.includes(spec)).length;
+    // Counts every pick, finished ones included — it's a tally of their choices, not prep advice.
+    const count = allCourses.filter((c) => c.specs.includes(spec)).length;
     if (count > 0) {
       out.push({
         type: 'fact',

@@ -283,7 +283,11 @@ function WeekGroup({
             ? 'bg-red-50 text-red-400 border-red-200'
             : 'bg-green-50 text-green-500 border-green-200'
           }`}>
-          {special.type === 'exam' ? '📝 Exam Week — No electives' : '🟢 Free Week'}
+          {/* Use the row's own name — Term 5 distinguishes Exam Break from Exam Week, and
+              Placements Week from Term Break. Falling back to a generic label would erase that. */}
+          {special.type === 'exam'
+            ? `📝 ${special.name} — No electives`
+            : `🟢 ${special.name}`}
         </div>
       </div>
     );

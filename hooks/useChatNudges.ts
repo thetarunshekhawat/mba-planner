@@ -61,7 +61,13 @@ function writeSeen(seen: Set<string>): void {
  * if the endpoint is empty. `nextNudge` hands back the next not-yet-seen nudge and marks
  * it seen so reloads within the session don't repeat it.
  */
-export function useChatNudges(userId: string | null, courses: Course[], specs: SpecId[]) {
+export function useChatNudges(
+  userId: string | null,
+  courses: Course[],
+  specs: SpecId[],
+  /** Full cross-term selection; defaults to `courses`. Only used for the cache signature. */
+  signatureCourses: Course[] = courses,
+) {
   const poolRef = useRef<ActiveNudge[] | null>(null);
   const loadingRef = useRef(false);
   const seenRef = useRef<Set<string>>(readSeen());
@@ -76,7 +82,7 @@ export function useChatNudges(userId: string | null, courses: Course[], specs: S
 
   // The date is part of the signature: the pool excludes courses that have already finished,
   // so a pool cached before midnight must not be reused once another course has ended.
-  const sig = `${campusToday()}|${courses.map((c) => c.id).sort((a, b) => a - b).join(',')}`;
+  const sig = `${campusToday()}|${signatureCourses.map((c) => c.id).sort((a, b) => a - b).join(',')}`;
 
   const localPool = useCallback(
     (): ActiveNudge[] => prepare(fallbackNudges(coursesRef.current, specsRef.current, getCurrentTerm())),

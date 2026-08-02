@@ -13,14 +13,44 @@ interface Props {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const TERM4_BLOCKS: { block: number; dates: string; start: string; end: string }[] = [
-  { block: 16, dates: 'Jun 29 – Jul 12', start: '2026-06-29', end: '2026-07-12' },
-  { block: 17, dates: 'Jul 13 – 26',     start: '2026-07-13', end: '2026-07-26' },
-  { block: 18, dates: 'Jul 27 – Aug 9',  start: '2026-07-27', end: '2026-08-09' },
-  { block: 19, dates: 'Aug 10 – 23',     start: '2026-08-10', end: '2026-08-23' },
-  { block: 20, dates: 'Aug 31 – Sep 13', start: '2026-08-31', end: '2026-09-13' },
-  { block: 21, dates: 'Sep 14 – 27',     start: '2026-09-14', end: '2026-09-27' },
-];
+interface KyotoBlock {
+  block: number;
+  dates: string;
+  start: string;
+  end: string;
+  /** Non-teaching notices rendered above this block. */
+  banners?: { label: string; tone: 'exam' | 'break' }[];
+}
+
+// Whole-block rows (this skin collapses both weeks of a block into one table).
+// Keep in sync with SCHEDULE_BY_TERM in components/planner/TimetableView.tsx.
+const BLOCKS_BY_TERM: Record<number, KyotoBlock[]> = {
+  4: [
+    { block: 16, dates: 'Jun 29 – Jul 12', start: '2026-06-29', end: '2026-07-12' },
+    { block: 17, dates: 'Jul 13 – 26',     start: '2026-07-13', end: '2026-07-26' },
+    { block: 18, dates: 'Jul 27 – Aug 9',  start: '2026-07-27', end: '2026-08-09' },
+    { block: 19, dates: 'Aug 10 – 23',     start: '2026-08-10', end: '2026-08-23' },
+    { block: 20, dates: 'Aug 31 – Sep 13', start: '2026-08-31', end: '2026-09-13',
+      banners: [{ label: 'Exam Week — Aug 24–28', tone: 'exam' }] },
+    { block: 21, dates: 'Sep 14 – 27',     start: '2026-09-14', end: '2026-09-27' },
+  ],
+  5: [
+    { block: 22, dates: 'Sep 28 – Oct 11', start: '2026-09-28', end: '2026-10-11' },
+    { block: 23, dates: 'Oct 12 – 25',     start: '2026-10-12', end: '2026-10-25' },
+    { block: 24, dates: 'Oct 26 – Nov 8',  start: '2026-10-26', end: '2026-11-08' },
+    { block: 25, dates: 'Nov 23 – Dec 6',  start: '2026-11-23', end: '2026-12-06',
+      banners: [
+        { label: 'Exam Break — Nov 9–15', tone: 'exam' },
+        { label: 'Placements Week — Nov 16–22', tone: 'break' },
+      ] },
+    { block: 26, dates: 'Dec 7 – 20',      start: '2026-12-07', end: '2026-12-20' },
+  ],
+};
+
+const TERM_META: Record<number, { label: string; dateRange: string }> = {
+  4: { label: 'Term 4', dateRange: 'Jun 29 – Sep 27, 2026' },
+  5: { label: 'Term 5', dateRange: 'Sep 28 – Dec 27, 2026' },
+};
 
 function parseTs(iso: string) { return new Date(iso).getTime(); }
 
@@ -119,7 +149,7 @@ function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
 }
 
 function BlockTable({ blockInfo, courses, visibleIds, conflictIds, userSpecs, onCourseClick }: {
-  blockInfo: typeof TERM4_BLOCKS[0];
+  blockInfo: KyotoBlock;
   courses: Course[];
   visibleIds: Set<number>;
   conflictIds: Set<number>;
@@ -415,11 +445,56 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
   const allVisible = ALL_COURSES.filter(c => visibleIds.has(c.id));
   const conflictIds = getConflictIds(allVisible, visibleIds);
 
-  const hasTerm4Content = TERM4_BLOCKS.some(b =>
-    term4.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)),
-  );
-
   const conflictCourses = allVisible.filter(c => conflictIds.has(c.id));
+
+  const coursesByTermId: Record<number, Course[]> = { 4: term4, 5: term5 };
+
+  function renderTerm(term: number) {
+    const blocks = BLOCKS_BY_TERM[term];
+    const meta = TERM_META[term];
+    const courses = coursesByTermId[term];
+    const hasContent = blocks.some(b =>
+      courses.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)),
+    );
+
+    return (
+      <div key={term}>
+        <TermDivider label={meta.label} dateRange={meta.dateRange} />
+        {!hasContent ? (
+          <p style={{ fontSize: 13, color: 'var(--ash)', fontStyle: 'italic', paddingLeft: 2, marginBottom: 24 }}>
+            No {meta.label} courses selected.
+          </p>
+        ) : (
+          blocks.map(b => (
+            <div key={b.block}>
+              {b.banners?.map((n, ni) => (
+                <div
+                  key={ni}
+                  style={{
+                    marginBottom: 14, borderRadius: 'var(--radius)', padding: '7px 12px',
+                    fontSize: 12, fontWeight: 500,
+                    border: n.tone === 'exam' ? '1px dashed #fca5a5' : '1px dashed #93c5fd',
+                    backgroundColor: n.tone === 'exam' ? '#fff5f5' : '#eff6ff',
+                    color: n.tone === 'exam' ? '#ef4444' : '#3b82f6',
+                  }}
+                >
+                  {n.tone === 'exam' ? '📝' : '🗓'} {n.label}
+                </div>
+              ))}
+              <BlockTable
+                blockInfo={b}
+                courses={courses}
+                visibleIds={visibleIds}
+                conflictIds={conflictIds}
+                userSpecs={userSpecs}
+                onCourseClick={onCourseClick}
+              />
+            </div>
+          ))
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -438,39 +513,8 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
         </div>
       )}
 
-      <TermDivider label="Term 4" dateRange="Jun 29 – Sep 27, 2026" />
-
-      {!hasTerm4Content ? (
-        <p style={{ fontSize: 13, color: 'var(--ash)', fontStyle: 'italic', paddingLeft: 2, marginBottom: 24 }}>No Term 4 courses selected.</p>
-      ) : (
-        <>
-          {TERM4_BLOCKS.map((b, i) => (
-            <div key={b.block}>
-              {i === 4 && (
-                <div style={{ marginBottom: 14, borderRadius: 'var(--radius)', padding: '7px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #fca5a5', backgroundColor: '#fff5f5', color: '#ef4444' }}>
-                  📝 Exam Week — Aug 24–28
-                </div>
-              )}
-              {i === 5 && (
-                <div style={{ marginBottom: 14, borderRadius: 'var(--radius)', padding: '7px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #86efac', backgroundColor: '#f0fdf4', color: '#16a34a' }}>
-                  🟢 Free Week — Sep 7–11
-                </div>
-              )}
-              <BlockTable
-                blockInfo={b}
-                courses={term4}
-                visibleIds={visibleIds}
-                conflictIds={conflictIds}
-                userSpecs={userSpecs}
-                onCourseClick={onCourseClick}
-              />
-            </div>
-          ))}
-        </>
-      )}
-
-      <TermDivider label="Term 5" dateRange="Sep 28 – Dec 27, 2026" />
-      <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+      {renderTerm(4)}
+      {renderTerm(5)}
 
       <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
       <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />

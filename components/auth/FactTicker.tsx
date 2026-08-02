@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 interface Props {
+  /** May briefly be empty while the professor ring is mid-rotation. */
   text: string;
 }
 
@@ -13,6 +14,10 @@ export function FactTicker({ text }: Props) {
   useEffect(() => {
     setDisplayed('');
     setDone(false);
+    if (!text) {
+      setDone(true);
+      return;
+    }
     let i = 0;
     const id = setInterval(() => {
       i++;

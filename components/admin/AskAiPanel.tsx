@@ -31,7 +31,7 @@ interface ThreadEntry extends QueryResult {
 const EXAMPLE_PROMPTS = [
   'Who was active today between 7 and 8 pm?',
   "Members who haven't signed in in the last 7 days",
-  'Most popular Term 4 courses',
+  'Most popular Term 5 courses',
   'How many people have built a plan?',
 ];
 

@@ -781,6 +781,7 @@ export default function PlannerPage() {
       <ChatWidget
         userId={userId}
         courses={getTermCourses(selected, getCurrentTerm())}
+        plannedCourses={ALL_COURSES.filter(c => selected.has(c.id))}
         specializations={profile?.specializations ?? []}
         trackEvent={trackEvent}
         onAction={handleChatAction}

@@ -1,17 +1,24 @@
-// Deterministic, zero-LLM nudge selector backed by the combined Term-4 insight engine
-// (data/term4Insights.json — built by "Term4 Combined Engine/merge_engines.py", which merges
-// both hand-built engines, normalizes course codes, and dedupes). Server-only: the catalogue
-// JSON is bundled into the route's server function, never shipped to the client.
+// Deterministic, zero-LLM nudge selector backed by the per-term insight engines
+// (data/term4Insights.json — built by "Term4 Combined Engine/merge_engines.py";
+//  data/term5Insights.json — built by "Term5 Insight Engine/build.py").
+// Server-only: the catalogue JSON is bundled into the route's server function, never
+// shipped to the client.
 //
-// Given a student's selected courses it: computes portfolio variables (mirroring the reference
-// selector.py exactly), evaluates each insight's compiled condition AST, then orders the eligible
-// set by a tier-weighted, diversity-aware greedy schedule so high-priority insights lead while
-// lower-priority ones still surface and same-course / same-topic insights are spread apart.
+// Given a student's selected courses it: computes portfolio variables PER TERM (mirroring the
+// reference selector.py exactly), evaluates each insight's compiled condition AST against its
+// own term's context, then orders the combined eligible set by a tier-weighted, diversity-aware
+// greedy schedule so high-priority insights lead while lower-priority ones still surface and
+// same-course / same-topic insights are spread apart.
+//
+// Portfolio variables are deliberately scoped to one term. `selected_count`, `exam_count` and
+// `max_block_load` describe the load of a single term, so pooling Term 4 and Term 5 selections
+// into one context would produce numbers that are true of neither.
 
 import type { Course, SpecId } from '@/types';
 import type { Nudge } from './nudgeFallback';
 import { completedCourseCodes } from '@/lib/terms';
-import engine from '@/data/term4Insights.json';
+import term4Engine from '@/data/term4Insights.json';
+import term5Engine from '@/data/term5Insights.json';
 
 // --- Condition AST (produced offline; we only evaluate it here) ---------------
 type Ast =
@@ -57,28 +64,43 @@ interface CourseMeta {
   blocks: string[];
 }
 
-const INSIGHTS = engine.insights as unknown as InsightRecord[];
-const COURSE_META = engine.course_meta as unknown as Record<string, CourseMeta>;
+interface Engine {
+  insights: InsightRecord[];
+  courseMeta: Record<string, CourseMeta>;
+}
+
+/** One catalogue per term. A term with no engine simply contributes no nudges. */
+const ENGINES: Record<number, Engine> = {
+  4: {
+    insights: term4Engine.insights as unknown as InsightRecord[],
+    courseMeta: term4Engine.course_meta as unknown as Record<string, CourseMeta>,
+  },
+  5: {
+    insights: term5Engine.insights as unknown as InsightRecord[],
+    courseMeta: term5Engine.course_meta as unknown as Record<string, CourseMeta>,
+  },
+};
 
 // --- Portfolio variables (1:1 with Term4 Insight Engine/selector.py::portfolio_vars) ----------
-function portfolioVars(engineCodes: string[]): Record<string, number> {
-  const S = engineCodes.filter((c) => COURSE_META[c]); // only the 12 catalogued electives
+// Scoped to a single term's selection and that term's catalogue.
+function portfolioVars(engineCodes: string[], meta: Record<string, CourseMeta>): Record<string, number> {
+  const S = engineCodes.filter((c) => meta[c]); // only this term's catalogued courses
   const n = S.length;
-  const gpcts = S.map((c) => COURSE_META[c].group_pct);
+  const gpcts = S.map((c) => meta[c].group_pct);
 
   // busiest two-week block: max courses the selection puts in any single block
   const blockLoad = new Map<string, number>();
-  for (const c of S) for (const b of COURSE_META[c].blocks) blockLoad.set(b, (blockLoad.get(b) ?? 0) + 1);
+  for (const c of S) for (const b of meta[c].blocks) blockLoad.set(b, (blockLoad.get(b) ?? 0) + 1);
 
   return {
     selected_count: n,
     group_work_pct: n ? gpcts.reduce((a, b) => a + b, 0) / n : 0,
-    peer_eval_count: S.filter((c) => COURSE_META[c].peer_eval_pct > 0).length,
-    quant_heavy_count: S.filter((c) => COURSE_META[c].quant_heavy).length,
-    exam_count: S.filter((c) => COURSE_META[c].exam).length,
-    strict_attendance_count: S.filter((c) => COURSE_META[c].strict_attendance).length,
-    group_heavy_count: S.filter((c) => COURSE_META[c].group_heavy).length,
-    ai_friendly_count: S.filter((c) => COURSE_META[c].ai_friendly).length,
+    peer_eval_count: S.filter((c) => meta[c].peer_eval_pct > 0).length,
+    quant_heavy_count: S.filter((c) => meta[c].quant_heavy).length,
+    exam_count: S.filter((c) => meta[c].exam).length,
+    strict_attendance_count: S.filter((c) => meta[c].strict_attendance).length,
+    group_heavy_count: S.filter((c) => meta[c].group_heavy).length,
+    ai_friendly_count: S.filter((c) => meta[c].ai_friendly).length,
     max_block_load: blockLoad.size ? Math.max(...blockLoad.values()) : 0,
   };
 }
@@ -172,19 +194,32 @@ function pickVoice(rec: InsightRecord, daySeed: number): string {
  * Pure and model-free — safe to call on every request with no API cost.
  */
 export function selectInsightNudges(selectedCourses: Course[]): Nudge[] {
-  const selected = new Set<string>();
+  // Specializations are a property of the student, not of a term, so they are shared.
   const specs = new Set<SpecId>();
-  for (const c of selectedCourses) {
-    if (c.code) selected.add(c.code);
-    for (const s of c.specs) specs.add(s);
-  }
-  if (selected.size === 0) return [];
+  for (const c of selectedCourses) for (const s of c.specs) specs.add(s);
 
-  // Conditions still see the full selection (portfolio facts like exam_count describe the whole
-  // term); only the resulting insights are filtered for staleness.
-  const ctx: EvalCtx = { selected, specs, vars: portfolioVars([...selected]) };
+  // Group the student's codes by term so each engine is evaluated against its own load.
+  const codesByTerm = new Map<number, Set<string>>();
+  for (const c of selectedCourses) {
+    if (!c.code || !ENGINES[c.term]) continue;
+    if (!codesByTerm.has(c.term)) codesByTerm.set(c.term, new Set());
+    codesByTerm.get(c.term)!.add(c.code);
+  }
+  if (codesByTerm.size === 0) return [];
+
   const completed = completedCourseCodes();
-  const eligible = INSIGHTS.filter((r) => evalAst(r.cond, ctx) && !isStale(r, completed, selected));
+  const eligible: InsightRecord[] = [];
+
+  for (const [term, selected] of codesByTerm) {
+    const engine = ENGINES[term];
+    // Conditions see this term's full selection (portfolio facts like exam_count describe the
+    // whole term); only the resulting insights are filtered for staleness.
+    const ctx: EvalCtx = { selected, specs, vars: portfolioVars([...selected], engine.courseMeta) };
+    for (const r of engine.insights) {
+      if (evalAst(r.cond, ctx) && !isStale(r, completed, selected)) eligible.push(r);
+    }
+  }
+
   const ordered = orderForDisplay(eligible);
 
   const daySeed = Math.floor(Date.now() / 86_400_000);

@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { useRouter } from 'next/navigation';
 import { AskAiPanel } from './AskAiPanel';
+import { MetricsPanel } from './MetricsPanel';
 
 interface MemberSelection {
   user_id: string;
@@ -76,6 +77,7 @@ interface GroupedSession {
 
 type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot' | 'ask-ai';
 type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
+type InsightsSubTab = 'overview' | 'metrics';
 
 
 const EVENT_LABELS: Record<string, string> = {
@@ -334,6 +336,65 @@ function BarRow({
   );
 }
 
+// PostgREST caps every response at 1000 rows regardless of what the client asks for, so any
+// table larger than that has to be paged through explicitly. Without this the dashboard was
+// reading an arbitrary 1000 of ~16k user_events — and since the query had no ORDER BY, *which*
+// 1000 was undefined. Every derived number depended on that slice.
+const PAGE = 1000;
+
+async function fetchAllRows<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  build: () => any,
+  hardCap = 100_000,
+): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; from < hardCap; from += PAGE) {
+    const { data, error } = await build().range(from, from + PAGE - 1);
+    if (error || !data) break;
+    out.push(...(data as T[]));
+    if (data.length < PAGE) break;
+  }
+  return out;
+}
+
+// ── Distribution helpers for the Metrics tab ────────────────────────────────
+export interface Dist {
+  n: number; mean: number; median: number; q1: number; q3: number;
+  iqr: number; p90: number; min: number; max: number;
+}
+
+/** Quantile by linear interpolation on a pre-sorted ascending array. */
+function quantile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  if (sorted.length === 1) return sorted[0];
+  const pos = (sorted.length - 1) * p;
+  const lo = Math.floor(pos);
+  const hi = Math.ceil(pos);
+  return lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+}
+
+function describe(values: number[]): Dist {
+  const s = [...values].sort((a, b) => a - b);
+  if (s.length === 0) {
+    return { n: 0, mean: 0, median: 0, q1: 0, q3: 0, iqr: 0, p90: 0, min: 0, max: 0 };
+  }
+  const q1 = quantile(s, 0.25);
+  const q3 = quantile(s, 0.75);
+  return {
+    n: s.length,
+    mean: s.reduce((a, b) => a + b, 0) / s.length,
+    median: quantile(s, 0.5),
+    q1,
+    q3,
+    iqr: q3 - q1,
+    p90: quantile(s, 0.9),
+    min: s[0],
+    max: s[s.length - 1],
+  };
+}
+
+const DAY_MS = 86_400_000;
+
 export function AdminDashboard({
   adminUserId,
   isSuperAdmin,
@@ -380,6 +441,7 @@ export function AdminDashboard({
 
   // Per-member detail data
   const [memberSubTab, setMemberSubTab] = useState<MemberSubTab>('courses');
+  const [insightsSubTab, setInsightsSubTab] = useState<InsightsSubTab>('overview');
   const [memberSessions, setMemberSessions] = useState<SessionRow[]>([]);
   const [memberEvents, setMemberEvents] = useState<EventRow[]>([]);
   const [memberDataLoading, setMemberDataLoading] = useState(false);
@@ -393,7 +455,10 @@ export function AdminDashboard({
   const [specSort, setSpecSort] = useState<'count' | 'alpha'>('count');
   const [showAllCourses, setShowAllCourses] = useState(false);
   const [courseListSort, setCourseListSort] = useState<'popular' | 'alpha'>('popular');
-  const [courseTermFilter, setCourseTermFilter] = useState<number | 'all'>('all');
+  // Dashboard-wide term filter. Course-scoped numbers (selections, popularity, member course
+  // lists, the metrics distributions) all narrow to the chosen term; term-less facts such as
+  // logins and sessions stay visible under every filter, otherwise the funnel would break.
+  const [termFilter, setTermFilter] = useState<number | 'all'>('all');
 
   type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel' | 'friends-social' | 'ai-chatbot' | 'admin-ai-activity';
   const [inDepthSection, setInDepthSection] = useState<InDepthSection | null>(null);
@@ -431,13 +496,14 @@ export function AdminDashboard({
 
   useEffect(() => {
     Promise.all([
-      supabase.from('profiles').select('*'),
-      supabase.from('course_selections').select('user_id, course_id').limit(10000),
+      fetchAllRows<Profile>(() => supabase.from('profiles').select('*').order('id')),
+      fetchAllRows<MemberSelection>(() =>
+        supabase.from('course_selections').select('user_id, course_id').order('id')),
       supabase.from('cohort_whitelist').select('email, display_name'),
       supabase.rpc('get_user_last_sign_in'),
-    ]).then(([{ data: p }, { data: s }, { data: w }, { data: l }]) => {
-      setProfiles((p ?? []) as Profile[]);
-      setSelections((s ?? []) as MemberSelection[]);
+    ]).then(([p, s, { data: w }, { data: l }]) => {
+      setProfiles(p);
+      setSelections(s);
       setWhitelistEmails((w ?? []) as { email: string; display_name: string }[]);
       setLastSignIns((l ?? []) as LastSignInRow[]);
       setLoading(false);
@@ -447,16 +513,14 @@ export function AdminDashboard({
   // Reload landing funnel data every time Insights tab opens
   useEffect(() => {
     if (tab !== 'insights') return;
-    supabase
+    fetchAllRows<LandingSession>(() => supabase
       .from('landing_sessions')
       .select('id, user_id, landed_at, first_ring_interaction_at, ring_interaction_ms, login_attempted, login_succeeded, abandoned, device_type, browser')
-      .order('landed_at', { ascending: false })
-      .then(({ data }) => setLandingSessions((data ?? []) as LandingSession[]));
-    supabase
+      .order('landed_at', { ascending: false })).then(setLandingSessions);
+    fetchAllRows<FriendshipRow>(() => supabase
       .from('friendships')
       .select('viewer_id, friend_id, created_by, created_at')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => setFriendships((data ?? []) as FriendshipRow[]));
+      .order('created_at', { ascending: false })).then(setFriendships);
   }, [tab]);
 
   // Lazy-load analytics data when Activity, Insights, or In-Depth tab first opens
@@ -464,18 +528,22 @@ export function AdminDashboard({
     if ((tab !== 'activity' && tab !== 'insights' && tab !== 'in-depth' && tab !== 'chatbot') || analyticsLoadedRef.current) return;
     analyticsLoadedRef.current = true;
     Promise.all([
-      supabase
+      fetchAllRows<SessionRow>(() => supabase
         .from('user_sessions')
-        .select('user_id, session_start, session_end, duration_seconds, metadata'),
-      supabase.from('user_events').select('user_id, event_type, payload, occurred_at'),
-      supabase
+        .select('user_id, session_start, session_end, duration_seconds, metadata')
+        .order('session_start', { ascending: false })),
+      fetchAllRows<EventRow>(() => supabase
+        .from('user_events')
+        .select('user_id, event_type, payload, occurred_at')
+        .order('occurred_at', { ascending: false })),
+      fetchAllRows<ChatbotMsgRow>(() => supabase
         .from('chatbot_messages')
         .select('user_id, conversation_id, role, content, course_code, intent, model, latency_ms, created_at')
-        .order('created_at', { ascending: false }),
-    ]).then(([{ data: s }, { data: e }, { data: cm }]) => {
-      setSessions((s ?? []) as SessionRow[]);
-      setEvents((e ?? []) as EventRow[]);
-      setChatbotMessages((cm ?? []) as ChatbotMsgRow[]);
+        .order('created_at', { ascending: false })),
+    ]).then(([s, e, cm]) => {
+      setSessions(s);
+      setEvents(e);
+      setChatbotMessages(cm);
     });
   }, [tab]);
 
@@ -661,14 +729,24 @@ export function AdminDashboard({
 
   // ── Derived cohort stats ──────────────────────────────────────────────────
 
+  // course_id -> term. The database stores only integer course ids, so term always has to be
+  // resolved through the catalogue in data/courses.ts.
+  const termOfCourse = new Map<number, number>(ALL_COURSES.map(c => [c.id, c.term]));
+  const inTerm = (courseId: number) =>
+    termFilter === 'all' || termOfCourse.get(courseId) === termFilter;
+
+  const filteredSelections = termFilter === 'all'
+    ? selections
+    : selections.filter(s => inTerm(s.course_id));
+
   const selectionsByUser = new Map<string, Set<number>>();
-  for (const s of selections) {
+  for (const s of filteredSelections) {
     if (!selectionsByUser.has(s.user_id)) selectionsByUser.set(s.user_id, new Set());
     selectionsByUser.get(s.user_id)!.add(s.course_id);
   }
 
   const membersWithSelections = profiles.filter(p => (selectionsByUser.get(p.id)?.size ?? 0) > 0).length;
-  const avgSelections = profiles.length ? (selections.length / profiles.length).toFixed(1) : '0';
+  const avgSelections = profiles.length ? (filteredSelections.length / profiles.length).toFixed(1) : '0';
 
   const specCounts: Record<SpecId, number> = { FIN: 0, OPS: 0, ENT: 0, ECOM: 0, MKT: 0, LSTR: 0 };
   for (const p of profiles) {
@@ -677,7 +755,7 @@ export function AdminDashboard({
   const maxSpecCount = Math.max(...Object.values(specCounts), 1);
 
   const courseCounts = new Map<number, number>();
-  for (const s of selections) {
+  for (const s of filteredSelections) {
     courseCounts.set(s.course_id, (courseCounts.get(s.course_id) ?? 0) + 1);
   }
   const courseRanking = ALL_COURSES
@@ -685,11 +763,11 @@ export function AdminDashboard({
     .map(c => ({ course: c, count: courseCounts.get(c.id) ?? 0 }))
     .sort((a, b) => b.count - a.count);
 
-  const termFilteredRanking = courseTermFilter === 'all'
+  const termFilteredRanking = termFilter === 'all'
     ? courseRanking
-    : courseRanking.filter(r => r.course.term === courseTermFilter);
+    : courseRanking.filter(r => r.course.term === termFilter);
   const top10 = termFilteredRanking.slice(0, 10);
-  const unpopular = courseRanking.filter(r => r.count === 0);
+  const unpopular = termFilteredRanking.filter(r => r.count === 0);
 
   // ── Member detail helpers ─────────────────────────────────────────────────
 
@@ -1223,6 +1301,32 @@ export function AdminDashboard({
               <Sparkles className="w-3 h-3" />
               Ask AI
             </button>
+
+            {/* Dashboard-wide term filter. Narrows every course-scoped number; session and
+                login counts are term-less and stay as they are. */}
+            <div className="ml-auto flex items-center gap-1.5 pl-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Term</span>
+              {(['all', 4, 5, 6] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setTermFilter(t);
+                    setOverviewExpandedCourse(null);
+                    setExpandedCourse(null);
+                  }}
+                  title={t === 'all'
+                    ? 'Show course data from every term'
+                    : `Show only Term ${t} course data (logins and sessions are unaffected)`}
+                  className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
+                    termFilter === t
+                      ? 'bg-blue-500 text-white'
+                      : 'text-slate-400 hover:text-slate-200 bg-slate-800'
+                  }`}
+                >
+                  {t === 'all' ? 'All' : t}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── OVERVIEW TAB ── */}
@@ -1233,7 +1337,7 @@ export function AdminDashboard({
                   { icon: Users, label: 'Total Members', value: profiles.length, color: 'text-blue-400' },
                   { icon: BookOpen, label: 'Have a Plan', value: membersWithSelections, color: 'text-green-400' },
                   { icon: TrendingUp, label: 'Avg Courses', value: avgSelections, color: 'text-orange-400' },
-                  { icon: ChevronRight, label: 'Total Selections', value: selections.length, color: 'text-purple-400' },
+                  { icon: ChevronRight, label: 'Total Selections', value: filteredSelections.length, color: 'text-purple-400' },
                 ].map(({ icon: Icon, label, value, color }) => (
                   <div key={label} className="bg-slate-800 rounded-xl p-4 border border-white/5">
                     <Icon className={`w-5 h-5 ${color} mb-2`} />
@@ -1363,9 +1467,9 @@ export function AdminDashboard({
                       {(['all', 4, 5, 6] as const).map(t => (
                         <button
                           key={t}
-                          onClick={() => { setCourseTermFilter(t); setOverviewExpandedCourse(null); }}
+                          onClick={() => { setTermFilter(t); setOverviewExpandedCourse(null); }}
                           className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all ${
-                            courseTermFilter === t
+                            termFilter === t
                               ? 'bg-blue-500 text-white'
                               : 'text-slate-400 hover:text-slate-200 bg-slate-700'
                           }`}
@@ -2188,6 +2292,36 @@ export function AdminDashboard({
           {/* ── INSIGHTS TAB ── */}
           {tab === 'insights' && (
             <div className="p-4 space-y-6">
+              {/* Insights sub-tabs */}
+              <div className="flex gap-1">
+                {([['overview', 'Overview'], ['metrics', 'Metrics']] as [InsightsSubTab, string][]).map(([k, label]) => (
+                  <button
+                    key={k}
+                    onClick={() => setInsightsSubTab(k)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                      insightsSubTab === k ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {insightsSubTab === 'metrics' && (
+                <MetricsPanel
+                  profiles={profiles}
+                  whitelistCount={whitelistEmails.length}
+                  sessions={sessions}
+                  events={events}
+                  landingSessions={landingSessions}
+                  chatbotMessageCount={chatbotMessages.length}
+                  filteredSelections={filteredSelections}
+                  termFilter={termFilter}
+                  describe={describe}
+                />
+              )}
+
+              {insightsSubTab === 'overview' && <>
               {/* ── Friends & Social ── */}
               {(() => {
                 const nameMap = new Map(profiles.map(p => [p.id, p.name || p.email]));
@@ -2892,6 +3026,7 @@ export function AdminDashboard({
                   </div>
                 );
               })()}
+              </>}
             </div>
           )}
 

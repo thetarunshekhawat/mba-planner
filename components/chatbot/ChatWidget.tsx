@@ -71,6 +71,7 @@ function newId(): string {
 export function ChatWidget({
   userId,
   courses,
+  plannedCourses,
   specializations,
   trackEvent,
   onAction,
@@ -78,6 +79,13 @@ export function ChatWidget({
   userId: string | null;
   /** The student's locked courses for the current term, ordered by occurrence. */
   courses: Course[];
+  /**
+   * Every course the student has selected, across all terms. The nudge pool is built
+   * server-side from the full selection, so the cache signature has to track the full
+   * selection too — otherwise picking a Term 5 course during bidding leaves a stale pool
+   * in place for the rest of the session.
+   */
+  plannedCourses?: Course[];
   /** The student's specialization(s) — used for analytics on open. */
   specializations: SpecId[];
   trackEvent: TrackEvent;
@@ -118,7 +126,7 @@ export function ChatWidget({
   );
 
   // ── Proactive "mood" nudges ─────────────────────────────────────────────────
-  const { loadPool, nextNudge } = useChatNudges(userId, courses, specializations);
+  const { loadPool, nextNudge } = useChatNudges(userId, courses, specializations, plannedCourses ?? courses);
   const [activeNudge, setActiveNudge] = useState<ActiveNudge | null>(null);
   const [launcherAnim, setLauncherAnim] = useState<string | null>(null);
   const [nudgeFadingOut, setNudgeFadingOut] = useState(false);

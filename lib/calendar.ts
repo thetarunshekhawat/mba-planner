@@ -34,13 +34,19 @@ export function generateScheduleICS(courses: Course[]): string {
       const startTime = parts[0].trim();
       const endTime = parts[1].trim();
       
+      // Week 1 / week 2 of a block are calendar weeks, so the elapsed-day count has to be
+      // anchored to the Monday of the course's first week rather than to its own start date.
+      // A course that begins mid-week (ESGV starts on a Thursday) would otherwise shift its
+      // week-2 boundary by the same offset and silently drop the start of its second week.
+      const weekAnchor = addDays(start, -((getDay(start) + 6) % 7));
+
       let currentDay = start;
       while (currentDay <= end) {
         const dayName = Object.keys(DAY_MAP).find(key => DAY_MAP[key] === getDay(currentDay));
 
         // Pick the day pattern for this week: week 1/2 of the block, and the
         // second-block overrides for courses spanning two blocks
-        const daysElapsed = Math.round((currentDay.getTime() - start.getTime()) / 86400000);
+        const daysElapsed = Math.round((currentDay.getTime() - weekAnchor.getTime()) / 86400000);
         const inSecondBlock = daysElapsed >= 14;
         const isWeek2 = Math.floor(daysElapsed / 7) % 2 === 1;
         let effectiveDays = timing.days;
@@ -71,5 +77,7 @@ export function generateScheduleICS(courses: Course[]): string {
   }
 
   ics.push('END:VCALENDAR');
-  return ics.join('\\r\\n');
+  // RFC 5545 requires real CRLF line breaks. This was previously joined with the escaped
+  // literal "\r\n", which collapsed the whole calendar onto a single unparseable line.
+  return ics.join('\r\n');
 }

@@ -5,12 +5,21 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { PROFESSORS } from '@/data/professors';
+import { getCurrentTerm } from '@/lib/terms';
 import { ProfessorRing } from './ProfessorRing';
 import { FactTicker } from './FactTicker';
 import { useLandingAnalytics } from '@/hooks/useLandingAnalytics';
 import { isDemoEmail } from '@/lib/demo';
 
-const ANGLE_PER = 360 / PROFESSORS.length;
+// The ring shows the faculty the student is about to meet, not the whole catalogue —
+// otherwise every added term crowds the ellipse until the avatars overlap. Derived from
+// today's date so it rolls over on its own when the next term starts.
+const TERM_PROFESSORS = (() => {
+  const current = PROFESSORS.filter(p => p.term === getCurrentTerm());
+  return current.length ? current : PROFESSORS;
+})();
+
+const ANGLE_PER = 360 / TERM_PROFESSORS.length;
 
 export function LoginForm() {
   const supabase = createClient();
@@ -31,12 +40,13 @@ export function LoginForm() {
   const [dispersing, setDispersing] = useState(false);
 
   // Info section state
-  const [displayCourse, setDisplayCourse] = useState(PROFESSORS[0].course);
-  const [displayName, setDisplayName] = useState(PROFESSORS[0].name);
+  const [displayCourse, setDisplayCourse] = useState(TERM_PROFESSORS[0].course);
+  const [displayName, setDisplayName] = useState(TERM_PROFESSORS[0].name);
   const [factIdx, setFactIdx] = useState(0);
   const [factKey, setFactKey] = useState(0);
 
   const [courseKey, setCourseKey] = useState(0);
+  const facts = TERM_PROFESSORS[activeIdx]?.facts ?? [];
   const prevActiveIdx = useRef(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -51,7 +61,7 @@ export function LoginForm() {
 
     const delay = isDragging ? 0 : 560;
     const timer = setTimeout(() => {
-      const prof = PROFESSORS[activeIdx];
+      const prof = TERM_PROFESSORS[activeIdx];
       setDisplayCourse(prof.course);
       setDisplayName(prof.name);
       setFactIdx(0);
@@ -66,7 +76,8 @@ export function LoginForm() {
     if (isDragging) return;
     const interval = setInterval(() => {
       setFactIdx(i => {
-        const next = (i + 1) % PROFESSORS[activeIdx].facts.length;
+        const len = TERM_PROFESSORS[activeIdx]?.facts.length ?? 1;
+        const next = (i + 1) % len;
         setFactKey(k => k + 1);
         return next;
       });
@@ -314,7 +325,7 @@ export function LoginForm() {
       {/* Ring */}
       <div className="flex items-center justify-center" style={{ position: 'relative', zIndex: 2 }}>
         <ProfessorRing
-          professors={PROFESSORS}
+          professors={TERM_PROFESSORS}
           onActiveChange={handleActiveChange}
           onAngleChange={handleAngleChange}
           onDragChange={handleDragChange}
@@ -499,7 +510,11 @@ export function LoginForm() {
           {!isDragging && (
             <FactTicker
               key={`fact-${activeIdx}-${factKey}`}
-              text={PROFESSORS[activeIdx].facts[factIdx]}
+              /* factIdx is reset on a 560ms delay after the ring turns, so for that window it
+                 still belongs to the previous professor. Professors don't all have the same
+                 number of facts (Somak Ghoshal has 4, the rest have 10), so the raw index can
+                 point past the end and hand FactTicker undefined. Clamp instead. */
+              text={facts[Math.min(factIdx, facts.length - 1)] ?? ''}
             />
           )}
         </div>

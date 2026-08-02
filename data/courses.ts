@@ -394,15 +394,27 @@ export const ALL_COURSES: Course[] = [
   },
 
   // ─── TERM 5  (Sep 28 – Dec 27 2026) ──────────────────────────────────────
+  // Sources: "Term 5 Structure.xlsx" (blocks, seats, specs, faculty; red font = mandatoryFor),
+  // "Term 5 (Tentative Time Table).xlsx" (slots, rooms, days), "Bidding Guidelines (Term 5,
+  // AY 26-27).docx" (staggered CIVB + FDE session dates), and the 12 course outlines.
+  // Non-teaching days already reflected in the day arrays below: Gandhi Jayanti (Fri Oct 2),
+  // 5 Year Celebration (Mon Oct 5), Dussehra (Tue Oct 13).
 
-  // Block 22 Week 1 — Sep 28
+  // Block 22 (Sep 28 – Oct 11) — OPST + VALU (mornings, different rooms) + RAIG (WaW)
   {
     id: 16, term: 5, week: 14,
-    startDate: '2026-09-28', endDate: '2026-10-02',
-    dates: 'Sep 28–Oct 2', block: 22,
+    startDate: '2026-09-28', endDate: '2026-10-11',
+    dates: 'Sep 28–Oct 11', block: 22,
     name: 'Operations Strategy',
-    faculty: 'Dr. Santiago Kraiselburd',
-    seats: null, specs: ['ENT', 'ECOM', 'LSTR', 'OPS'], type: 'elective', conflictGroup: null,
+    code: 'OPST',
+    faculty: 'Prof. Santiago Kraiselburd',
+    seats: 120, specs: ['ENT', 'ECOM', 'LSTR', 'OPS'], mandatoryFor: ['OPS'], type: 'elective', conflictGroup: null,
+    // Week 1 skips Fri Oct 2 (Gandhi Jayanti); week 2 skips Mon Oct 5 (5 Year Celebration).
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'B' },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/opst.pdf',
     review: {
       learningDepth: 5, workload: 'Moderate-High', careerRelevance: 5,
       whatYouLearn: ['Industry 4.0 (Agri + Biotech)', 'Diagnosis', 'Agility, Planning & Execution'],
@@ -411,39 +423,56 @@ export const ALL_COURSES: Course[] = [
         'CP, project and exam',
         'Highly interactive, discussion-led classes',
       ],
-      lowlights: [],
+      lowlights: [
+        'Grading: CP (20%) + Group Assignment (40%) + Final Exam (40%)',
+      ],
       summary: 'Very interactive course — loved the professor, and a must-take for the specialization.',
     },
+  },
+  {
+    id: 17, term: 5, week: 14,
+    startDate: '2026-09-28', endDate: '2026-10-11',
+    dates: 'Sep 28–Oct 11', block: 22,
+    name: 'Valuation',
+    code: 'VALU',
+    faculty: 'Prof. Sughosh Moharikar',
+    seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/valu.docx',
+    review: null,
   },
   // WaW — Block 22
   {
     id: 104, term: 5, week: 14,
-    startDate: '2026-09-28', endDate: '2026-10-02',
-    dates: 'Sep 28–Oct 2', block: 22,
+    startDate: '2026-09-28', endDate: '2026-10-09',
+    dates: 'Sep 28–Oct 9', block: 22,
     name: 'Responsible AI & Governance',
-    faculty: 'TBD',
-    seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
-  },
-
-  // Block 22 Week 2 — Oct 5
-  {
-    id: 17, term: 5, week: 15,
-    startDate: '2026-10-05', endDate: '2026-10-09',
-    dates: 'Oct 5–9', block: 22,
-    name: 'Valuation',
-    faculty: 'Sughosh M',
-    seats: null, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    code: 'RAIG',
+    faculty: 'Kashyap Kompella',
+    seats: null, specs: [], type: 'waw', conflictGroup: null,
+    timings: [
+      { slot: '13:30–15:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '17:00–18:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
     review: null,
   },
 
-  // Block 23 Week 1 — Oct 12
+  // Block 23 (Oct 12 – Oct 25) — TOPS (mornings) + CLAW (afternoons) + CIVB (evenings, 3 sessions)
   {
     id: 18, term: 5, week: 16,
-    startDate: '2026-10-12', endDate: '2026-10-16',
-    dates: 'Oct 12–16', block: 23,
+    startDate: '2026-10-12', endDate: '2026-10-25',
+    dates: 'Oct 12–25', block: 23,
     name: 'Technology in Operations',
-    faculty: 'Prof. Saravanan Kesavan & Prof. Probal Mojumder',
-    seats: null, specs: ['ECOM', 'OPS'], type: 'elective', conflictGroup: null,
+    code: 'TOPS',
+    faculty: 'Prof. Deepanshi Bhardwaj',
+    seats: 60, specs: ['ECOM', 'OPS'], type: 'elective', conflictGroup: null,
+    // Week 2 skips Tue Oct 20 (Dussehra) and Sat Oct 24 (EB exam).
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/tops.pdf',
     review: {
       learningDepth: 4, workload: 'Moderate', careerRelevance: 4,
       whatYouLearn: ['Demand Forecasting & Logistics', 'Network Effects', 'Emerging Tech (3D printing, platforms, etc.)'],
@@ -453,29 +482,41 @@ export const ALL_COURSES: Course[] = [
         'Mandatory day field visit included',
       ],
       lowlights: [
+        'Different prof for Co\'27 — Deepanshi Bhardwaj replaces Saravanan Kesavan & Probal Mojumder, so the review below describes a different instructor',
         'Field trip can be exhausting',
+        'Grading: CP (35%, incl. 10% attendance) + Case & plant-visit write-ups (30%) + Final Project (35%)',
       ],
       summary: 'Useful course with hardly any workload and practical exposure.',
     },
   },
-
-  // Block 23 Week 2 — Oct 19
   {
-    id: 19, term: 5, week: 17,
-    startDate: '2026-10-19', endDate: '2026-10-23',
-    dates: 'Oct 19–23', block: 23,
+    id: 19, term: 5, week: 16,
+    startDate: '2026-10-12', endDate: '2026-10-25',
+    dates: 'Oct 12–25', block: 23,
     name: 'Corporate Law',
-    faculty: 'Kishu Daswani',
-    seats: null, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: 'T5W17',
+    code: 'CLAW',
+    faculty: 'Prof. Kishu Daswani',
+    seats: 60, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/claw.pdf',
     review: null,
   },
+  // CIVB is staggered across Term 5 and Term 6. Sessions 1–3 sit here in Block 23;
+  // sessions 4–6 are the Block 25 row below; sessions 7–10 run in Term 6 (Jan 2027).
   {
-    id: 20, term: 5, week: 17,
-    startDate: '2026-10-19', endDate: '2026-10-23',
-    dates: 'Oct 19–23', block: 23,
-    name: 'Corporate Innovation & Venture Building',
+    id: 20, term: 5, week: 16,
+    startDate: '2026-10-12', endDate: '2026-10-14',
+    dates: 'Oct 12–14', block: 23,
+    name: 'Corporate Innovation & Venture Building (Staggered)',
+    code: 'CIVB',
     faculty: 'Srikant Sastri',
-    seats: null, specs: ['ENT'], type: 'elective', conflictGroup: 'T5W17',
+    seats: 60, specs: ['ENT', 'LSTR'], mandatoryFor: ['ENT'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/civb.pdf',
     review: {
       learningDepth: 4, workload: 'Heavy', careerRelevance: 4,
       whatYouLearn: ['MVP Building', 'User feedback and market research', 'Different pitches to investors/customers'],
@@ -485,21 +526,28 @@ export const ALL_COURSES: Course[] = [
         'Got us to actually start conversations with potential customers, and then redefine our idea',
       ],
       lowlights: [
-        'Will have to strategically form your study group (75% grades is group work)',
+        'Will have to strategically form your study group (90% of the grade is group work)',
         'The staggered format can make it harder to manage and disrupt the flow',
+        'Grading: CP (30%) + Mid-course Group Submission (20%) + Final Group Presentation/Video (40%) + Individual Reflection (10%)',
       ],
       summary: 'Should take it if you want to experiment with an idea in a structured way.',
     },
   },
 
-  // Block 24 Week 1 — Oct 26
+  // Block 24 (Oct 26 – Nov 8) — AMST + DGTK (WaW) + FDEM (evenings)
   {
     id: 21, term: 5, week: 18,
-    startDate: '2026-10-26', endDate: '2026-10-30',
-    dates: 'Oct 26–30', block: 24,
+    startDate: '2026-10-26', endDate: '2026-11-08',
+    dates: 'Oct 26–Nov 8', block: 24,
     name: 'Advanced Marketing Strategy',
+    code: 'AMST',
     faculty: 'Prof. Wilfred Amaldoss',
-    seats: null, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: null,
+    seats: 120, specs: ['ECOM', 'MKT'], mandatoryFor: ['MKT'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/amst.pdf',
     review: {
       learningDepth: 3, workload: 'Moderate', careerRelevance: 3,
       whatYouLearn: ['Demand Elasticity Economic Value', 'Multi-sided markets and managing product portfolios'],
@@ -508,59 +556,73 @@ export const ALL_COURSES: Course[] = [
         'Practical exposure to conjoint analysis through assignments',
         'Extremely high quality — great concepts + guest lectures',
       ],
-      lowlights: [],
+      lowlights: [
+        'Grading: CP (30%) + Group Assignment (30%) + in-class Final Exam (40%)',
+      ],
       summary: 'One of the most relevant marketing courses at BITSoM. No filler topics, excellent class notes.',
     },
   },
-  // Block 24 Week 2 — Nov 2
+  // WaW — Block 24
   {
-    id: 22, term: 5, week: 19,
-    startDate: '2026-11-02', endDate: '2026-11-06',
-    dates: 'Nov 2–6', block: 24,
-    name: 'First Principles of Consulting',
-    faculty: 'TBD',
-    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null,
-    review: {
-      learningDepth: 1, workload: 'High', careerRelevance: 2,
-      whatYouLearn: ['Structured Problem Solving', 'Insights into the Telecom Industry'],
-      highlights: [
-        'The prof is knowledgeable',
-      ],
-      lowlights: [
-        'This course was just a longer version of SPS/CAT',
-        'Ironically, the course lacked structure. Daily assignments & rants',
-        'Would not recommend — Professor kept ranting',
-      ],
-      summary: 'Not recommended. Course was heavy in terms of workload.',
-    },
+    id: 110, term: 5, week: 18,
+    startDate: '2026-10-26', endDate: '2026-11-05',
+    dates: 'Oct 26–Nov 5', block: 24,
+    name: 'Design Thinking',
+    code: 'DGTK',
+    faculty: 'Ashish Bansal',
+    seats: null, specs: [], type: 'waw', conflictGroup: null,
+    timings: [
+      { slot: '09:00–10:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
+      { slot: '13:30–15:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+    ],
+    review: null,
+  },
+  {
+    id: 48, term: 5, week: 18,
+    startDate: '2026-10-26', endDate: '2026-11-06',
+    dates: 'Oct 26–Nov 6', block: 24,
+    name: 'Forward Deployed Expert (FDE) Management I',
+    code: 'FDEM',
+    faculty: 'Srinivas Atreya & Sirisha Peyyeti',
+    seats: 45, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/fdem.docx',
+    review: null,
   },
 
-  // Exam Week — Nov 9
+  // Exam Break — Nov 9
   {
     id: 23, term: 5, week: 20,
-    startDate: '2026-11-09', endDate: '2026-11-13',
-    dates: 'Nov 9–13', block: null,
-    name: 'Exam Week',
+    startDate: '2026-11-09', endDate: '2026-11-15',
+    dates: 'Nov 9–15', block: null,
+    name: 'Exam Break',
     faculty: '', seats: null, specs: [], type: 'exam', conflictGroup: null, review: null,
   },
 
-  // Free Week — Nov 16
+  // Placements Week — Nov 16
   {
     id: 24, term: 5, week: 21,
-    startDate: '2026-11-16', endDate: '2026-11-20',
-    dates: 'Nov 16–20', block: null,
-    name: 'Free Week',
+    startDate: '2026-11-16', endDate: '2026-11-22',
+    dates: 'Nov 16–22', block: null,
+    name: 'Placements Week',
     faculty: '', seats: null, specs: [], type: 'free', conflictGroup: null, review: null,
   },
 
-  // Block 25 Week 1 — Nov 23
+  // Block 25 (Nov 23 – Dec 6) — ENFF + SBRM (mornings) + CIVB (evenings) + ESGV (WaW)
   {
     id: 25, term: 5, week: 22,
-    startDate: '2026-11-23', endDate: '2026-11-27',
-    dates: 'Nov 23–27', block: 25,
+    startDate: '2026-11-23', endDate: '2026-12-06',
+    dates: 'Nov 23–Dec 6', block: 25,
     name: 'Entrepreneurial Finance & Fundraising',
-    faculty: 'Amit Bubna',
-    seats: null, specs: ['ENT', 'FIN'], type: 'elective', conflictGroup: 'T5W22',
+    code: 'ENFF',
+    faculty: 'Prof. Amit Bubna',
+    seats: 60, specs: ['ENT', 'FIN'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/enff.pdf',
     review: {
       learningDepth: 2, workload: 'Heavy', careerRelevance: 3,
       whatYouLearn: ['Options', 'Valuation of Fixed Income & Equities', 'Revision of M&A Concepts'],
@@ -571,18 +633,24 @@ export const ALL_COURSES: Course[] = [
       lowlights: [
         'Cases were pretty dated, and felt disconnected to the current scenario',
         'Quiz before classes start. Had to read/be lucky with seating chart',
-        'Introduced VC and PE, but circled back to options somehow each time',
+        'Grading: Case write-ups & presentations (50%) + Assignments (20%) + CP (20%) + Peer evaluation (10%)',
       ],
       summary: 'Would suggest to skip this course since it doesn\'t follow the name.',
     },
   },
   {
     id: 26, term: 5, week: 22,
-    startDate: '2026-11-23', endDate: '2026-11-27',
-    dates: 'Nov 23–27', block: 25,
+    startDate: '2026-11-23', endDate: '2026-12-06',
+    dates: 'Nov 23–Dec 6', block: 25,
     name: 'Strategic Brand Management',
-    faculty: 'Shailendra (Shelley) Jain',
-    seats: null, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: 'T5W22',
+    code: 'SBRM',
+    faculty: 'Prof. Shailendra (Shelley) Jain',
+    seats: 120, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/sbrm.pdf',
     review: {
       learningDepth: 3, workload: 'Moderate-High', careerRelevance: 2,
       whatYouLearn: ['Brand Positioning', 'Associations', 'Extensions', 'Touch Points'],
@@ -593,29 +661,24 @@ export const ALL_COURSES: Course[] = [
       ],
       lowlights: [
         'Limited depth in concepts',
-        'Group project-phased (60%), Individual assignment (20%), CP (20%) but daily presentations',
+        'Groups are 7–8 people — the largest of any Term 5 course',
+        'Grading: Group Assignments (30%) + Brand Authenticity individual (20%) + CP (20%) + Brand Audit final group project (30%)',
       ],
       summary: 'Fun prof, but limited takeaways.',
     },
   },
-  // WaW — Block 25
   {
-    id: 106, term: 5, week: 22,
-    startDate: '2026-11-23', endDate: '2026-11-27',
-    dates: 'Nov 23–27', block: 25,
-    name: 'ESG',
-    faculty: 'TBD',
-    seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
-  },
-
-  // Block 25 Week 2 — Nov 30
-  {
-    id: 27, term: 5, week: 23,
-    startDate: '2026-11-30', endDate: '2026-12-04',
-    dates: 'Nov 30–Dec 4', block: 25,
-    name: 'Corp Innovation & Venture Building (Staggered)',
+    id: 27, term: 5, week: 22,
+    startDate: '2026-11-23', endDate: '2026-11-25',
+    dates: 'Nov 23–25', block: 25,
+    name: 'Corporate Innovation & Venture Building (Staggered — Part 2)',
+    code: 'CIVB',
     faculty: 'Srikant Sastri',
-    seats: null, specs: ['ENT'], type: 'elective', conflictGroup: null,
+    seats: 60, specs: ['ENT'], mandatoryFor: ['ENT'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/civb.pdf',
     review: {
       learningDepth: 4, workload: 'Heavy', careerRelevance: 4,
       whatYouLearn: ['MVP Building', 'User feedback and market research', 'Different pitches to investors/customers'],
@@ -624,98 +687,142 @@ export const ALL_COURSES: Course[] = [
         'Guest lectures: Senior people from great companies or founders themselves',
       ],
       lowlights: [
-        '75% grades is group work — strategic group formation needed',
-        'Staggered format can disrupt the flow',
+        '90% of the grade is group work — strategic group formation needed',
+        'Staggered format can disrupt the flow; sessions 7–10 land in Term 6 (Jan 2027)',
       ],
       summary: 'Should take it if you want to experiment with an idea in a structured way.',
     },
   },
+  // WaW — Block 25
+  {
+    id: 106, term: 5, week: 22,
+    startDate: '2026-11-26', endDate: '2026-12-04',
+    dates: 'Nov 26–Dec 4', block: 25,
+    name: 'Environmental, Social & Governance',
+    code: 'ESGV',
+    faculty: 'Ram Mahidhara',
+    seats: null, specs: [], type: 'waw', conflictGroup: null,
+    timings: [
+      { slot: '13:30–15:00', room: 'S02', days: ['Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '17:30–19:00', room: 'S02', days: ['Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    review: null,
+  },
 
-  // Block 26 Week 1 — Dec 7
+  // Block 26 (Dec 7 – Dec 20) — INMK + SVOP (mornings/afternoons) + MGAQ (evenings)
   {
     id: 28, term: 5, week: 24,
-    startDate: '2026-12-07', endDate: '2026-12-11',
-    dates: 'Dec 7–11', block: 26,
+    startDate: '2026-12-07', endDate: '2026-12-20',
+    dates: 'Dec 7–20', block: 26,
     name: 'International Marketing',
-    faculty: 'Venkatesh (Venky) Shankar',
-    seats: null, specs: ['MKT'], mandatoryFor: ['MKT'], type: 'elective', conflictGroup: 'T5W24',
+    code: 'INMK',
+    faculty: 'Prof. Venkatesh (Venky) Shankar',
+    seats: 60, specs: ['MKT'], type: 'elective', conflictGroup: null,
+    // Week 1 has no Monday session; week 2 runs Mon–Fri.
+    timings: [
+      { slot: '09:00–12:00', room: 'S02', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S02', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/inmk.pdf',
     review: {
       learningDepth: 3, workload: 'Moderate', careerRelevance: 2,
       whatYouLearn: ['Market entry mechanisms', 'Market Expansion frameworks', 'International Pricing mechanism', 'International Sales & Distribution'],
       highlights: [
         'Marketing frameworks, in-class exercises',
-        'One Group Project (50%), Mid term assignment (30%), CP (20%)',
-        'Compulsory for Marketing — frameworks helpful for international expansion projects',
+        'Grading: Group Project (50%) + Mid-term individual case report (30%) + CP (20%)',
       ],
       lowlights: [
         'Limited quantitative depth',
-        'Peer review is very important',
+        'Peer review is very important — under-contributing is graded down explicitly',
         'More like good talking points/awareness than deep learning',
       ],
-      summary: 'Compulsory for Marketing. Good frameworks for a project looking at international expansion.',
+      summary: 'Good frameworks for a project looking at international expansion. Note: no longer compulsory for Marketing — Advanced Marketing Strategy carries that flag this year.',
     },
   },
   {
     id: 29, term: 5, week: 24,
-    startDate: '2026-12-07', endDate: '2026-12-11',
-    dates: 'Dec 7–11', block: 26,
+    startDate: '2026-12-07', endDate: '2026-12-20',
+    dates: 'Dec 7–20', block: 26,
     name: 'Mergers & Acquisitions',
-    faculty: 'Prof. Sughosh Moharikar',
-    seats: null, specs: ['FIN'], type: 'elective', conflictGroup: 'T5W24',
+    code: 'MGAQ',
+    faculty: 'Prof. Mark Finn',
+    seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/mgaq.pdf',
     review: {
       learningDepth: 5, workload: 'Moderate', careerRelevance: 5,
       whatYouLearn: ['Mergers vs Acquisitions', 'Cash vs Share', 'LBO, Demerger', 'Hostile Takeovers & Defences'],
       highlights: [
-        'Prof has direct deal experience, will discuss M&A transactions where he was involved',
         'Class discussions are interesting, course does not involve a lot of excel work',
-        'CP, Quiz, Case Write-ups and End Term Exam',
+        'Grading: CP (10%) + closed-book Quiz (10%) + 2 group case studies (40%) + closed-book End Term (40%)',
       ],
       lowlights: [
+        'Different prof for Co\'27 — Mark Finn (Kellogg) replaces Sughosh Moharikar, so the review below describes a different instructor',
         'Strictly avoid using devices in class',
+        'No points for attendance — participation is graded on contribution only',
       ],
       summary: 'Would recommend — rare relatively chill FIN course at BITSoM. Prof is very engaging.',
     },
   },
-
-  // Block 26 Week 2 — Dec 14
   {
-    id: 30, term: 5, week: 25,
-    startDate: '2026-12-14', endDate: '2026-12-18',
-    dates: 'Dec 14–18', block: 26,
+    id: 30, term: 5, week: 24,
+    startDate: '2026-12-07', endDate: '2026-12-20',
+    dates: 'Dec 7–20', block: 26,
     name: 'Service Operations',
+    code: 'SVOP',
     faculty: 'Prof. Vishal Ahuja',
-    seats: null, specs: ['ECOM', 'OPS'], type: 'elective', conflictGroup: null,
+    seats: 120, specs: ['ECOM', 'OPS'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/svop.pdf',
     review: {
       learningDepth: 5, workload: 'High', careerRelevance: 3,
       whatYouLearn: ['Service Models', 'C-ID, Service Innovations', 'Service Quality Mgmt: DEA, Six Sigma'],
       highlights: [
         'THE BEST Operations prof in 2nd year, quality class discussions',
         'All projects are 2-week CLPs',
-        '3 of 4 quizzes, Group case reports (7), final project, final exam, CP',
+        'Grading: Quizzes best 3 of 4 (15%) + 7 group case assignments (25%) + Final group project (20%) + in-class Final Exam (25%) + CP (15%)',
       ],
       lowlights: [
-        'Very heavy course load, double block not recommended',
+        'Very heavy course load — seven group case assignments plus four quizzes in two weeks. Double block not recommended',
         'Ops refresh needed (though prof helps)',
       ],
       summary: 'Best course to learn about services and how they are operationalized. Recommended irrespective of target specialization.',
     },
   },
 
+  // AI Incubation Project — runs Oct–Dec alongside the blocks, no fixed class slot.
+  // 6 credits on successful completion (Bidding Guidelines, Term 5).
+  {
+    id: 49, term: 5, week: 14,
+    startDate: '2026-10-01', endDate: '2026-12-20',
+    dates: 'Oct–Dec', block: null,
+    name: 'AI Incubation Project',
+    code: 'AIIP',
+    faculty: 'Arvind Ravishunkar',
+    seats: null, specs: [], type: 'elective', conflictGroup: null,
+    review: null,
+  },
+
   // Exam Week — Dec 21
   {
     id: 31, term: 5, week: 26,
-    startDate: '2026-12-21', endDate: '2026-12-25',
-    dates: 'Dec 21–25', block: null,
+    startDate: '2026-12-21', endDate: '2026-12-27',
+    dates: 'Dec 21–27', block: null,
     name: 'Exam Week',
     faculty: '', seats: null, specs: [], type: 'exam', conflictGroup: null, review: null,
   },
 
-  // Free Week — Dec 28
+  // Term Break — Dec 28
   {
     id: 32, term: 5, week: 27,
-    startDate: '2026-12-28', endDate: '2027-01-01',
-    dates: 'Dec 28–Jan 1', block: null,
-    name: 'Free Week',
+    startDate: '2026-12-28', endDate: '2027-01-03',
+    dates: 'Dec 28–Jan 3', block: null,
+    name: 'Term Break',
     faculty: '', seats: null, specs: [], type: 'free', conflictGroup: null, review: null,
   },
 

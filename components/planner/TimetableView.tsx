@@ -38,42 +38,102 @@ function searchStateFor(highlightIds: Set<number> | undefined, id: number): Sear
   return highlightIds.has(id) ? 'hit' : 'miss';
 }
 
-const TERM4_BLOCKS: { block: number; weekNum: 1 | 2; dates: string; start: string; end: string }[] = [
-  { block: 16, weekNum: 1, dates: 'Jun 29 – Jul 5',  start: '2026-06-29', end: '2026-07-05' },
-  { block: 16, weekNum: 2, dates: 'Jul 6 – Jul 12',  start: '2026-07-06', end: '2026-07-12' },
-  { block: 17, weekNum: 1, dates: 'Jul 13 – Jul 19', start: '2026-07-13', end: '2026-07-19' },
-  { block: 17, weekNum: 2, dates: 'Jul 20 – Jul 26', start: '2026-07-20', end: '2026-07-26' },
-  { block: 18, weekNum: 1, dates: 'Jul 27 – Aug 2',  start: '2026-07-27', end: '2026-08-02' },
-  { block: 18, weekNum: 2, dates: 'Aug 3 – Aug 9',   start: '2026-08-03', end: '2026-08-09' },
-  { block: 19, weekNum: 1, dates: 'Aug 10 – Aug 16', start: '2026-08-10', end: '2026-08-16' },
-  { block: 19, weekNum: 2, dates: 'Aug 17 – Aug 23', start: '2026-08-17', end: '2026-08-23' },
-  { block: 20, weekNum: 1, dates: 'Aug 31 – Sep 6',  start: '2026-08-31', end: '2026-09-06' },
-  { block: 20, weekNum: 2, dates: 'Sep 7 – Sep 13',  start: '2026-09-07', end: '2026-09-13' },
-  { block: 21, weekNum: 1, dates: 'Sep 14 – Sep 20', start: '2026-09-14', end: '2026-09-20' },
-  { block: 21, weekNum: 2, dates: 'Sep 21 – Sep 27', start: '2026-09-21', end: '2026-09-27' },
-];
+/** A single teaching week of a block — one grid table on the schedule. */
+interface BlockRow {
+  block: number;
+  weekNum: 1 | 2;
+  dates: string;
+  start: string;
+  end: string;
+  /** Non-teaching notices to render above this row (exam break, placements week, …). */
+  banners?: { label: string; tone: 'exam' | 'break' }[];
+}
 
-// Maps each TERM4_BLOCKS index to the corresponding TERM1_WEEKS index
+/** Everything the schedule needs to lay out one term. */
+interface TermSchedule {
+  label: string;
+  dateRange: string;
+  blocks: BlockRow[];
+  /** Notices that fall after the last teaching block of the term. */
+  trailing?: { label: string; tone: 'exam' | 'break' }[];
+}
+
+// Block calendars per term. These must stay in sync with the `block` / `startDate` /
+// `endDate` fields in data/courses.ts — see CLAUDE.md.
+const SCHEDULE_BY_TERM: Record<number, TermSchedule> = {
+  4: {
+    label: 'Term 4',
+    dateRange: 'Jun 29 – Sep 27, 2026',
+    blocks: [
+      { block: 16, weekNum: 1, dates: 'Jun 29 – Jul 5',  start: '2026-06-29', end: '2026-07-05' },
+      { block: 16, weekNum: 2, dates: 'Jul 6 – Jul 12',  start: '2026-07-06', end: '2026-07-12' },
+      { block: 17, weekNum: 1, dates: 'Jul 13 – Jul 19', start: '2026-07-13', end: '2026-07-19' },
+      { block: 17, weekNum: 2, dates: 'Jul 20 – Jul 26', start: '2026-07-20', end: '2026-07-26' },
+      { block: 18, weekNum: 1, dates: 'Jul 27 – Aug 2',  start: '2026-07-27', end: '2026-08-02' },
+      { block: 18, weekNum: 2, dates: 'Aug 3 – Aug 9',   start: '2026-08-03', end: '2026-08-09' },
+      { block: 19, weekNum: 1, dates: 'Aug 10 – Aug 16', start: '2026-08-10', end: '2026-08-16' },
+      { block: 19, weekNum: 2, dates: 'Aug 17 – Aug 23', start: '2026-08-17', end: '2026-08-23' },
+      { block: 20, weekNum: 1, dates: 'Aug 31 – Sep 6',  start: '2026-08-31', end: '2026-09-06',
+        banners: [{ label: 'Exam Week — Aug 24–28', tone: 'exam' }] },
+      { block: 20, weekNum: 2, dates: 'Sep 7 – Sep 13',  start: '2026-09-07', end: '2026-09-13' },
+      { block: 21, weekNum: 1, dates: 'Sep 14 – Sep 20', start: '2026-09-14', end: '2026-09-20' },
+      { block: 21, weekNum: 2, dates: 'Sep 21 – Sep 27', start: '2026-09-21', end: '2026-09-27' },
+    ],
+  },
+  5: {
+    label: 'Term 5',
+    dateRange: 'Sep 28 – Dec 27, 2026',
+    blocks: [
+      { block: 22, weekNum: 1, dates: 'Sep 28 – Oct 4',  start: '2026-09-28', end: '2026-10-04' },
+      { block: 22, weekNum: 2, dates: 'Oct 5 – Oct 11',  start: '2026-10-05', end: '2026-10-11' },
+      { block: 23, weekNum: 1, dates: 'Oct 12 – Oct 18', start: '2026-10-12', end: '2026-10-18' },
+      { block: 23, weekNum: 2, dates: 'Oct 19 – Oct 25', start: '2026-10-19', end: '2026-10-25' },
+      { block: 24, weekNum: 1, dates: 'Oct 26 – Nov 1',  start: '2026-10-26', end: '2026-11-01' },
+      { block: 24, weekNum: 2, dates: 'Nov 2 – Nov 8',   start: '2026-11-02', end: '2026-11-08' },
+      { block: 25, weekNum: 1, dates: 'Nov 23 – Nov 29', start: '2026-11-23', end: '2026-11-29',
+        banners: [
+          { label: 'Exam Break — Nov 9–15', tone: 'exam' },
+          { label: 'Placements Week — Nov 16–22', tone: 'break' },
+        ] },
+      { block: 25, weekNum: 2, dates: 'Nov 30 – Dec 6',  start: '2026-11-30', end: '2026-12-06' },
+      { block: 26, weekNum: 1, dates: 'Dec 7 – Dec 13',  start: '2026-12-07', end: '2026-12-13' },
+      { block: 26, weekNum: 2, dates: 'Dec 14 – Dec 20', start: '2026-12-14', end: '2026-12-20' },
+    ],
+    trailing: [
+      { label: 'Exam Week — Dec 21–27', tone: 'exam' },
+      { label: 'Term Break — Dec 28–Jan 3', tone: 'break' },
+    ],
+  },
+};
+
+/** Terms that have a full block grid. Anything else falls back to the week list. */
+const GRID_TERMS = [4, 5] as const;
+
+function blocksFor(term: number): BlockRow[] {
+  return SCHEDULE_BY_TERM[term]?.blocks ?? [];
+}
+
+// Maps each Term 4 block-row index to the corresponding TERM1_WEEKS index
 // (Week 9 / index 8 is paired with the Term 4 exam week banner separately)
 const TERM4_TO_TERM1_WEEK_IDX: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12];
 
 function parseTs(iso: string) { return new Date(iso).getTime(); }
 
-// Index of the first row in TERM4_BLOCKS to show by default. Snaps to Week 1 of the block
+// Index of the first row in `blocks` to show by default. Snaps to Week 1 of the block
 // whose date range contains today (so "all of Block 17" is visible on Jul 25, not just W2).
 // If today falls between blocks (e.g. the Aug 24–30 exam gap), snap to the next upcoming
 // block. If today is past the last block, fall back to 0 (show everything).
-function currentBlockStartIndex(now: Date = new Date()): number {
+function currentBlockStartIndex(blocks: BlockRow[], now: Date = new Date()): number {
   const t = now.getTime();
-  const inside = TERM4_BLOCKS.findIndex(b => parseTs(b.start) <= t && t <= parseTs(b.end));
+  const inside = blocks.findIndex(b => parseTs(b.start) <= t && t <= parseTs(b.end));
   if (inside !== -1) {
-    const blockNum = TERM4_BLOCKS[inside].block;
-    return TERM4_BLOCKS.findIndex(b => b.block === blockNum);
+    const blockNum = blocks[inside].block;
+    return blocks.findIndex(b => b.block === blockNum);
   }
-  const next = TERM4_BLOCKS.findIndex(b => parseTs(b.start) > t);
+  const next = blocks.findIndex(b => parseTs(b.start) > t);
   if (next !== -1) {
-    const blockNum = TERM4_BLOCKS[next].block;
-    return TERM4_BLOCKS.findIndex(b => b.block === blockNum);
+    const blockNum = blocks[next].block;
+    return blocks.findIndex(b => b.block === blockNum);
   }
   return 0;
 }
@@ -164,7 +224,7 @@ function matchesSlotDay(c: Course, slot: string, day: string, weekNum: 1 | 2, bl
   });
 }
 
-// A friend's overlaid courses that fall inside a given Term 4 block.
+// A friend's overlaid courses that fall inside a given block.
 function friendBlockCourses(overlay: FriendOverlay, start: string, end: string): Course[] {
   return ALL_COURSES.filter(
     c => overlay.selected.has(c.id) && c.timings && courseInBlock(c, start, end),
@@ -191,7 +251,7 @@ function computeClashes(visibleIds: Set<number>, overlays: FriendOverlay[]): Cla
   const myCourses = ALL_COURSES.filter(c => visibleIds.has(c.id) && c.timings);
   const out: Clash[] = [];
 
-  for (const block of TERM4_BLOCKS) {
+  for (const block of GRID_TERMS.flatMap(t => blocksFor(t))) {
     const mine = myCourses.filter(c => courseInBlock(c, block.start, block.end));
     if (mine.length === 0) continue;
     for (const overlay of overlays) {
@@ -345,7 +405,7 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
 }
 
 function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs, friendOverlays, highlightIds, onCourseClick }: {
-  blockInfo: typeof TERM4_BLOCKS[0];
+  blockInfo: BlockRow;
   courses: Course[];
   visibleIds: Set<number>;
   conflictIds: Set<number>;
@@ -690,14 +750,223 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
   );
 }
 
+/** Non-teaching notice strip (exam week, placements week, term break). */
+function NoticeBanner({ label, tone }: { label: string; tone: 'exam' | 'break' }) {
+  const style = tone === 'exam'
+    ? { border: '1px dashed #fca5a5', backgroundColor: '#fff5f5', color: '#ef4444', icon: '📝' }
+    : { border: '1px dashed #93c5fd', backgroundColor: '#eff6ff', color: '#3b82f6', icon: '🗓' };
+  return (
+    <div style={{
+      marginBottom: 16, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 500,
+      border: style.border, backgroundColor: style.backgroundColor, color: style.color,
+    }}>
+      {style.icon} {label}
+    </div>
+  );
+}
+
+/**
+ * One term's block-by-block schedule grid. Term 4 additionally offers the Term 1 retake
+ * overlay; every other term renders the same tables, banners and controls.
+ */
+function TermBlockGrid({
+  term, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs,
+  friendOverlays, highlightIds, searchActive, onCourseClick,
+}: {
+  term: number;
+  courses: Course[];
+  visibleIds: Set<number>;
+  conflictIds: Set<number>;
+  advisories: Map<number, SectionAdvisory>;
+  assignedSections: Map<number, string>;
+  userSpecs: SpecId[];
+  friendOverlays: FriendOverlay[];
+  highlightIds?: Set<number>;
+  searchActive: boolean;
+  onCourseClick: (c: Course) => void;
+}) {
+  const schedule = SCHEDULE_BY_TERM[term];
+  const blocks = schedule.blocks;
+  const supportsTerm1 = term === 4;
+
+  const [showTerm1, setShowTerm1] = useState(false);
+  const [showAllBlocks, setShowAllBlocks] = useState(false);
+  const startIdx = showAllBlocks ? 0 : currentBlockStartIndex(blocks);
+
+  const hasContent =
+    blocks.some(b => courses.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)))
+    || friendOverlays.some(o => blocks.some(b => friendBlockCourses(o, b.start, b.end).length > 0));
+
+  const todayTs = todayUtc().getTime();
+  const todayInTerm = blocks.some(b => parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end));
+
+  const table = (b: BlockRow) => (
+    <BlockTable
+      blockInfo={b}
+      courses={courses}
+      visibleIds={visibleIds}
+      conflictIds={conflictIds}
+      advisories={advisories}
+      assignedSections={assignedSections}
+      userSpecs={userSpecs}
+      friendOverlays={friendOverlays}
+      highlightIds={highlightIds}
+      onCourseClick={onCourseClick}
+    />
+  );
+
+  return (
+    <>
+      <TermDivider label={schedule.label} dateRange={schedule.dateRange} />
+
+      <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {supportsTerm1 && (
+          <>
+            <button
+              onClick={() => setShowTerm1(v => !v)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+                border: showTerm1 ? '1.5px solid #6366f1' : '1.5px solid #d1d5db',
+                backgroundColor: showTerm1 ? '#eef2ff' : '#ffffff',
+                color: showTerm1 ? '#4338ca' : '#6b7280',
+                fontSize: 12, fontWeight: 600,
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              }}
+            >
+              <BookOpen size={13} />
+              {showTerm1 ? '✓ Term 1 Courses' : 'Show Term 1 Courses'}
+            </button>
+            {showTerm1 && (
+              <span style={{ fontSize: 11, color: '#6b7280' }}>
+                Reference only — for students retaking Term 1 subjects alongside Term 4
+              </span>
+            )}
+          </>
+        )}
+        <button
+          onClick={() => setShowAllBlocks(v => !v)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+            border: showAllBlocks ? '1.5px solid #6366f1' : '1.5px solid #d1d5db',
+            backgroundColor: showAllBlocks ? '#eef2ff' : '#ffffff',
+            color: showAllBlocks ? '#4338ca' : '#6b7280',
+            fontSize: 12, fontWeight: 600,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          <CalendarDays size={13} />
+          {showAllBlocks ? '✓ Show all blocks' : 'Show all blocks'}
+        </button>
+        {showAllBlocks && (
+          <span style={{ fontSize: 11, color: '#6b7280' }}>
+            Including past blocks
+          </span>
+        )}
+        <button
+          onClick={() => {
+            const el = document.querySelector(`[data-current-block="${term}"]`)
+              ?? document.querySelector('[data-today="true"]');
+            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+          disabled={!todayInTerm}
+          title={todayInTerm ? 'Scroll to today' : `Today isn't inside ${schedule.label}`}
+          className="print:hidden"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 14px', borderRadius: 20,
+            cursor: todayInTerm ? 'pointer' : 'not-allowed',
+            border: '1.5px solid #f97316',
+            backgroundColor: todayInTerm ? '#fff7ed' : '#f9fafb',
+            color: todayInTerm ? '#c2410c' : '#9ca3af',
+            fontSize: 12, fontWeight: 600,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            opacity: todayInTerm ? 1 : 0.6,
+          }}
+        >
+          <CalendarCheck size={13} />
+          Today
+        </button>
+      </div>
+
+      {!hasContent ? (
+        <p className="text-sm text-gray-400 italic px-1 mb-8">No {schedule.label} courses selected.</p>
+      ) : (
+        <>
+          {blocks.map((b, i) => {
+            if (i < startIdx) return null;
+            const blockHasSearchHit = searchActive
+              ? courses.some(c => highlightIds!.has(c.id) && c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id))
+              : true;
+            const blockPrintHiddenClass = searchActive && !blockHasSearchHit ? 'print:hidden' : '';
+            const isCurrentBlockWeek = parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end);
+            return (
+              <div
+                key={`${b.block}-${b.weekNum}`}
+                className={blockPrintHiddenClass}
+                data-current-block={isCurrentBlockWeek ? String(term) : undefined}
+              >
+                {b.banners?.map((n, ni) => (
+                  supportsTerm1 && showTerm1 && n.tone === 'exam' ? (
+                    <div key={ni} className="flex flex-col lg:flex-row mb-3 rounded-lg overflow-hidden" style={{ border: '1px dashed #fca5a5' }}>
+                      <div style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 14px', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center' }}>
+                        📝 Term 4 {n.label}
+                      </div>
+                      <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
+                      <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+                      <div className="w-full lg:w-[300px] lg:flex-shrink-0">
+                        <Term1GanttPanel activeWeekIndices={[8]} />
+                      </div>
+                    </div>
+                  ) : (
+                    <NoticeBanner key={ni} label={n.label} tone={n.tone} />
+                  )
+                ))}
+                {supportsTerm1 && showTerm1 ? (
+                  <div className="flex flex-col lg:flex-row mb-6 lg:mb-8 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                    <div style={{ flex: '1 1 auto', minWidth: 0 }}>{table(b)}</div>
+                    <div className={`lg:hidden h-px flex-shrink-0${searchActive ? ' print:hidden' : ''}`} style={{ backgroundColor: '#c7d2fe' }} />
+                    <div className={`hidden lg:block flex-shrink-0${searchActive ? ' print:hidden' : ''}`} style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+                    <div className={`w-full lg:w-[300px] lg:flex-shrink-0${searchActive ? ' print:hidden' : ''}`}>
+                      <Term1GanttPanel activeWeekIndices={[TERM4_TO_TERM1_WEEK_IDX[i]]} />
+                    </div>
+                  </div>
+                ) : (
+                  table(b)
+                )}
+              </div>
+            );
+          })}
+
+          {schedule.trailing?.map((n, i) => (
+            <NoticeBanner key={i} label={n.label} tone={n.tone} />
+          ))}
+
+          {/* Term 1 Week 14 — runs one week after Term 4 ends */}
+          {supportsTerm1 && showTerm1 && (
+            <div className="flex flex-col lg:flex-row mb-2 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+              <div style={{ flex: '1 1 auto', minWidth: 0, padding: '16px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center' }}>
+                <span style={{ color: '#9ca3af', fontSize: 12, fontStyle: 'italic' }}>Term 4 has ended — Term 1 continues</span>
+              </div>
+              <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
+              <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
+              <div className="w-full lg:w-[300px] lg:flex-shrink-0">
+                <Term1GanttPanel activeWeekIndices={[13]} />
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
 export function TimetableView({
   selected, visibleIds, userSpecs, onCourseClick, selectedTerms,
   friendOverlays = [], friends = [], overlayIds, onToggleOverlay, trackEvent,
   courseSections, highlightIds,
 }: Props) {
-  const [showTerm1, setShowTerm1] = useState(false);
-  const [showAllBlocks, setShowAllBlocks] = useState(false);
-  const startIdx = showAllBlocks ? 0 : currentBlockStartIndex();
   const searchActive = !!highlightIds && highlightIds.size > 0;
 
   // Bring the first search hit into view once the grid has rendered with it.
@@ -720,10 +989,6 @@ export function TimetableView({
   const conflictIds = getConflictIds(allVisible, visibleIds);
   const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
   const assignedSections = courseSections ?? new Map<number, string>();
-
-  const hasTerm4Content =
-    TERM4_BLOCKS.some(b => term4.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)))
-    || friendOverlays.some(o => TERM4_BLOCKS.some(b => friendBlockCourses(o, b.start, b.end).length > 0));
 
   const conflictCourses = allVisible.filter(c => conflictIds.has(c.id));
 
@@ -838,179 +1103,35 @@ export function TimetableView({
       )}
 
       <div className={selectedTerms.has(4) ? '' : 'print:hidden'}>
-        <TermDivider label="Term 4" dateRange="Jun 29 – Sep 27, 2026" />
-
-        {/* Term 1 overlay toggle */}
-        <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setShowTerm1(v => !v)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
-              border: showTerm1 ? '1.5px solid #6366f1' : '1.5px solid #d1d5db',
-              backgroundColor: showTerm1 ? '#eef2ff' : '#ffffff',
-              color: showTerm1 ? '#4338ca' : '#6b7280',
-              fontSize: 12, fontWeight: 600,
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            }}
-          >
-            <BookOpen size={13} />
-            {showTerm1 ? '✓ Term 1 Courses' : 'Show Term 1 Courses'}
-          </button>
-          {showTerm1 && (
-            <span style={{ fontSize: 11, color: '#6b7280' }}>
-              Reference only — for students retaking Term 1 subjects alongside Term 4
-            </span>
-          )}
-          <button
-            onClick={() => setShowAllBlocks(v => !v)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
-              border: showAllBlocks ? '1.5px solid #6366f1' : '1.5px solid #d1d5db',
-              backgroundColor: showAllBlocks ? '#eef2ff' : '#ffffff',
-              color: showAllBlocks ? '#4338ca' : '#6b7280',
-              fontSize: 12, fontWeight: 600,
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            }}
-          >
-            <CalendarDays size={13} />
-            {showAllBlocks ? '✓ Show all blocks' : 'Show all blocks'}
-          </button>
-          {showAllBlocks && (
-            <span style={{ fontSize: 11, color: '#6b7280' }}>
-              Including past blocks
-            </span>
-          )}
-          {(() => {
-            const todayTs = todayUtc().getTime();
-            const todayInTerm4 = TERM4_BLOCKS.some(b => parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end));
-            return (
-              <button
-                onClick={() => {
-                  const el = document.querySelector('[data-current-block="true"]')
-                    ?? document.querySelector('[data-today="true"]');
-                  el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-                disabled={!todayInTerm4}
-                title={todayInTerm4 ? 'Scroll to today' : "Today isn't inside Term 4"}
-                className="print:hidden"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  padding: '5px 14px', borderRadius: 20,
-                  cursor: todayInTerm4 ? 'pointer' : 'not-allowed',
-                  border: '1.5px solid #f97316',
-                  backgroundColor: todayInTerm4 ? '#fff7ed' : '#f9fafb',
-                  color: todayInTerm4 ? '#c2410c' : '#9ca3af',
-                  fontSize: 12, fontWeight: 600,
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                  opacity: todayInTerm4 ? 1 : 0.6,
-                }}
-              >
-                <CalendarCheck size={13} />
-                Today
-              </button>
-            );
-          })()}
-        </div>
-
-        {!hasTerm4Content ? (
-          <p className="text-sm text-gray-400 italic px-1 mb-8">No Term 4 courses selected.</p>
-        ) : (
-          <>
-            {TERM4_BLOCKS.map((b, i) => {
-              if (i < startIdx) return null;
-              const blockHasSearchHit = searchActive
-                ? term4.some(c => highlightIds!.has(c.id) && c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id))
-                : true;
-              const blockPrintHiddenClass = searchActive && !blockHasSearchHit ? 'print:hidden' : '';
-              const showExamBanner = b.block === 20 && b.weekNum === 1;
-              const todayTs = todayUtc().getTime();
-              const isCurrentBlockWeek = parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end);
-              return (
-                <div
-                  key={`${b.block}-${b.weekNum}`}
-                  className={blockPrintHiddenClass}
-                  data-current-block={isCurrentBlockWeek ? 'true' : undefined}
-                >
-                  {showExamBanner && (
-                    showTerm1 ? (
-                      <div className="flex flex-col lg:flex-row mb-3 rounded-lg overflow-hidden" style={{ border: '1px dashed #fca5a5' }}>
-                        <div style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 14px', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center' }}>
-                          📝 Term 4 Exam Week — Aug 24–28
-                        </div>
-                        <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
-                        <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
-                        <div className="w-full lg:w-[300px] lg:flex-shrink-0">
-                          <Term1GanttPanel activeWeekIndices={[8]} />
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ marginBottom: 16, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 500, border: '1px dashed #fca5a5', backgroundColor: '#fff5f5', color: '#ef4444' }}>
-                        📝 Exam Week — Aug 24–28
-                      </div>
-                    )
-                  )}
-                  {showTerm1 ? (
-                    <div className="flex flex-col lg:flex-row mb-6 lg:mb-8 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                      <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-                        <BlockTable
-                          blockInfo={b}
-                          courses={term4}
-                          visibleIds={visibleIds}
-                          conflictIds={conflictIds}
-                          advisories={advisories}
-                          assignedSections={assignedSections}
-                          userSpecs={userSpecs}
-                          friendOverlays={friendOverlays}
-                          highlightIds={highlightIds}
-                          onCourseClick={onCourseClick}
-                        />
-                      </div>
-                      <div className={`lg:hidden h-px flex-shrink-0${searchActive ? ' print:hidden' : ''}`} style={{ backgroundColor: '#c7d2fe' }} />
-                      <div className={`hidden lg:block flex-shrink-0${searchActive ? ' print:hidden' : ''}`} style={{ width: 2, backgroundColor: '#c7d2fe' }} />
-                      <div className={`w-full lg:w-[300px] lg:flex-shrink-0${searchActive ? ' print:hidden' : ''}`}>
-                        <Term1GanttPanel activeWeekIndices={[TERM4_TO_TERM1_WEEK_IDX[i]]} />
-                      </div>
-                    </div>
-                  ) : (
-                    <BlockTable
-                      blockInfo={b}
-                      courses={term4}
-                      visibleIds={visibleIds}
-                      conflictIds={conflictIds}
-                      advisories={advisories}
-                      assignedSections={assignedSections}
-                      userSpecs={userSpecs}
-                      friendOverlays={friendOverlays}
-                      highlightIds={highlightIds}
-                      onCourseClick={onCourseClick}
-                    />
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Term 1 Week 14 — runs one week after Term 4 ends */}
-            {showTerm1 && (
-              <div className="flex flex-col lg:flex-row mb-2 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                <div style={{ flex: '1 1 auto', minWidth: 0, padding: '16px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ color: '#9ca3af', fontSize: 12, fontStyle: 'italic' }}>Term 4 has ended — Term 1 continues</span>
-                </div>
-                <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
-                <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
-                <div className="w-full lg:w-[300px] lg:flex-shrink-0">
-                  <Term1GanttPanel activeWeekIndices={[13]} />
-                </div>
-              </div>
-            )}
-          </>
-        )}
+        <TermBlockGrid
+          term={4}
+          courses={term4}
+          visibleIds={visibleIds}
+          conflictIds={conflictIds}
+          advisories={advisories}
+          assignedSections={assignedSections}
+          userSpecs={userSpecs}
+          friendOverlays={friendOverlays}
+          highlightIds={highlightIds}
+          searchActive={searchActive}
+          onCourseClick={onCourseClick}
+        />
       </div>
 
       <div className={selectedTerms.has(5) ? '' : 'print:hidden'}>
-        <TermDivider label="Term 5" dateRange="Sep 28 – Dec 27, 2026" />
-        <CourseWeekList courses={term5} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={5} highlightIds={highlightIds} onCourseClick={onCourseClick} />
+        <TermBlockGrid
+          term={5}
+          courses={term5}
+          visibleIds={visibleIds}
+          conflictIds={conflictIds}
+          advisories={advisories}
+          assignedSections={assignedSections}
+          userSpecs={userSpecs}
+          friendOverlays={friendOverlays}
+          highlightIds={highlightIds}
+          searchActive={searchActive}
+          onCourseClick={onCourseClick}
+        />
       </div>
 
       <div className={selectedTerms.has(6) ? '' : 'print:hidden'}>

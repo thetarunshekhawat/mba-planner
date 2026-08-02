@@ -1,147 +1,156 @@
 # MBA Planner (BITSoM Co'27)
 
-A robust Next.js application built to help MBA students effectively plan their courses, manage schedules, and avoid timeline conflicts.
+A course planner for the BITSoM Year-2 cohort. Students browse the elective catalogue, build a
+conflict-aware schedule across Terms 4–6, compare plans with friends, export to their calendar,
+and ask an AI assistant about their courses. Admins get a cohort analytics dashboard.
+
+> **Working on this codebase?** Read [`CLAUDE.md`](./CLAUDE.md) first — it's the architecture
+> map and the standing rules (course-id safety, term model, insight engine, Supabase, the
+> PostgREST row cap). This README is the short tour.
 
 ## Features
 
-### Core Planning Features
-- **Interactive Course Selection:** Browse through electives, WaWs, and required courses. Filter by specializations, workloads, or depth.
-- **Visual Timetable:** Dynamically generated week-by-week and block-by-block view to easily spot overlaps and empty slots.
-- **Conflict Detection:** Real-time warnings when you select multiple courses in the same conflict group.
-- **Monthly Calendar:** Built-in slide-out calendar on the schedule view for easy cross-referencing.
-- **Supabase Integration:** Real-time saving of course selections tied securely to your user profile.
+### Planning
+- **Plan tab** — the full catalogue grouped by week, with cohort reviews (learning depth,
+  workload, career relevance), seat counts, faculty, specialization tags and outline links.
+  Filter by specialization, workload, depth or relevance.
+- **My Schedule** — a block-by-block day × time-slot grid for Terms 4 and 5, showing rooms,
+  section A/B assignments, today's column, and non-teaching weeks (exam break, placements,
+  term break). Terms without timetable data fall back to a week list.
+- **Conflict handling** — genuine clashes raise a red banner. Where a course has two sections
+  and only one collides, the app instead shows a *section advisory* ("you'll likely be placed
+  in Section B"), which is how the registrar actually resolves it.
+- **Friends** — add peers by friend code, overlay their schedule on yours, and see where you
+  share a class versus where you clash.
+- **Export** — download a PDF or `.ics`, or subscribe from Google/Apple Calendar. Scoped to
+  whichever terms you tick.
 
-### Friends & Collaboration (New)
-- **Friends View:** See and compare course selections with peers in your cohort.
-- **Friend Detail Modal:** View detailed course schedules and selections of specific friends for better collaboration and planning.
-- **Friend Selection Hooks:** Manage friend relationships and preferences with dedicated data hooks (`useFriends`, `useFriendSelections`).
-- **Shared Planning:** Compare schedules with friends to find common slots and coordinate study groups.
+### AI course assistant
+- Answers questions about your selected courses using the real course outlines, stored in
+  Supabase and served at query time.
+- Proactive **nudges** drawn from a pre-built, source-anchored insight catalogue — no live
+  generation, so they cost nothing and can't hallucinate. Each insight rotates between a
+  professional, a dry and a quirky phrasing.
 
-### Admin Features (Enhanced)
-- **Admin Dashboard:** Comprehensive analytics and user journey tracking with session-level drill-down.
-- **User Analytics:** Track user interactions, course selections, and session timelines.
-- **Term Filtering:** Admin tools to filter and manage course visibility by academic term.
-- **Analytics Tracking:** Enhanced metrics collection for user behavior analysis.
+### Admin
+- Cohort overview, per-member drill-down, activity timelines, funnel insights and in-depth
+  sections, all behind a hardcoded admin allowlist.
+- **Term filter** across the dashboard, so Term 4 and Term 5 numbers can be read separately.
+- **Metrics** view: activation, DAU/WAU/MAU and stickiness, distribution summaries with median
+  and IQR (not just averages), weekly retention cohorts, Pareto concentration, the acquisition
+  funnel, time-to-value, feature attach rates and error/rage-click rates.
+- **Ask AI** — natural-language questions answered by generated SQL, executed through a
+  read-only, admin-gated, schema-fenced RPC.
 
-## Recent Updates (Latest Release)
+## Tech stack
 
-### 🎉 Friends Feature Implementation
-- New `FriendsView` component for cohort-wide course comparison
-- `FriendDetailModal` component for viewing individual friend schedules
-- Hooks for managing friend selections and relationships
-- Database migration (`007_friends.sql`) for friend relationship storage
+- **Framework:** Next.js 16 (App Router, Turbopack)
+- **Styling:** Tailwind CSS v4, Lucide icons, Recharts
+- **Components:** shadcn/ui (Dialog, Sheet, Calendar, …)
+- **Backend:** Supabase — Postgres, Auth (magic link), Storage, RLS
+- **Hosting:** Vercel
 
-### 🎨 Enhanced Timetable
-- Improved layout and responsive design
-- Better visual hierarchy for course blocks
-- Enhanced timeline visualization for multiple terms
-- Better support for friend schedule comparison
-
-### 📊 Admin Dashboard Improvements
-- Advanced analytics tracking with funnel insights
-- Session-level user journey tracking
-- Physics drawer functionality for detailed analytics
-- Conflict detection and scheduling audit tools
-
-### 🔧 Code Quality
-- Removed deprecated sandbox page
-- Updated type definitions to support friend relationships
-- Enhanced analytics hooks with better tracking
-- Improved component structure and reusability
-
-## Tech Stack
-
-- **Framework:** Next.js 16 (App Router)
-- **Styling:** Tailwind CSS v4, Lucide React
-- **Components:** Shadcn/UI (Base UI, Dialog, Sheet, Calendar)
-- **Backend/Auth:** Supabase
-- **Database:** PostgreSQL (via Supabase)
-- **State Management:** React Hooks
-
-## Project Structure
+## Project structure
 
 ```
 mba-planner/
 ├── app/
-│   ├── planner/          # Main planner page with course selection
-│   ├── admin/            # Admin dashboard
-│   └── kyoto/            # Kyoto admin route
+│   ├── planner/          Main planner (Plan / My Schedule / Friends)
+│   ├── admin/            Admin dashboard + audit log
+│   ├── kyoto/            Alternate visual skin of the planner
+│   └── api/              Chat, nudges, calendar, private file serving, analytics
 ├── components/
-│   ├── planner/          # Planner components
-│   │   ├── TimetableView.tsx
-│   │   ├── FriendsView.tsx (NEW)
-│   │   └── FriendDetailModal.tsx (NEW)
-│   └── admin/            # Admin components
-├── hooks/
-│   ├── useAnalytics.ts
-│   ├── useFriends.ts (NEW)
-│   ├── useFriendSelections.ts (NEW)
-│   └── useLandingAnalytics.ts
-├── supabase/
-│   └── migrations/       # Database migrations
-│       └── 007_friends.sql (NEW)
-└── types/
-    └── index.ts          # TypeScript definitions
+│   ├── planner/          Timetable, plan list, filters, friends, course modal
+│   ├── planner-kyoto/    The Kyoto skin's own components
+│   ├── admin/            AdminDashboard, MetricsPanel, AskAiPanel, AuditDashboard
+│   ├── chatbot/          Chat widget, nudges, input, chips
+│   └── auth/             Login form, professor ring, fact ticker
+├── data/
+│   ├── courses.ts        THE CATALOGUE — single source of truth
+│   ├── professors.ts     Login-screen faculty (term-tagged)
+│   ├── term1courses.ts   Term 1 retake timeline
+│   └── term{4,5}Insights.json   Generated nudge catalogues
+├── lib/
+│   ├── terms.ts          Term dates, current term, completion
+│   ├── conflicts.ts      Section advisories
+│   ├── calendar.ts       ICS generation
+│   └── chat/             Assistant routing, prompt, insight selection
+├── scripts/              Uploads, seeding, and the verification scripts
+└── supabase/migrations/  Schema
 ```
 
-## Setup Instructions
+Course content lives one level up from the app, alongside the source spreadsheets:
+`../Term 4 course outlines/`, `../Term 5 course outlines/`, `../Term5 Insight Engine/`.
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up your environment variables by creating a `.env.local` file in the root directory and adding your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+## Setup
 
-## Database Migrations
+```bash
+npm install
+```
 
-The project uses Supabase migrations for schema management. To apply migrations:
+Create `.env.local`:
 
-1. Navigate to your Supabase dashboard
-2. Go to the SQL Editor
-3. Run the migration files in order (e.g., `007_friends.sql` for the friends feature)
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+SUPABASE_SERVICE_ROLE_KEY=<service role key>   # only needed for the upload scripts
+NVIDIA_API_KEY=<key>                            # only needed for the AI assistant
+```
 
-Key tables:
-- `friends_list` - Stores friend relationships between users
-- `friend_selections` - Tracks friend course selections for comparison
+```bash
+npm run dev     # http://localhost:3000
+```
+
+## Database migrations
+
+The Supabase CLI is linked to the project, so migrations apply directly from the shell — there
+is no dashboard copy-paste step:
+
+```bash
+supabase db query --linked -f supabase/migrations/016_term5_outlines.sql
+
+# read-only inspection
+supabase db query --linked "select code, term from course_outlines order by term, code;" -o table
+```
+
+Key tables: `profiles`, `course_selections`, `course_sections`, `course_outlines`,
+`friendships`, `user_sessions`, `user_events`, `landing_sessions`, `chatbot_messages`.
+Note that **no table stores a term** — `course_selections` holds an integer `course_id` and the
+term is resolved through `data/courses.ts`. See `CLAUDE.md` for why that matters.
+
+## Content scripts
+
+```bash
+node scripts/upload-outlines.js --term 5     # push course outlines to private Storage
+node scripts/assign-course-sections.js       # backfill registrar A/B section assignments (dry-run by default)
+node scripts/seed-demo-account.mjs           # refresh the read-only demo login
+```
+
+## Verification
+
+```bash
+npx tsc --noEmit
+npm run build
+npx tsx scripts/verify-timings.mts     # class dates vs the published timetable
+npx tsx scripts/verify-insights.mts    # insight engines fire; no dangling course codes
+```
+
+`verify-timings.mts` is the important one after any catalogue edit — it cross-checks every
+generated class date against an independently transcribed expectation, which is what catches a
+mistyped day or slot.
 
 ## Deployment
 
-To deploy this project to Vercel:
+Deployed on Vercel; the repo is already linked (`.vercel/`). Set `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NVIDIA_API_KEY` in the Vercel project, apply any pending
+migrations first, then push.
 
-1. Import this repository into your Vercel dashboard.
-2. In the project settings on Vercel, ensure you add the environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. Run database migrations on Supabase before deployment.
-4. Deploy!
+## Admin access
 
-## Admin Access
-
-Admin features are available to designated users. Current admins:
-- tarun.shekhawat2027@bitsom.edu.in
-- varad.dharap2027@bitsom.edu.in
-- yash.kolhe2027@bitsom.edu.in
-- apoorv.sharma2027@bitsom.edu.in
-
-Admin features include analytics dashboard, user journey tracking, and term management.
-
-## Contributing
-
-1. Create a new branch for your feature
-2. Make your changes and test locally
-3. Submit a pull request with a clear description of changes
-4. Ensure all database migrations are included for schema changes
+Admin features are gated by a hardcoded allowlist in `app/admin/page.tsx`,
+`app/planner/page.tsx` and `app/kyoto/page.tsx` — all three must be updated together. The
+current list is in `CLAUDE.md`.
 
 ## License
 
-This project is private and intended for use by BITSoM MBA students and administrators.
+Private — for use by BITSoM MBA students and administrators.

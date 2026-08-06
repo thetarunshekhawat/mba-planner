@@ -93,7 +93,11 @@ export function CompetitionCard({
             src={c.logo_url}
             alt=""
             onError={() => setLogoBroken(true)}
-            className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0"
+            // `contain`, not `cover`. Unstop serves square 150×150 logos, but a
+            // manually-added competition's logo is whatever the organiser's site
+            // uses — often a wide wordmark, which `cover` crops to an unreadable
+            // middle slice ("Saregama TalentWood" rendered as "ntw eason").
+            className="w-10 h-10 rounded-lg object-contain bg-white border border-slate-100 p-0.5 shrink-0"
           />
         ) : (
           <div className="w-10 h-10 rounded-lg bg-slate-100 grid place-items-center shrink-0">

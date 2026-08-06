@@ -26,8 +26,15 @@ and a public API; a company microsite has neither.
   `MappedCompetition.source` widens from the `'unstop'` literal to `'unstop' | 'manual'`, which
   is what the route and the schema `CHECK` already allowed.
 
-- **First manual import**: V-Guard Big Idea 2026, published cohort-wide — 4 rounds, 2
-  eliminators, `sourceId` `vguard-big-idea-2026`.
+- **Competition logos use `object-contain`, not `object-cover`.** Unstop serves square 150×150
+  logos, so cropping was invisible there. A manually-added competition's logo is whatever the
+  organiser's site uses, and those are usually wide wordmarks — "Saregama TalentWood" rendered
+  as an unreadable middle slice reading "ntw eason".
+
+- **Published cohort-wide**: V-Guard Big Idea 2026 (`vguard-big-idea-2026`, 4 rounds),
+  Saregama TalentWood Season 5 (`saregama-talentwood-s5-2026`, 4 rounds, all dates still TBA),
+  EPOCH 2026 (`iimjobs-epoch-2026`, 2 rounds), and GRAD 3.0 by Galderma via `unstop-import`
+  (`1698634`, 5 rounds).
 
 ### Fixed - Alerts dispatch: the 15-minute schedule was fiction
 

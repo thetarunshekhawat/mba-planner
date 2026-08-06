@@ -43,7 +43,9 @@ lib/alerts/*           Competition/deadline alerts: Unstop mapping, reminder sch
                        round progress, IST helpers, shared PostgREST paging
 components/planner/*   The main planner UI (Plan / My Schedule / Friends / Alerts)
 .claude/skills/unstop-import/
-                       The only sanctioned path to a cohort-wide competition
+                       Cohort-wide competition from an Unstop link (API-mapped)
+.claude/skills/manual-competition/
+                       Cohort-wide competition with no Unstop page (hand-mapped)
 components/planner-kyoto/*   Alternate visual skin at /kyoto — a parallel design, not admin
 components/admin/*     Admin dashboard + Metrics panel + Ask-AI
 supabase/migrations/*  Schema, applied via the CLI (see "Supabase")
@@ -214,7 +216,7 @@ push. Competitions come from Unstop's public JSON API — no scraping.
 
 | Added by | Result |
 |---|---|
-| Admin via the `unstop-import` skill | **Global** — the whole cohort sees it |
+| Admin via the `unstop-import` or `manual-competition` skill | **Global** — the whole cohort sees it |
 | Anyone via the website | **Private** to them |
 | Admin via the website, "publish to everyone" ticked | Global |
 
@@ -250,8 +252,14 @@ cannot reach those paths.
 
 The admin queue lives in the admin **Alerts** tab, grouped by url so "four people want this
 one" is visible — that is the number that decides whether importing is worth it. Marking a
-request *Added* only answers it; the import itself is still the `unstop-import` skill or a
-migration.
+request *Added* only answers it; the import itself is `unstop-import` when the link has an
+Unstop page and `manual-competition` when it does not.
+
+`/api/alerts/import` takes `source: 'unstop' | 'manual'`. It used to resolve that from the body
+and then hardcode `'unstop'` into the payload it imported, so manual competitions were filed
+under a source they never came from while the response echoed `'manual'` — the mismatch was
+invisible from the caller's side. Fixed; `importCompetition` matches on `(source, source_id)`,
+so that bug would also have split re-imports into duplicate rows.
 
 `competition_requests` reads through `/api/alerts/requests` with the **service-role client
 behind an `isAdminEmail()` gate**, not the browser's session. Its RLS SELECT policy is

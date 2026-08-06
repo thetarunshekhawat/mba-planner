@@ -4,6 +4,31 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - `manual-competition` skill, and a fix to the route it needs
+
+Competitions with no Unstop page had no path to the cohort. `unstop-import` needs a numeric id
+and a public API; a company microsite has neither.
+
+- **`.claude/skills/manual-competition/SKILL.md`** — the companion skill. Read the page with
+  `/browse`, map phases to rounds by hand, POST to the same admin import route. Its rules exist
+  because nothing upstream will correct a mistake here: never invent a date or a time (send
+  `null`, which renders as "Dates to be announced"); a round is a thing with a deadline a
+  student must act on, so "shortlist announced" goes in the previous round's description rather
+  than becoming a round that fires four notifications; `isEliminator` only where the page says
+  people are cut, because that flag drives the pass/fail gate. It also requires reporting
+  whether registration has already closed.
+
+- **Fixed `/api/alerts/import` filing every manual import as `unstop`.** The route resolved
+  `source` from the body and then hardcoded `source: 'unstop'` into the payload it imported,
+  while the response echoed the resolved value — so the row said one thing and the caller was
+  told another. `importCompetition` matches existing rows on `(source, source_id)`, so this
+  would also have split re-imports of the same competition into duplicate rows.
+  `MappedCompetition.source` widens from the `'unstop'` literal to `'unstop' | 'manual'`, which
+  is what the route and the schema `CHECK` already allowed.
+
+- **First manual import**: V-Guard Big Idea 2026, published cohort-wide — 4 rounds, 2
+  eliminators, `sourceId` `vguard-big-idea-2026`.
+
 ### Fixed - Alerts dispatch: the 15-minute schedule was fiction
 
 The `Alerts dispatch` workflow failed twice on 6 Aug with `The job was not acquired by Runner

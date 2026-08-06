@@ -4,6 +4,33 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - Alerts dispatch: the 15-minute schedule was fiction
+
+The `Alerts dispatch` workflow failed twice on 6 Aug with `The job was not acquired by Runner
+of type hosted`. That part is a GitHub capacity incident — the job never started, `runner_name`
+came back empty, and `timeout-minutes` didn't bound it because it only counts from acquisition.
+Nothing in the repo caused it and nothing needed re-running: the next tick redoes whatever was
+due, because `lib/alerts/schedule.ts` fires on what *is* due, not on what a run was meant to
+cover.
+
+Investigating it surfaced the real problem. The workflow asks for `*/15` and does not get it:
+over an 8-hour window, **33 ticks were requested and 5 delivered**, with gaps of 104–154
+minutes. GitHub's scheduler is best-effort and drops most high-frequency ticks on free/public
+repos.
+
+- Cron minutes moved off `:00/:15/:30/:45` to `3,18,33,48` — those are the most contended slots
+  and the first to be dropped. A marginal improvement, not a fix.
+- The workflow header and CLAUDE.md now state the measured cadence instead of the requested
+  one, and say what it costs: `T-7d`/`T-2d`/`T-1d` are unaffected, `T-3h` can land at T-1h, and
+  `T-0` can land up to two hours *after* the deadline — inside `STALE_GRACE_MS` so it still
+  sends, but announcing something already missed.
+- No delivery was actually affected: `alert_deliveries` is empty, because nothing is tracked
+  yet.
+
+The documented fix for sub-hour accuracy is a second driver hitting the same guarded endpoint,
+which needs no code — `UNIQUE (user_id, dedupe_key)` already guarantees any number of racing
+dispatchers send exactly one notification between them.
+
 ### Added - "That isn't an Unstop link. Ask an admin to add it?"
 
 Pasting a Dare2Compete link, a company page or a Google Form used to end at an error message.

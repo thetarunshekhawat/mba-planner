@@ -4,9 +4,30 @@
 # "remind me 3 hours before the round closes" — so vercel.json's daily run is
 # only a safety net and this is the actual driver.
 #
-# GitHub delays scheduled runs under load, sometimes by many minutes. That is
-# fine and expected: lib/alerts/schedule.ts fires anything whose due time has
-# passed, and only gives up once the deadline itself is more than six hours old.
+# ⚠️ `*/15` IS AN ASK, NOT A PROMISE. GitHub's scheduler is best-effort and
+# drops most high-frequency ticks on free/public repos. Measured on this repo
+# over an 8-hour window: 33 ticks requested, 5 delivered — gaps of 104-154
+# minutes. Plan for roughly two-hourly, not quarter-hourly.
+#
+# What that costs: `T-3h` reminders can land at T-1h (still useful) and `T-0`
+# reminders can land up to two hours AFTER the deadline (useless, though still
+# inside STALE_GRACE_MS so they do send). If sub-hour accuracy starts to matter,
+# the fix is a second driver hitting the same endpoint — an external cron with
+# custom-header support, or any host that will POST every 15 minutes. Two
+# dispatchers racing is safe by construction: alert_deliveries'
+# UNIQUE (user_id, dedupe_key) means they send exactly one notification between
+# them. See "Two drivers, one guard" in CLAUDE.md.
+#
+# The minutes below are deliberately offset off :00/:15/:30/:45. Those are the
+# most contended slots on GitHub's scheduler and the first to be dropped.
+#
+# Runs also fail outright with "The job was not acquired by Runner of type
+# hosted" when GitHub cannot allocate a runner. That is a GitHub incident, not a
+# fault here: the job never starts, `runner_name` comes back empty, and
+# `timeout-minutes` does not apply because it only counts from acquisition.
+# Nothing to fix and nothing to re-run — the next tick redoes any work that was
+# due, because lib/alerts/schedule.ts fires on what is due rather than on what
+# this run was "supposed" to cover.
 #
 # ⚠️ GitHub disables scheduled workflows after 60 days without repository
 # activity. If reminders quietly stop, check that first — the Actions tab will
@@ -20,7 +41,7 @@ name: Alerts dispatch
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '3,18,33,48 * * * *'
   workflow_dispatch:
 
 # A slow run must not overlap the next tick and double-process the queue.

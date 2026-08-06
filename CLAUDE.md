@@ -289,10 +289,32 @@ exactly one notification. A reminder more than six hours past its anchor is writ
 ### Two drivers, one guard
 
 Vercel Hobby caps cron at daily, so `vercel.json`'s run is a safety net. The real driver is
-`.github/workflows/alerts-dispatch.yml` every 15 minutes. Both present
-`Authorization: Bearer $CRON_SECRET`, which Vercel sends automatically once that env var
-exists, so one `timingSafeEqual` guard covers both. It **fails closed** when the var is unset.
-(`/api/keepalive` stays deliberately open — don't change it.)
+`.github/workflows/alerts-dispatch.yml`. Both present `Authorization: Bearer $CRON_SECRET`,
+which Vercel sends automatically once that env var exists, so one `timingSafeEqual` guard
+covers both. It **fails closed** when the var is unset. (`/api/keepalive` stays deliberately
+open — don't change it.)
+
+Adding a third driver is safe by construction and needs no code: `alert_deliveries`'
+`UNIQUE (user_id, dedupe_key)` means any number of dispatchers racing send exactly one
+notification between them. Point it at the same URL with the same bearer.
+
+⚠️ **The workflow asks for every 15 minutes and does not get it.** GitHub's scheduler is
+best-effort and drops most high-frequency ticks on free/public repos. Measured on this repo
+over an 8-hour window: **33 ticks requested, 5 delivered**, with gaps of 104–154 minutes. The
+cron minutes are offset off `:00/:15/:30/:45` (the most contended slots) to help at the margin,
+but do not read `3,18,33,48` as a cadence — assume roughly two-hourly.
+
+That is fine for `T-7d`, `T-2d` and `T-1d`. It is not fine for the two tight offsets:
+`T-3h` can land at T-1h, and `T-0` can land up to two hours *after* the deadline — still inside
+`STALE_GRACE_MS` so it sends, but it announces something already missed. **If sub-hour accuracy
+starts to matter, add the second driver; do not try to make GitHub keep the schedule.**
+
+Runs also fail outright with `The job was not acquired by Runner of type hosted`. That is a
+GitHub capacity incident, not a fault in this repo: the job never starts, `runner_name` comes
+back empty, and `timeout-minutes` does not bound it because it only counts from acquisition.
+Nothing to fix, and nothing worth re-running — the next tick redoes whatever was due, because
+`lib/alerts/schedule.ts` fires on what *is* due rather than on what a given run was supposed to
+cover.
 
 ⚠️ GitHub disables scheduled workflows after 60 days without repo activity. If reminders stop,
 check that first; a rising `skipped_stale` count in the admin Alerts tab is the in-app signal.

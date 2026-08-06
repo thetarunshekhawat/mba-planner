@@ -22,9 +22,13 @@ import { roundState, nextMilestone } from '@/lib/alerts/progress';
 import { formatIst } from '@/lib/alerts/time';
 import type {
   AlertDelivery, AlertReminderRule, AlertRoundOutcome, AlertTrack,
-  Competition, CompetitionRound, CustomDeadline, Profile, PushSubscriptionRow,
+  Competition, CompetitionRequest, CompetitionRequestStatus, CompetitionRound,
+  CustomDeadline, Profile, PushSubscriptionRow,
 } from '@/types';
-import { Bell, BellOff, Globe, Lock, Smartphone, TriangleAlert, Users } from 'lucide-react';
+import {
+  Bell, BellOff, Check, ExternalLink, Globe, Inbox, Loader2, Lock, Smartphone,
+  TriangleAlert, Undo2, Users, X,
+} from 'lucide-react';
 
 interface Props {
   profiles: Profile[];
@@ -52,6 +56,12 @@ export function AlertsAdminPanel({ profiles, onViewMember }: Props) {
   const [deadlines, setDeadlines] = useState<CustomDeadline[]>([]);
   const [subs, setSubs] = useState<PushSubscriptionRow[]>([]);
   const [deliveries, setDeliveries] = useState<AlertDelivery[]>([]);
+  // Requests do NOT come from `supabase` like everything else: the table's RLS
+  // SELECT policy is `user_id = auth.uid()` with no admin policy, so a direct
+  // read here would silently return only this admin's own asks. The route uses
+  // the service-role client behind an isAdminEmail() gate. See migration 020.
+  const [requests, setRequests] = useState<CompetitionRequest[]>([]);
+  const [resolving, setResolving] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -67,6 +77,13 @@ export function AlertsAdminPanel({ profiles, onViewMember }: Props) {
       ]);
       setCompetitions(c); setRounds(r); setTracks(t); setRules(rl);
       setOutcomes(o); setDeadlines(d); setSubs(s); setDeliveries(dl);
+
+      try {
+        const res = await fetch('/api/alerts/requests');
+        if (res.ok) setRequests((await res.json()).requests ?? []);
+      } catch {
+        // A failed queue fetch must not blank the rest of the tab.
+      }
       setLoading(false);
     })();
   }, []);
@@ -77,6 +94,24 @@ export function AlertsAdminPanel({ profiles, onViewMember }: Props) {
 
   const nameOf = (id: string) =>
     profiles.find((p) => p.id === id)?.name || profiles.find((p) => p.id === id)?.email || id.slice(0, 8);
+  const emailOf = (id: string) => profiles.find((p) => p.id === id)?.email ?? '';
+
+  async function resolveRequest(id: string, status: CompetitionRequestStatus) {
+    setResolving(id);
+    try {
+      const res = await fetch('/api/alerts/requests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      });
+      if (res.ok) {
+        const { request } = await res.json();
+        setRequests((prev) => prev.map((r) => (r.id === id ? request : r)));
+      }
+    } finally {
+      setResolving(null);
+    }
+  }
 
   const trackersByUser = new Map<string, AlertTrack[]>();
   for (const t of tracks) {
@@ -97,6 +132,21 @@ export function AlertsAdminPanel({ profiles, onViewMember }: Props) {
     stale: deliveries.filter((d) => d.status === 'skipped_stale').length,
     failed: deliveries.filter((d) => d.status === 'failed').length,
   };
+
+  const pendingRequests = requests.filter((r) => r.status === 'pending');
+  // Pending groups first, then newest — the queue is meant to be worked down.
+  const groupedRequests = [...requests
+    .reduce((acc, r) => {
+      const list = acc.get(r.url) ?? [];
+      list.push(r);
+      return acc.set(r.url, list);
+    }, new Map<string, CompetitionRequest[]>())]
+    .sort((a, b) => {
+      const aPending = a[1].some((r) => r.status === 'pending') ? 0 : 1;
+      const bPending = b[1].some((r) => r.status === 'pending') ? 0 : 1;
+      if (aPending !== bPending) return aPending - bPending;
+      return b[1][0].created_at.localeCompare(a[1][0].created_at);
+    });
 
   const tracksPerUser = [...trackersByUser.values()].map((v) => v.length).sort((a, b) => a - b);
   const median = tracksPerUser.length
@@ -135,6 +185,128 @@ export function AlertsAdminPanel({ profiles, onViewMember }: Props) {
       <p className="text-xs text-slate-500">
         Mean {mean} competitions tracked per active student, median {median}.
       </p>
+
+      {/* ── Competition requests ──────────────────────── */}
+      {/*
+        Links the importer refused, and the students who asked for them. This is
+        the only place these surface: the student's ask is otherwise invisible to
+        everyone who could act on it. Grouped by url, because "four people want
+        this one" is the number that decides whether it is worth importing.
+      */}
+      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5">
+            <Inbox className="w-3.5 h-3.5" />
+            Non-Unstop requests
+          </span>
+          <span className="font-normal normal-case text-[11px] text-slate-400">
+            {pendingRequests.length} pending · {requests.length} all time
+          </span>
+        </h3>
+
+        {groupedRequests.length === 0 ? (
+          <p className="px-4 py-6 text-center text-slate-400 text-xs">
+            Nobody has asked for a non-Unstop competition yet. When a student pastes a link that
+            isn&apos;t on Unstop, they&apos;re offered this and it lands here.
+          </p>
+        ) : (
+          <ul className="divide-y divide-gray-50">
+            {groupedRequests.map(([url, rows]) => {
+              const pending = rows.filter((r) => r.status === 'pending');
+              return (
+                <li key={url} className="px-4 py-3">
+                  <div className="flex items-start gap-2">
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-w-0 flex-1 text-xs font-semibold text-slate-800 hover:text-orange-600 break-all inline-flex items-start gap-1"
+                    >
+                      <span className="min-w-0">{url}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0 mt-0.5 text-slate-400" />
+                    </a>
+                    <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                      pending.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      {rows.length} {rows.length === 1 ? 'asker' : 'askers'}
+                    </span>
+                  </div>
+
+                  <ul className="mt-2 space-y-1.5">
+                    {rows.map((r) => (
+                      <li key={r.id} className="flex items-start gap-2 text-[11px]">
+                        <span className="min-w-0 flex-1">
+                          <span
+                            onClick={() => onViewMember?.(r.user_id)}
+                            className="font-semibold text-slate-700 hover:text-orange-600 cursor-pointer"
+                          >
+                            {nameOf(r.user_id)}
+                          </span>
+                          <span className="text-slate-400"> · {emailOf(r.user_id)} · {formatIst(r.created_at)}</span>
+                          {r.reason === 'unstop_unreachable' && (
+                            <span className="ml-1 text-rose-500">· Unstop refused it</span>
+                          )}
+                          {r.note && (
+                            <span className="block text-slate-500 italic mt-0.5">&ldquo;{r.note}&rdquo;</span>
+                          )}
+                        </span>
+
+                        {r.status === 'pending' ? (
+                          <span className="shrink-0 flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={resolving === r.id}
+                              onClick={() => resolveRequest(r.id, 'added')}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors disabled:opacity-40"
+                            >
+                              {resolving === r.id
+                                ? <Loader2 className="w-3 h-3 animate-spin" />
+                                : <Check className="w-3 h-3" />}
+                              Added
+                            </button>
+                            <button
+                              type="button"
+                              disabled={resolving === r.id}
+                              onClick={() => resolveRequest(r.id, 'declined')}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 text-slate-500 font-semibold hover:bg-rose-50 hover:text-rose-600 transition-colors disabled:opacity-40"
+                            >
+                              <X className="w-3 h-3" />
+                              Decline
+                            </button>
+                          </span>
+                        ) : (
+                          <span className="shrink-0 flex items-center gap-1.5">
+                            <span className={`font-semibold ${r.status === 'added' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                              {r.status === 'added' ? 'Added' : 'Declined'}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={resolving === r.id}
+                              onClick={() => resolveRequest(r.id, 'pending')}
+                              title="Reopen"
+                              className="text-slate-300 hover:text-orange-500 disabled:opacity-40"
+                            >
+                              <Undo2 className="w-3 h-3" />
+                            </button>
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {pendingRequests.length > 0 && (
+          <p className="text-[11px] text-slate-500 bg-slate-50 px-4 py-2 border-t border-gray-100">
+            &ldquo;Added&rdquo; only marks the request answered — it imports nothing. Add the
+            competition itself with the <code className="text-slate-700">unstop-import</code> skill
+            (if it has an Unstop page) or a migration, then mark it here.
+          </p>
+        )}
+      </section>
 
       {/* ── Per competition ───────────────────────────── */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">

@@ -75,6 +75,8 @@ export type EventType =
   | 'alert_notifications_toggled'
   | 'alert_round_expanded'
   | 'alert_card_expanded'
+  | 'alert_competition_requested'
+  | 'alert_competition_request_failed'
   | 'alert_round_link_clicked'
   | 'alert_reminder_sheet_opened'
   | 'alert_reminder_offset_toggled'

@@ -4,6 +4,50 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - "That isn't an Unstop link. Ask an admin to add it?"
+
+Pasting a Dare2Compete link, a company page or a Google Form used to end at an error message.
+The student's actual intent — "I want to track this" — was thrown away, and the only people who
+could act on it (admins, who can import by hand) never learned the ask existed.
+
+- **The offer** — `/api/alerts/unstop` marks its two *recoverable* refusals with
+  `canRequest: true`: the link isn't an Unstop competition, or Unstop refused to serve it. A
+  blank box is a typo, not an ask, and carries no flag. `AddCompetitionDialog` turns the flag
+  into a yes/no with an optional note ("closes Friday, team of 4"). Editing the link clears the
+  offer, because the refusal it was based on no longer applies.
+
+- **Schema** — migration `020_competition_requests.sql`. A request is deliberately **not** a
+  `competitions` row with a pending flag: nothing on it is verified, and putting it there would
+  oblige every reader (dispatcher, cards, `chainProgress`) to learn to skip it, where one missed
+  filter puts a fictional deadline on a hundred phones. `UNIQUE (user_id, url)` so re-asking
+  updates rather than stacking, while two students asking for the same link stay two rows —
+  "four people want this" is the number that decides whether importing is worth it.
+
+- **The admin queue** — a "Non-Unstop requests" section at the top of the admin Alerts tab,
+  grouped by url, showing who asked, their email, when, their note, and whether Unstop refused
+  it. Added / Decline / reopen per asker. "Added" only answers the request; the import itself is
+  still the `unstop-import` skill or a migration, and the panel says so.
+
+- **Admins read it through the service role, not their session.** The table's RLS SELECT policy
+  is `user_id = auth.uid()` with no admin policy, so a direct client read would have returned
+  only the admin's own asks — the feature failing silently rather than loudly.
+  `/api/alerts/requests` uses the service-role client behind an `isAdminEmail()` gate, the same
+  shape as the admin branch of `/api/alerts/unstop`, so the admin list stays in `lib/admin.ts`
+  alone.
+
+- **Verified end to end**: with the client-side demo guard deliberately bypassed, the
+  RESTRICTIVE RLS policy still refused the demo account's insert — the database guarantee, not
+  just the UI. Offer → note → send → admin queue → mark Added → `status`/`resolved_at`/
+  `resolved_by` persisted, confirmed by SQL.
+
+- **Known, pre-existing, not fixed here**: the rest of the admin Alerts panel reads
+  `alert_tracks`, `custom_deadlines`, `push_subscriptions` and `alert_deliveries` straight from
+  the browser client. Those tables are all `user_id = auth.uid()`-scoped with no admin policy,
+  so those figures describe the admin's own account rather than the cohort. Documented in
+  CLAUDE.md; the fix is to move them behind the same service-role route.
+
+- **Analytics** — `alert_competition_requested`, `alert_competition_request_failed`.
+
 ### Changed - Alerts: reachable on a phone, readable with five competitions open
 
 - **The Alerts tab was unreachable on a phone.** Four tab buttons ran ~400px wide inside a

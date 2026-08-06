@@ -259,6 +259,30 @@ export interface AlertDelivery {
   created_at: string;
 }
 
+export type CompetitionRequestReason = 'not_unstop' | 'unstop_unreachable';
+export type CompetitionRequestStatus = 'pending' | 'added' | 'declined';
+
+/**
+ * "This link isn't on Unstop — please add it for me."
+ *
+ * Deliberately not a `Competition` with a pending flag: nothing on it is
+ * verified, so it must not be reachable from any path that schedules a
+ * reminder. See migration 020.
+ */
+export interface CompetitionRequest {
+  id: string;
+  user_id: string;
+  url: string;
+  note: string | null;
+  reason: CompetitionRequestReason;
+  status: CompetitionRequestStatus;
+  competition_id: string | null;
+  admin_note: string | null;
+  created_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+}
+
 /** A competition plus everything the card needs, assembled client-side. */
 export interface TrackedCompetition {
   competition: Competition;

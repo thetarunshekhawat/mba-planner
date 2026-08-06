@@ -43,10 +43,17 @@ export async function POST(request: Request) {
 
   // The slug form (no trailing numeric id) returns a 404 body inside a 200, so
   // rejecting here gives a real message instead of an empty competition.
+  // `canRequest` tells the dialog this is a refusal a human could still fix, so
+  // it can offer "ask an admin to add it" instead of ending the interaction.
+  // Only these two paths carry it: a blank box is a typo, not an ask.
   const numericId = parseUnstopId(rawUrl);
   if (!numericId) {
     return NextResponse.json(
-      { error: "That doesn't look like an Unstop competition link — it should end in a number." },
+      {
+        error: "That doesn't look like an Unstop competition link — it should end in a number.",
+        canRequest: true,
+        reason: 'not_unstop',
+      },
       { status: 400 },
     );
   }
@@ -61,7 +68,11 @@ export async function POST(request: Request) {
     mapped = mapUnstopCompetition(raw);
   } catch (e) {
     return NextResponse.json(
-      { error: `Could not read that competition from Unstop. ${(e as Error).message}` },
+      {
+        error: `Could not read that competition from Unstop. ${(e as Error).message}`,
+        canRequest: true,
+        reason: 'unstop_unreachable',
+      },
       { status: 502 },
     );
   }

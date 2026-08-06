@@ -301,6 +301,7 @@ export function AlertsView({
         onOpenChange={setAddOpen}
         canPublish={canPublish}
         onSubmit={(url, publish) => alerts.importUnstop(url, publish)}
+        onRequest={(url, note, reason) => alerts.requestCompetition(url, note, reason)}
       />
       <CustomDeadlineDialog
         open={deadlineOpen}

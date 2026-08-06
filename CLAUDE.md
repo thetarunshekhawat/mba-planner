@@ -230,6 +230,43 @@ see the caller's email without another SECURITY DEFINER function — see migrati
 — NULLs never conflict in a Postgres unique index — and the same competition could be
 published twice.
 
+### When the link isn't an Unstop link
+
+Students paste links from Dare2Compete, a company careers page, a Google Form. The importer
+cannot read those, and until migration 020 the interaction ended at an error message — the
+student's actual intent ("I want to track this") was discarded, and the only people who could
+act on it never learned the ask existed.
+
+`/api/alerts/unstop` now marks its two *recoverable* refusals with `canRequest: true` (not an
+Unstop link; Unstop refused to serve it). A blank box is a typo, not an ask, and carries no
+flag. The dialog turns that into "Do you want an admin to add this competition?", and a yes
+writes a row to `competition_requests`.
+
+**A request is not a competition.** Nothing on it is verified — no title, no rounds, no dates,
+and no guarantee the link is a competition at all. Putting it in `competitions` behind a
+pending flag would oblige every reader (the dispatcher, the cards, `chainProgress`) to learn to
+skip it, and one missed filter puts a fictional deadline on a hundred phones. A separate table
+cannot reach those paths.
+
+The admin queue lives in the admin **Alerts** tab, grouped by url so "four people want this
+one" is visible — that is the number that decides whether importing is worth it. Marking a
+request *Added* only answers it; the import itself is still the `unstop-import` skill or a
+migration.
+
+`competition_requests` reads through `/api/alerts/requests` with the **service-role client
+behind an `isAdminEmail()` gate**, not the browser's session. Its RLS SELECT policy is
+`user_id = auth.uid()` with no admin policy, so a direct client read would return only the
+admin's own asks — the feature failing silently. An RLS policy that recognised admins would
+need a SECURITY DEFINER function reading `auth.users.email`, forking the admin list into a
+second source of truth alongside `lib/admin.ts`. Same reasoning as the admin branch of
+`/api/alerts/unstop`.
+
+⚠️ **The rest of the admin Alerts panel does not do this**, and is wrong because of it: it reads
+`alert_tracks`, `custom_deadlines`, `push_subscriptions` and `alert_deliveries` straight from
+the browser client, and every one of those tables is `user_id = auth.uid()`-scoped with no
+admin policy. Those figures therefore describe the admin's own account, not the cohort.
+Pre-existing; fix it by moving those reads behind the same service-role route.
+
 ### The reminder model
 
 **Rules are stored sparsely; occurrences are computed at dispatch; idempotency lives in the
@@ -357,6 +394,7 @@ supabase db query --linked "select ..." -o table     # read-only queries
 | `push_subscriptions` | One row per browser; `endpoint` is unique |
 | `alert_deliveries` | The idempotency ledger. `UNIQUE (user_id, dedupe_key)` |
 | `course_deadlines` | Extracted assignment dates. Seeded by migration only; ships empty |
+| `competition_requests` | "This link isn't on Unstop, please add it." Admin-read via service role |
 
 **No table stores a term.** That is deliberate and it works, because `course_id` is globally
 unique across terms. `course_outlines.term` exists for analytics only — its primary key is

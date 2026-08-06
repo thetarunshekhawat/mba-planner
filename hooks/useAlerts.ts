@@ -7,6 +7,7 @@ import type {
   AlertRoundOutcome,
   AlertTrack,
   Competition,
+  CompetitionRequestReason,
   CompetitionRound,
   CustomDeadline,
   TrackedCompetition,
@@ -294,7 +295,8 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
    */
   const importUnstop = useCallback(async (
     url: string, publishToCohort = false,
-  ): Promise<{ ok: boolean; error?: string; competitionId?: string }> => {
+  ): Promise<{ ok: boolean; error?: string; competitionId?: string;
+              canRequest?: boolean; reason?: CompetitionRequestReason }> => {
     trackRef.current?.('alert_competition_url_submitted', { publish: publishToCohort });
     if (readOnly) return { ok: false, error: 'This is a read-only demo, so competitions cannot be added.' };
 
@@ -307,7 +309,14 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
       const json = await res.json();
       if (!res.ok) {
         trackRef.current?.('alert_competition_import_failed', { status: res.status, error: json?.error });
-        return { ok: false, error: json?.error ?? 'Could not import that competition.' };
+        // `canRequest` marks a refusal a human could still fix — the dialog
+        // turns it into "ask an admin" rather than a dead end.
+        return {
+          ok: false,
+          error: json?.error ?? 'Could not import that competition.',
+          canRequest: json?.canRequest === true,
+          reason: json?.reason as CompetitionRequestReason | undefined,
+        };
       }
       await refetch();
       trackRef.current?.(
@@ -320,6 +329,38 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
       return { ok: false, error: 'Network error. Check your connection and try again.' };
     }
   }, [readOnly, refetch]);
+
+  /**
+   * Hands a link the importer refused to an admin, who can add it by hand.
+   *
+   * This is the whole point of not treating "not an Unstop link" as the end of
+   * the conversation: the student wants to track something, and an admin is the
+   * only person who can make that happen. Without this the ask evaporated.
+   */
+  const requestCompetition = useCallback(async (
+    url: string, note: string, reason: CompetitionRequestReason = 'not_unstop',
+  ): Promise<{ ok: boolean; error?: string }> => {
+    if (readOnly) {
+      return { ok: false, error: 'This is a read-only demo, so requests cannot be sent.' };
+    }
+    try {
+      const res = await fetch('/api/alerts/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, note, reason }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        trackRef.current?.('alert_competition_request_failed', { status: res.status });
+        return { ok: false, error: json?.error ?? 'Could not send that request.' };
+      }
+      trackRef.current?.('alert_competition_requested', { reason });
+      return { ok: true };
+    } catch {
+      trackRef.current?.('alert_competition_request_failed', { error: 'network' });
+      return { ok: false, error: 'Network error. Check your connection and try again.' };
+    }
+  }, [readOnly]);
 
   return {
     loading,
@@ -340,5 +381,6 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
     completeDeadline,
     deleteDeadline,
     importUnstop,
+    requestCompetition,
   };
 }

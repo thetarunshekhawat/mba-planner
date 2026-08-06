@@ -8,7 +8,10 @@ import type { Course, Friend } from '@/types';
 import { colorForFriend } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 
-export type SearchViewMode = 'plan' | 'schedule' | 'friends';
+// Mirrors ViewMode in app/planner/page.tsx, which passes it straight in. The
+// internal branches below only special-case 'friends', so 'alerts' falls
+// through to the default course-search behaviour.
+export type SearchViewMode = 'plan' | 'schedule' | 'friends' | 'alerts';
 
 /** Chips + free text, owned by the planner page and shared with every view. */
 export interface SearchState {

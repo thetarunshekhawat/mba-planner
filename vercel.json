@@ -3,6 +3,10 @@
     {
       "path": "/api/keepalive",
       "schedule": "0 0 */3 * *"
+    },
+    {
+      "path": "/api/alerts/dispatch",
+      "schedule": "0 22 * * *"
     }
   ]
 }

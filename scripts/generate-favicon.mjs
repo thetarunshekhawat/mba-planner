@@ -345,8 +345,16 @@ const VARIANTS = [
   { name: 'shallower', geom: { ...GEOM, apex: 60, vTaper: 0.55 } },
 ];
 
-if (process.argv.includes('--proof')) {
-  await proof(VARIANTS);
-} else {
-  await emit(GEOM);
+// Only act when run directly. scripts/generate-pwa-icons.mjs imports buildSvg
+// and GEOM from here so the home-screen icons derive from the same geometry as
+// the favicon — without this guard, that import would silently rewrite every
+// favicon asset as a side effect of generating the PWA icons.
+const isEntry = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isEntry) {
+  if (process.argv.includes('--proof')) {
+    await proof(VARIANTS);
+  } else {
+    await emit(GEOM);
+  }
 }

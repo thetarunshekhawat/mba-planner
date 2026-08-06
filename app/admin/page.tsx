@@ -4,15 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
-
-const ADMIN_EMAILS = new Set([
-  'tarun.shekhawat2027@bitsom.edu.in',
-  'varad.dharap2027@bitsom.edu.in',
-  'yash.kolhe2027@bitsom.edu.in',
-  'apoorv.sharma2027@bitsom.edu.in',
-]);
-
-const SUPER_ADMIN_EMAIL = 'tarun.shekhawat2027@bitsom.edu.in';
+import { isAdminEmail, isSuperAdminEmail } from '@/lib/admin';
 
 export default function AdminPage() {
   const supabase = createClient();
@@ -25,11 +17,11 @@ export default function AdminPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.replace('/'); return; }
       const email = user.email?.toLowerCase() ?? '';
-      if (!ADMIN_EMAILS.has(email)) {
+      if (!isAdminEmail(email)) {
         router.replace('/planner');
       } else {
         setAdminUserId(user.id);
-        setIsSuperAdmin(email === SUPER_ADMIN_EMAIL);
+        setIsSuperAdmin(isSuperAdminEmail(email));
         setReady(true);
       }
     });

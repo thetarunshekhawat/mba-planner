@@ -19,26 +19,22 @@ import { matchesQuery } from '@/lib/courseSearch';
 import { isDemoEmail } from '@/lib/demo';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { generateScheduleICS } from '@/lib/calendar';
-import { LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search, Eye } from 'lucide-react';
+import { LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search, Eye, Bell } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ALL_COURSES } from '@/data/courses';
 import { TERM_DATES, getCurrentTerm, getTermCourses } from '@/lib/terms';
+import { isAdminEmail } from '@/lib/admin';
+import { useAlerts } from '@/hooks/useAlerts';
+import { AlertsView } from '@/components/planner/AlertsView';
 import type { Course, SpecId, Profile, Friend, FriendOverlay } from '@/types';
 import { colorForFriend } from '@/types';
 import type { ChatAction } from '@/lib/chat/actions';
 import { useRouter } from 'next/navigation';
 
-const ADMIN_EMAILS = new Set([
-  'tarun.shekhawat2027@bitsom.edu.in',
-  'varad.dharap2027@bitsom.edu.in',
-  'yash.kolhe2027@bitsom.edu.in',
-  'apoorv.sharma2027@bitsom.edu.in',
-]);
-
-type ViewMode = 'plan' | 'schedule' | 'friends';
+type ViewMode = 'plan' | 'schedule' | 'friends' | 'alerts';
 
 const DEFAULT_FILTERS: Filters = {
   specs: [],
@@ -100,10 +96,13 @@ export default function PlannerPage() {
   const [overlayIds, setOverlayIds] = useState<Set<string>>(new Set());
   const [friendDetail, setFriendDetail] = useState<Friend | null>(null);
 
-  // ── Sliding tab pill (Plan / My Schedule / Friends) ───────
+  // ── Alerts ───────────────────────────────────────────────
+  const alerts = useAlerts(userId, isDemo, trackEvent);
+
+  // ── Sliding tab pill (Plan / My Schedule / Friends / Alerts) ─
   const tabRowRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<ViewMode, HTMLButtonElement | null>>({
-    plan: null, schedule: null, friends: null,
+    plan: null, schedule: null, friends: null, alerts: null,
   });
   const [pill, setPill] = useState<{ left: number; width: number } | null>(null);
 
@@ -202,7 +201,9 @@ export default function PlannerPage() {
     const ro = new ResizeObserver(measure);
     ro.observe(row);
     return () => ro.disconnect();
-  }, [viewMode, selected.size, friends.length]);
+    // Counts are dependencies because each badge changes its button's width —
+    // without them the sliding pill measures the old width and lands wrong.
+  }, [viewMode, selected.size, friends.length, alerts.trackedCount]);
 
   function handleFiltersChange(newFilters: Filters) {
     filtersDirtyRef.current = true;
@@ -445,6 +446,23 @@ export default function PlannerPage() {
                 </span>
               )}
             </button>
+            <button
+              ref={(el) => { tabRefs.current.alerts = el; }}
+              onClick={() => { setViewMode('alerts'); trackEvent('view_changed', { to: 'alerts' }); trackEvent('alerts_tab_opened'); }}
+              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                viewMode === 'alerts'
+                  ? 'text-slate-900'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Bell className="w-3.5 h-3.5" />
+              Alerts
+              {alerts.trackedCount > 0 && (
+                <span className="ml-0.5 bg-orange-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {alerts.trackedCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -462,7 +480,7 @@ export default function PlannerPage() {
               Demo
             </span>
           )}
-          {profile?.email && ADMIN_EMAILS.has(profile.email.toLowerCase()) && (
+          {isAdminEmail(profile?.email) && (
             <button
               onClick={() => { trackEvent('admin_dashboard_accessed'); router.push('/admin'); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-orange-400 hover:bg-slate-700 hover:text-orange-300 transition-all border border-orange-500/30"
@@ -711,6 +729,15 @@ export default function PlannerPage() {
               searchCourseIds={search.courseIds}
               searchText={search.text}
               onClearSearch={() => { setSearch(EMPTY_SEARCH); trackEvent('search_cleared', { view: 'friends', source: 'banner' }); }}
+            />
+          ) : viewMode === 'alerts' ? (
+            <AlertsView
+              alerts={alerts}
+              trackEvent={trackEvent}
+              canPublish={isAdminEmail(profile?.email)}
+              readOnly={isDemo}
+              selectedCourseIds={selected}
+              userId={userId}
             />
           ) : (
             <>

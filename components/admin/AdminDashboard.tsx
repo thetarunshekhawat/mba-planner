@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle, MousePointerClick, Copy, Zap, BarChart2, User2 } from 'lucide-react';
+import { Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle, MousePointerClick, Copy, Zap, BarChart2, User2, Bell } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
@@ -13,6 +13,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { AskAiPanel } from './AskAiPanel';
 import { MetricsPanel } from './MetricsPanel';
+import { fetchAllRows } from '@/lib/alerts/paging';
+import { AlertsAdminPanel } from './AlertsAdminPanel';
 
 interface MemberSelection {
   user_id: string;
@@ -75,7 +77,7 @@ interface GroupedSession {
   events: EventRow[];
 }
 
-type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot' | 'ask-ai';
+type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot' | 'ask-ai' | 'alerts';
 type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
 type InsightsSubTab = 'overview' | 'metrics';
 
@@ -122,6 +124,37 @@ const EVENT_LABELS: Record<string, string> = {
   chatbot_answer_received: 'AI Chat Answer',
   chatbot_error: 'AI Chat Error',
   chatbot_rate_limited: 'AI Chat Rate-limited',
+  // Alerts — competition & deadline reminders
+  alerts_tab_opened: 'Alerts Tab Opened',
+  alert_competition_add_opened: 'Add Competition Opened',
+  alert_competition_url_submitted: 'Unstop Link Submitted',
+  alert_competition_import_failed: 'Competition Import Failed',
+  alert_competition_imported: 'Competition Added (private)',
+  alert_competition_published: 'Competition Published (cohort)',
+  alert_competition_tracked: 'Competition Tracked',
+  alert_competition_untracked: 'Competition Untracked',
+  alert_notifications_toggled: 'Competition Notifications Toggled',
+  alert_round_expanded: 'Round Expanded',
+  alert_round_link_clicked: 'Round Link Clicked',
+  alert_reminder_sheet_opened: 'Reminder Settings Opened',
+  alert_reminder_offset_toggled: 'Reminder Offset Toggled',
+  alert_reminder_absolute_set: 'Absolute Reminder Set',
+  alert_reminder_absolute_cleared: 'Absolute Reminder Removed',
+  alert_elimination_prompt_shown: 'Elimination Prompt Shown',
+  alert_elimination_passed: 'Declared Cleared Round',
+  alert_elimination_failed: 'Declared Eliminated',
+  alert_elimination_undone: 'Elimination Undone',
+  alert_custom_deadline_opened: 'Add Deadline Opened',
+  alert_custom_deadline_added: 'Deadline Added',
+  alert_custom_deadline_completed: 'Deadline Completed',
+  alert_custom_deadline_deleted: 'Deadline Deleted',
+  alert_inbox_opened: 'Alert Inbox Opened',
+  alert_inbox_item_clicked: 'Alert Opened',
+  alert_push_prompt_shown: 'Push Permission Requested',
+  alert_push_enabled: 'Push Enabled',
+  alert_push_denied: 'Push Denied',
+  alert_push_test_sent: 'Test Notification Sent',
+  alert_push_ios_instructions_shown: 'iOS Install Instructions Shown',
 };
 
 function courseNameById(id: number): string {
@@ -336,26 +369,9 @@ function BarRow({
   );
 }
 
-// PostgREST caps every response at 1000 rows regardless of what the client asks for, so any
-// table larger than that has to be paged through explicitly. Without this the dashboard was
-// reading an arbitrary 1000 of ~16k user_events — and since the query had no ORDER BY, *which*
-// 1000 was undefined. Every derived number depended on that slice.
-const PAGE = 1000;
-
-async function fetchAllRows<T>(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  build: () => any,
-  hardCap = 100_000,
-): Promise<T[]> {
-  const out: T[] = [];
-  for (let from = 0; from < hardCap; from += PAGE) {
-    const { data, error } = await build().range(from, from + PAGE - 1);
-    if (error || !data) break;
-    out.push(...(data as T[]));
-    if (data.length < PAGE) break;
-  }
-  return out;
-}
+// `fetchAllRows` now lives in lib/alerts/paging.ts — the alerts dispatcher hits
+// the same silent 1000-row PostgREST cap, and one copy of the fix is better than
+// two. See that file for why a plain .select() is a bug here.
 
 // ── Distribution helpers for the Metrics tab ────────────────────────────────
 export interface Dist {
@@ -1300,6 +1316,15 @@ export function AdminDashboard({
             >
               <Sparkles className="w-3 h-3" />
               Ask AI
+            </button>
+            <button
+              onClick={() => setTab('alerts')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+                tab === 'alerts' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Bell className="w-3 h-3" />
+              Alerts
             </button>
 
             {/* Dashboard-wide term filter. Narrows every course-scoped number; session and
@@ -5112,6 +5137,18 @@ export function AdminDashboard({
           )}
 
           {tab === 'ask-ai' && <AskAiPanel />}
+
+          {/* Lazy: mounts on first open, then keeps its own state. Mirrors the
+              analyticsLoadedRef pattern — the panel does eight paged fetches. */}
+          {tab === 'alerts' && (
+            <AlertsAdminPanel
+              profiles={profiles}
+              onViewMember={(userId) => {
+                const p = profiles.find(x => x.id === userId);
+                if (p) { setSelectedMember(p); setTab('member'); }
+              }}
+            />
+          )}
 
           {tab === 'member' && !selectedMember && (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-slate-500 text-sm gap-2">

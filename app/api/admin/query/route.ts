@@ -12,15 +12,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { complete, ProviderError, isConfigured, ADMIN_MODEL } from '@/lib/chat/nemotron';
-
-// Mirrors the hardcoded ADMIN_EMAILS set in app/admin/page.tsx (and the DB
-// function). The DB function re-checks, so this is a fast first gate.
-const ADMIN_EMAILS = new Set([
-  'tarun.shekhawat2027@bitsom.edu.in',
-  'varad.dharap2027@bitsom.edu.in',
-  'yash.kolhe2027@bitsom.edu.in',
-  'apoorv.sharma2027@bitsom.edu.in',
-]);
+// The allowlist lives in lib/admin.ts. The DB function re-checks the caller's
+// email, so this is only a fast first gate.
+import { isAdminEmail } from '@/lib/admin';
 
 const MAX_QUESTION_LEN = 1000;
 const RATE_LIMIT_PER_MIN = 12;
@@ -110,7 +104,7 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
-  if (!ADMIN_EMAILS.has((user.email ?? '').toLowerCase())) {
+  if (!isAdminEmail(user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   if (!isConfigured()) {

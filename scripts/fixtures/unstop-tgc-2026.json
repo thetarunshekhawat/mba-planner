@@ -1,0 +1,2065 @@
+{
+ "data": {
+  "status": true,
+  "competition": {
+   "id": 1726557,
+   "visibility": "both",
+   "theme_colour": "amber_un",
+   "paid": 0,
+   "title": "The Governance Challenge 2026 (TGC 2026)",
+   "festival_id": null,
+   "organization_id": 444757,
+   "web_url": null,
+   "start_date": "2026-07-27T09:33:24+05:30",
+   "end_date": "2026-09-30T21:00:50+05:30",
+   "location": null,
+   "type": "competitions",
+   "public_url": "competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557",
+   "region": "online",
+   "details": "<p><span style=\"font-weight: 400;\">The Governance Challenge (TGC) is India&rsquo;s first governance-focused competition for 30 premier business and public policy schools in India.&nbsp;<a href=\"https://www.youtube.com/watch?v=KXXlGi4aFMk&amp;t=2s\"> </a></span><a href=\"https://www.youtube.com/watch?v=KXXlGi4aFMk&amp;t=2s\">Watch this video from last year</a> to<span style=\"font-weight: 400;\">&nbsp;know more about TGC.</span></p>\n<p><span style=\"font-weight: 400;\">The Governance Challenge (TGC) offers you the opportunity to solve a real-world governance challenge identified by a state government and present your solution to the Chief Minister, senior government officials, and industry leaders. Each year, TGC centres on a case study drawn from a pressing governance priority in a selected state, giving participants the chance to develop practical, high-impact solutions for real policy challenges.</span></p>\n<p><span style=\"font-weight: 400;\">This is the fourth edition of The Governance Challenge (TGC), hosted by the Government of Maharashtra, supported by The <a href=\"https://www.gatesfoundation.org/\">Gates Foundation</a> and organised by <a href=\"https://samagragovernance.in/\">Samagra</a>. This year's challenge invites participants to address the question: \"What can the Government of Maharashtra do to make Maharashtra an Innovation Hub by 2035?\"</span></p>\n<p><span style=\"font-weight: 400;\">The Governance Challenge (TGC) comprises three rounds&mdash;Campus Round, Nationals Round, and Summit Round. The detailed timeline and milestones for each round are provided above.</span></p>\n<p><span style=\"font-weight: 400;\">Throughout the competition, participating teams will receive extensive support to help them develop high-impact, implementation-ready solutions. This includes access to reference material, dedicated team buddies for feedback, mentorship from IAS officers and industry leaders, knowledge-sharing sessions, and other learning opportunities.</span></p>\n<p><span style=\"font-weight: 400;\">The top six teams will get the opportunity to present their solutions to the Chief Minister of Maharashtra, senior bureaucrats, and industry leaders at the Summit Round. They will also compete for cash prizes worth ₹9 lakh and receive a Pre-Placement Interview (PPI) opportunity with Samagra. TGC is your opportunity to work on a real governance challenge and develop solutions with the potential to improve the lives of millions.</span></p>\n<p><span style=\"font-weight: 400;\">Eligibility:</span></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Competition is open to 1st and 2nd year students pursuing full-time PGP/MBA/other full-time residential programs of select institutes.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Students can only apply in teams of three.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Cross-year teams are allowed to participate.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Cross-specialization teams are allowed to participate.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Any deviation from the above-mentioned guidelines will result in the immediate disqualification of the entire team.</span></li>\n</ul>\n<h4><strong>List of Eligible Campuses:</strong></h4>\n<ol>\n<li data-section-id=\"1m977ms\" data-start=\"39\" data-end=\"84\">BITS School of Management (BITSoM), Mumbai</li>\n<li data-section-id=\"9adrnj\" data-start=\"85\" data-end=\"171\">Department of Management Studies (DMS), Indian Institute of Technology (IIT), Delhi</li>\n<li data-section-id=\"2u0vs2\" data-start=\"172\" data-end=\"217\">Faculty of Management Studies (FMS), Delhi</li>\n<li data-section-id=\"c6sc75\" data-start=\"218\" data-end=\"268\">Indian Institute of Foreign Trade (IIFT), Delhi</li>\n<li data-section-id=\"1585u6z\" data-start=\"269\" data-end=\"319\">Indian Institute of Management (IIM), Ahmedabad</li>\n<li data-section-id=\"12uspms\" data-start=\"320\" data-end=\"370\">Indian Institute of Management (IIM), Bangalore</li>\n<li data-section-id=\"8985j7\" data-start=\"371\" data-end=\"420\">Indian Institute of Management (IIM), Calcutta</li>\n<li data-section-id=\"klgur2\" data-start=\"421\" data-end=\"468\">Indian Institute of Management (IIM), Indore</li>\n<li data-section-id=\"1410nhq\" data-start=\"469\" data-end=\"519\">Indian Institute of Management (IIM), Kozhikode</li>\n<li data-section-id=\"143n0yz\" data-start=\"520\" data-end=\"569\">Indian Institute of Management (IIM), Lucknow</li>\n<li data-section-id=\"1ow9lxu\" data-start=\"570\" data-end=\"618\">Indian Institute of Management (IIM), Mumbai</li>\n<li data-section-id=\"fhvnw1\" data-start=\"619\" data-end=\"667\">Indian Institute of Management (IIM), Nagpur</li>\n<li data-section-id=\"lqsns2\" data-start=\"668\" data-end=\"716\">Indian Institute of Management (IIM), Raipur</li>\n<li data-section-id=\"1qhh2yf\" data-start=\"717\" data-end=\"765\">Indian Institute of Management (IIM), Ranchi</li>\n<li data-section-id=\"1xj5hvh\" data-start=\"766\" data-end=\"816\">Indian Institute of Management (IIM), Shillong</li>\n<li data-section-id=\"1wpdrah\" data-start=\"817\" data-end=\"874\">Indian Institute of Management (IIM), Tiruchirappalli</li>\n<li data-section-id=\"10ckk11\" data-start=\"875\" data-end=\"924\">Indian Institute of Management (IIM), Udaipur</li>\n<li data-section-id=\"10zfovh\" data-start=\"925\" data-end=\"971\">Indian School of Business (ISB), Hyderabad</li>\n<li data-section-id=\"m2pexs\" data-start=\"972\" data-end=\"1027\">Institute of Management Technology (IMT), Ghaziabad</li>\n<li data-section-id=\"1ixfeec\" data-start=\"1028\" data-end=\"1094\">Jamnalal Bajaj Institute of Management Studies (JBIMS), Mumbai</li>\n<li data-section-id=\"pnfhtc\" data-start=\"1095\" data-end=\"1147\">Management Development Institute (MDI), Gurugram</li>\n<li data-section-id=\"5ym3ij\" data-start=\"1148\" data-end=\"1195\">Masters' Union School of Business, Gurugram</li>\n<li data-section-id=\"6jydn2\" data-start=\"1196\" data-end=\"1261\">Narsee Monjee Institute of Management Studies (NMIMS), Mumbai</li>\n<li data-section-id=\"8x48ju\" data-start=\"1262\" data-end=\"1324\">National Law School of India University (NLSIU), Bengaluru</li>\n<li data-section-id=\"dms7z\" data-start=\"1325\" data-end=\"1393\">S. P. Jain Institute of Management and Research (SPJIMR), Mumbai</li>\n<li data-section-id=\"wwz609\" data-start=\"1394\" data-end=\"1491\">Shailesh J. Mehta School of Management (SJMSOM), Indian Institute of Technology (IIT), Bombay</li>\n<li data-section-id=\"1xzoqev\" data-start=\"1492\" data-end=\"1551\">Symbiosis Institute of Business Management (SIBM), Pune</li>\n<li data-section-id=\"ucxlya\" data-start=\"1552\" data-end=\"1604\">Tata Institute of Social Sciences (TISS), Mumbai</li>\n<li data-section-id=\"51brfl\" data-start=\"1605\" data-end=\"1659\">Xavier Institute of Management, Bhubaneswar (XIMB)</li>\n<li data-section-id=\"1q9o4ri\" data-start=\"1660\" data-end=\"1710\" data-is-last-node=\"\">Xavier School of Management (XLRI), Jamshedpur</li>\n</ol>\n<p><strong>Campus Round:</strong></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The campus round will involve the submission of a 3-minute executive pitch video along with a 2-page concept note explaining your submission. Students from eligible campuses can participate.&nbsp;</span></li>\n</ul>\n<p><strong>Round Details:</strong></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The teams will solve a case study based on the theme of \"What can the Government of Maharashtra do to make Maharashtra an Innovation Hub by 2035?\". The case study will be released on August 10, 2026.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Further instructions on the expected format shall be shared closer to the round.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The top team from each of the 30 eligible campuses will be shortlisted for the Nationals Round.</span></li>\n</ul>\n<p><strong>Nationals Round:</strong></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The Nationals Round will entail preparing a presentation on the solution and presenting it to a panel of IAS officers and industry leaders.&nbsp;</span></li>\n</ul>\n<p><strong>Round Details:&nbsp;</strong></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The 30 shortlisted teams will make a presentation (max. 15 slides inclusive of annexure) and submit a preliminary version by 11:59 PM, September 6, 2026.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The teams will be supported by the leadership from Samagra with feedback before the final presentation.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The teams will submit the final presentations for Nationals after incorporating the feedback by 6:00 PM, September 10, 2026.&nbsp;</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The teams will present their ideas online to a panel of IAS officers and industry leaders on 11th and 12th September.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The maximum presentation time will be 10 minutes, followed by 5 minutes of Q&amp;A by the panel.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Further instructions on the expected format shall be shared closer to the round.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The top 6 teams will be shortlisted to present to the Chief Minister, senior bureaucrats, and industry experts at the final summit in Mumbai.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Each team will be allocated 2 mentors just after Nationals Round &ndash; one industry mentor and one government mentor &ndash; to guide the teams in the run-up to the Summit Round.</span></li>\n</ul>\n<p><strong>Summit Round:</strong></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The six finalist teams will pitch their solutions to present to the Chief Minister, senior bureaucrats, and industry experts at the final summit in Mumbai.&nbsp;</span></li>\n</ul>\n<p><strong>Round Details:</strong></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The Summit will be a high-profile in-person event hosted in Mumbai, Maharashtra, on 30th September.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">Just before the Summit Round, the finalist teams will spend the 2 days experiencing and understanding governance through a curated Governance Immersion Visit.</span></li>\n</ul>\n<p><strong>Rewards and Prizes:</strong></p>\n<ul>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The top 3 teams will get cash prizes worth INR 9,00,000 - Winner (INR 5,00,000), 1st Runners-up (INR 3,00,000), and 2nd Runners-up (INR 1,00,000).</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The 6 finalist teams will get the opportunity to present to the Chief Minister of Maharashtra with a chance to convert ideas to reality.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The 6 finalist teams will also be shortlisted for a Pre-Placement Interview with Samagra. If the teams are not from the final year, they can avail the PPI once they become eligible for placements.</span></li>\n<li style=\"font-weight: 400;\" aria-level=\"1\"><span style=\"font-weight: 400;\">The top 30 teams that enter the Nationals will get the exclusive opportunity to interact with the leaders who have transformed India&rsquo;s governance landscape.</span></li>\n</ul>",
+   "overall_prizes": null,
+   "regn_open": 1,
+   "regn_type": 1,
+   "regn_url": null,
+   "regn_email": null,
+   "registration_clicks": 0,
+   "user_id": 11006341,
+   "moderation_status": 1,
+   "overall_leaderboard": 0,
+   "reject_reason": null,
+   "display_date": null,
+   "created_at": "2026-07-27T15:03:48+05:30",
+   "updated_at": "2026-08-04T23:16:11+05:30",
+   "communication_sent": null,
+   "certificate_at": null,
+   "remarks": null,
+   "branding": 0,
+   "disable_auto_rounds": null,
+   "certificate_config": null,
+   "subtype": "hiring_challenge",
+   "combined_leaderboard": null,
+   "source": null,
+   "short_id": "PLx3TQd",
+   "hashtags": "#consulting #impact #governance",
+   "participation_certificate": 1,
+   "winner_certificate_at": null,
+   "listed": 1,
+   "self_moderated": 2,
+   "prizes_release_days": null,
+   "checked": 1,
+   "display_title": null,
+   "show_discussions_only_user": 1,
+   "show_reviews_only_user": 1,
+   "show_score_card": 0,
+   "players_count": 974,
+   "referral_leaderboard_show": 0,
+   "is_ad_free": 0,
+   "enable_gamify_leaderboard": 0,
+   "tpo_college_id": null,
+   "publish_at": "2026-07-27 15:03:48",
+   "auto_shortlist_trigger": false,
+   "enable_ai_discussion": false,
+   "total_unlock_teams": 0,
+   "enable_hiring_automation": false,
+   "linkedInEventId": null,
+   "teams": [],
+   "players": [],
+   "logoUrl": "https://d8it4huxumps7.cloudfront.net/uploads/images/75x75/uploadedManual-66da9846a6a2c_tgc_logo__1_.png",
+   "logoUrl2": "https://d8it4huxumps7.cloudfront.net/uploads/images/150x150/uploadedManual-66da9846a6a2c_tgc_logo__1_.png",
+   "regnRequirements": {
+    "id": 2457026,
+    "opportunity_id": 1726557,
+    "festival_id": null,
+    "max_team_size": 3,
+    "min_team_size": 3,
+    "start_regn_dt": "2026-07-27T09:33:24+05:30",
+    "end_regn_dt": "2026-08-21T23:59:24+05:30",
+    "show_deadline": 1,
+    "open_for": 0,
+    "college_type": 0,
+    "same_organisation": 1,
+    "study_year_filter": 0,
+    "deleted_at": null,
+    "eligibility": "{\"sector\":[\"students\"],\"engineering\":[{\"course\":\"mtech\",\"type\":\"engineering\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"2025\",\"2026\",2027,2028],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"integrated\",\"type\":\"engineering\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":5}],\"bSchools\":[{\"course\":\"mba1\",\"type\":\"bSchools\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"2025\",2027],\"specialization\":[\"all\"],\"duration\":1},{\"course\":\"mba2\",\"type\":\"bSchools\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"2025\",\"2026\",2027,2028],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"ipm\",\"type\":\"bSchools\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":5},{\"course\":\"phdManagement\",\"type\":\"bSchools\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":3},{\"course\":\"pgdm\",\"type\":\"bSchools\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2}],\"arts\":[{\"course\":\"ma\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"2025\",\"2026\",2027,2028],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"msc\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"med\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"mdes\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"march\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"mplan\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"barch\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":5},{\"course\":\"phdArts\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":5},{\"course\":\"mftech\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2},{\"course\":\"mfa\",\"type\":\"arts\",\"programme\":[\"fullTime\"],\"passoutYear\":[\"all\"],\"specialization\":[\"all\"],\"duration\":2}],\"others\":[\"allCourses\"],\"fresherPassoutYearsSelected\":[\"all\",\"allCourses\"],\"schoolFilteredClasses\":[\"all\",\"allCourses\"],\"minMarks\":{\"high_school_perc\":0,\"high_school_cgpa\":0},\"experience\":[\"all\",\"allCourses\"],\"overallPassoutYear\":[{\"engineering\":{\"passoutYear\":{}},\"bSchools\":{\"passoutYear\":{}},\"arts\":{\"passoutYear\":{}}}],\"studentPassoutYearsSelected\":[\"all\"],\"eligibilitySummery\":\"Open to 1st and 2nd-year students pursuing full-time PGP, MBA, or other full-time residential programmes at select institutes.\",\"undefined\":[\"allCourses\"]}",
+    "gender": [
+     "A"
+    ],
+    "vendor_id": null,
+    "verified_email": 1,
+    "verified_mobile": 1,
+    "experience": null,
+    "only_official_domains": 1,
+    "enable_verifications": null,
+    "enable_icsfile": null,
+    "proctoring": {
+     "face": false
+    },
+    "gender_diversity": null,
+    "allow_social_login": 1,
+    "allowed_countries": "[]",
+    "extendRegForm": 0,
+    "screening_round": 0,
+    "consent_needed": 2,
+    "invitations_allowed": 1,
+    "registration_limit": null,
+    "same_graduation_year": 0,
+    "same_course": 0,
+    "same_user_type": 0,
+    "can_edit_extended_form": 0,
+    "extend_basic_form": null,
+    "core_req_fields": {
+     "name": {
+      "mandatory": true,
+      "required": true
+     },
+     "email": {
+      "mandatory": true,
+      "required": true
+     },
+     "mobile_no": {
+      "mandatory": true,
+      "required": true
+     },
+     "gender": {
+      "mandatory": true,
+      "required": true
+     },
+     "organization": {
+      "mandatory": true,
+      "required": true
+     },
+     "userType": {
+      "mandatory": true,
+      "required": true
+     },
+     "country": {
+      "mandatory": true,
+      "required": true
+     },
+     "differentlyAbled": {
+      "mandatory": true,
+      "required": true
+     },
+     "skills": {
+      "mandatory": false,
+      "required": false
+     }
+    },
+    "enable_draft_reg": true,
+    "closed_job_end_date": 0,
+    "reg_restricted": 0,
+    "free_webinar_for_unstop_pro": 0,
+    "email_reply_to": 0,
+    "verified_aadhaar": 0,
+    "verified_aadhaar_face": 0,
+    "player_extended_form": {
+     "resume_field": {
+      "enabled": false,
+      "pre_defined": false,
+      "customFields": [
+       {
+        "accepted_values": "pdf",
+        "mandatory": -1,
+        "remarks": "Submit your resume in pdf",
+        "title": "Resume",
+        "type": "file",
+        "validation_rules": null,
+        "validations": {
+         "max_file_size": 5
+        },
+        "uid": 1785145111177
+       }
+      ],
+      "fieldInfo": {
+       "required": true,
+       "title": "resume_field",
+       "keyName": "resume_field"
+      },
+      "default": "fill"
+     }
+    },
+    "unique_face_verify": false,
+    "resume_parser": 0,
+    "display_compatibility_score": null,
+    "registration_config": {
+     "enable_newsletter_subscription": 0,
+     "extended_form_page_break": "separate"
+    },
+    "verified_driving_licence_face": 0,
+    "verified_aadhaar_face_via_digilocker": 0,
+    "audio_capture": 0,
+    "verification_service": 2,
+    "driver_for_proctoring": "aws",
+    "digilocker_verification_service": 2,
+    "allow_specific_cities": false,
+    "enable_data_transfer_to_SAP": 0,
+    "resume_match_config": "[{\"key\": \"work_experience\", \"label\": \"Work Experience\", \"include\": true, \"is_custom\": false, \"weightage\": 17, \"weight_level\": 1}, {\"key\": \"skills\", \"label\": \"Skills\", \"include\": true, \"is_custom\": false, \"weightage\": 17, \"weight_level\": 1}, {\"key\": \"education\", \"label\": \"Education\", \"include\": true, \"is_custom\": false, \"weightage\": 17, \"weight_level\": 1}, {\"key\": \"achievements\", \"label\": \"Achievements\", \"include\": true, \"is_custom\": false, \"weightage\": 17, \"weight_level\": 1}, {\"key\": \"certifications\", \"label\": \"Certifications\", \"include\": true, \"is_custom\": false, \"weightage\": 16, \"weight_level\": 1}, {\"key\": \"projects\", \"label\": \"Projects\", \"include\": true, \"is_custom\": false, \"weightage\": 16, \"weight_level\": 1}]",
+    "limit_type": 1,
+    "work_location_type": "city",
+    "gender_verification": false,
+    "sap_stage_id": null,
+    "has_compatibility_priority": 0,
+    "face_recog_driver": "aws",
+    "face_detect_driver": "aws",
+    "reg_status": "STARTED",
+    "remaining_time": 1338226,
+    "remain_days": "15 days left",
+    "allowed_organisations": [
+     {
+      "id": 210079,
+      "name": "BITS School of Management (BITSoM), Mumbai, India",
+      "logo": "610794651273c_bitsom_logo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@bitsom.edu.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/610794651273c_bitsom_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 210079
+      }
+     },
+     {
+      "id": 15247,
+      "name": "Department of Management Studies (DMS), Indian Institute of Technology (IIT), Delhi",
+      "logo": "5d10c68a38a66_DMS_IIT_LOGO.jpg",
+      "eligibility_type": 1,
+      "official_email_domains": "@dmsiitd.org,@iitd.ac.in,@unstop.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d10c68a38a66_DMS_IIT_LOGO.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 15247
+      }
+     },
+     {
+      "id": 401,
+      "name": "Faculty of Management Studies (FMS), University of Delhi, New Delhi",
+      "logo": "5d08de6ba8edb_logo__1_.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@fms.edu,@aexp.com,@unstop.com,@unstop.demo",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08de6ba8edb_logo__1_.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 401
+      }
+     },
+     {
+      "id": 180751,
+      "name": "Indian Institute of Foreign Trade (IIFT), New Delhi",
+      "logo": "6109325a37dfc_Indian_Institute_of_Foreign_Trade_logo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iift.edu",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/6109325a37dfc_Indian_Institute_of_Foreign_Trade_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 180751
+      }
+     },
+     {
+      "id": 584,
+      "name": "Indian Institute of Management (IIM), Ahmedabad",
+      "logo": "6384470c2685b_Logo_of_IIM_Ahmedabad__2022_.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iima.ac.in,@unstop.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/6384470c2685b_Logo_of_IIM_Ahmedabad__2022_.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 584
+      }
+     },
+     {
+      "id": 585,
+      "name": "Indian Institute of Management (IIM), Bangalore",
+      "logo": "5d08e063d514a_iimb.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimb.ac.in,@unstop.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e063d514a_iimb.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 585
+      }
+     },
+     {
+      "id": 586,
+      "name": "Indian Institute of Management (IIM), Calcutta",
+      "logo": "5e6893223ec84_1200px-IIM_Calcutta_Logo.svg.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimcal.ac.in,@email.iimcal.ac.in,@unstop.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5e6893223ec84_1200px-IIM_Calcutta_Logo.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 586
+      }
+     },
+     {
+      "id": 587,
+      "name": "Indian Institute of Management (IIM), Indore",
+      "logo": "5ea42f3f004fb_1200px-IIM_Indore_Logo.svg.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimidr.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5ea42f3f004fb_1200px-IIM_Indore_Logo.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 587
+      }
+     },
+     {
+      "id": 588,
+      "name": "Indian Institute of Management (IIM), Kozhikode",
+      "logo": "5c77b3791bb7f_1200px-IIM_Kozhikode_Logo.svg.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimk.ac.in,@iimklive.com,@unstop.com,@iimk.edu.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77b3791bb7f_1200px-IIM_Kozhikode_Logo.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 588
+      }
+     },
+     {
+      "id": 589,
+      "name": "Indian Institute of Management (IIM), Lucknow",
+      "logo": "5d08dcd5f120b_Webp.net-compress-image__1_.jpg",
+      "eligibility_type": 1,
+      "official_email_domains": "@iiml.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08dcd5f120b_Webp.net-compress-image__1_.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 589
+      }
+     },
+     {
+      "id": 935,
+      "name": "Indian Institute of Management (IIM), Mumbai",
+      "logo": "688b0ac38aa81_SCIE__IIM_Mumbai_IIMM_Standard_1.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@nitie.ac.in,@iimmumbai.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/688b0ac38aa81_SCIE__IIM_Mumbai_IIMM_Standard_1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 935
+      }
+     },
+     {
+      "id": 7304,
+      "name": "Indian Institute of Management (IIM), Nagpur",
+      "logo": "5f8975b9641dd_IIMNagpur-logo-1.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimnagpur.ac.in,@gmail.com,@yahoo.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5f8975b9641dd_IIMNagpur-logo-1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 7304
+      }
+     },
+     {
+      "id": 590,
+      "name": "Indian Institute of Management (IIM), Raipur",
+      "logo": "5d08d8c303e01_220px-Indian_Institute_of_Management_Raipur_logo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimraipur.ac.in,@gmail.com,@yahoo.com, @unstop.com, @myntra.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08d8c303e01_220px-Indian_Institute_of_Management_Raipur_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 590
+      }
+     },
+     {
+      "id": 591,
+      "name": "Indian Institute of Management (IIM), Ranchi",
+      "logo": "5c77ac1a8ca0e_1200px-Indian_Institute_of_Management_Ranchi.svg.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimranchi.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77ac1a8ca0e_1200px-Indian_Institute_of_Management_Ranchi.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 591
+      }
+     },
+     {
+      "id": 1082,
+      "name": "Indian Institute of Management (IIM), Shillong",
+      "logo": "5d08e2695f014_220px-Rajiv_Gandhi_Indian_Institute_of_Management_Shillong_logo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimshillong.in,@iimshillong.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e2695f014_220px-Rajiv_Gandhi_Indian_Institute_of_Management_Shillong_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1082
+      }
+     },
+     {
+      "id": 595,
+      "name": "Indian Institute of Management (IIM), Tiruchirappalli (Trichy)",
+      "logo": "5c77756f5530c_IIMT.jpg",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimtrichy.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77756f5530c_IIMT.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 595
+      }
+     },
+     {
+      "id": 597,
+      "name": "Indian Institute of Management (IIM), Udaipur",
+      "logo": "5c77b31ec00c8_Indian_Institute_of_Management_Udaipur_Logo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@iimu.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77b31ec00c8_Indian_Institute_of_Management_Udaipur_Logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 597
+      }
+     },
+     {
+      "id": 620,
+      "name": "Indian School of Business (ISB)",
+      "logo": "69b51072a5e57_isb_identity_colour_rgb_positive.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@isb.edu",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/69b51072a5e57_isb_identity_colour_rgb_positive.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 620
+      }
+     },
+     {
+      "id": 557,
+      "name": "Institute of Management Technology (IMT), Ghaziabad",
+      "logo": "5d08e2e66beb3_Institute_of_Management_Technology,_Ghaziabad_logo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@imt.ac.in,@mdlz.com,@unstop.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e2e66beb3_Institute_of_Management_Technology,_Ghaziabad_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 557
+      }
+     },
+     {
+      "id": 711,
+      "name": "Jamnalal Bajaj Institute of Management Studies (JBIMS), Mumbai",
+      "logo": "623988ae69fb8_Jamnalal_Bajaj_Institute_of_Management_Studies_Logo-300x107.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@jbims.edu",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/623988ae69fb8_Jamnalal_Bajaj_Institute_of_Management_Studies_Logo-300x107.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 711
+      }
+     },
+     {
+      "id": 836,
+      "name": "Management Development Institute (MDI), Gurgaon",
+      "logo": "5d08df4f96754_management-development-institute.jpg",
+      "eligibility_type": 1,
+      "official_email_domains": "@mdi.ac.in,@unstop.com,@dare2compete.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08df4f96754_management-development-institute.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 836
+      }
+     },
+     {
+      "id": 135241,
+      "name": "Masters' Union School of Business",
+      "logo": "6344f1fd42bee_Masters_Union_Logo_Black_on_Transparent.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@mastersunion.org",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/6344f1fd42bee_Masters_Union_Logo_Black_on_Transparent.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 135241
+      }
+     },
+     {
+      "id": 1234499,
+      "name": "Narsee Monjee Institute of Management Studies (NMIMS), Mumbai",
+      "logo": "new_organisation_image-LBPXMQjyBg670153048AnTGMYlPOo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@nmims.edu,@nmims.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/new_organisation_image-LBPXMQjyBg670153048AnTGMYlPOo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1234499
+      }
+     },
+     {
+      "id": 176585,
+      "name": "National Law School of India University(NLSIU), Bengaluru",
+      "logo": "62cc01ea7ac95_NLSIU.png",
+      "eligibility_type": 1,
+      "official_email_domains": null,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/62cc01ea7ac95_NLSIU.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 176585
+      }
+     },
+     {
+      "id": 14619,
+      "name": "Shailesh J. Mehta School of Management (SJMSOM), IIT Bombay",
+      "logo": "5c77ae4b44499_sjmsom_20111210081004.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@sjmsom.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77ae4b44499_sjmsom_20111210081004.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 14619
+      }
+     },
+     {
+      "id": 11447,
+      "name": "SP Jain Institute of Management and Research (SPJIMR), Mumbai",
+      "logo": "64e48bf2c2a62_SPJIMR_Logo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@spjimr.org, @unstop.com",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/64e48bf2c2a62_SPJIMR_Logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 11447
+      }
+     },
+     {
+      "id": 1283,
+      "name": "Symbiosis Institute of Business Management (SIBM), Pune",
+      "logo": "5d08e011c1cb6_SIBMlogo.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@sibmpune.edu.in,@associates.sibmpune.edu.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e011c1cb6_SIBMlogo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1283
+      }
+     },
+     {
+      "id": 1305,
+      "name": "Tata Institute of Social Sciences (TISS), Mumbai",
+      "logo": "5d08e16cebbb5_TISS-Logo-1.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@tiss.edu,@stud.tiss.edu, @stud.tiss.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e16cebbb5_TISS-Logo-1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1305
+      }
+     },
+     {
+      "id": 1445,
+      "name": "Xavier Institute of Management (XIMB), Bhubaneswar",
+      "logo": "62e0b9f154bdd_xim-university-logo-1.png",
+      "eligibility_type": 1,
+      "official_email_domains": "@stu.xim.edu.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/62e0b9f154bdd_xim-university-logo-1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1445
+      }
+     },
+     {
+      "id": 1168648,
+      "name": "Xavier School of Management (XLRI), Jamshedpur",
+      "logo": "66a78dcc1165a_xlri_logo.jpg",
+      "eligibility_type": 1,
+      "official_email_domains": "@astra.xlri.ac.in,@xlri.ac.in",
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/66a78dcc1165a_xlri_logo.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1168648
+      }
+     }
+    ],
+    "organisations": [
+     {
+      "id": 210079,
+      "name": "BITS School of Management (BITSoM), Mumbai, India",
+      "logo": "610794651273c_bitsom_logo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/610794651273c_bitsom_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 210079
+      }
+     },
+     {
+      "id": 15247,
+      "name": "Department of Management Studies (DMS), Indian Institute of Technology (IIT), Delhi",
+      "logo": "5d10c68a38a66_DMS_IIT_LOGO.jpg",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d10c68a38a66_DMS_IIT_LOGO.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 15247
+      }
+     },
+     {
+      "id": 401,
+      "name": "Faculty of Management Studies (FMS), University of Delhi, New Delhi",
+      "logo": "5d08de6ba8edb_logo__1_.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08de6ba8edb_logo__1_.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 401
+      }
+     },
+     {
+      "id": 180751,
+      "name": "Indian Institute of Foreign Trade (IIFT), New Delhi",
+      "logo": "6109325a37dfc_Indian_Institute_of_Foreign_Trade_logo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/6109325a37dfc_Indian_Institute_of_Foreign_Trade_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 180751
+      }
+     },
+     {
+      "id": 584,
+      "name": "Indian Institute of Management (IIM), Ahmedabad",
+      "logo": "6384470c2685b_Logo_of_IIM_Ahmedabad__2022_.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/6384470c2685b_Logo_of_IIM_Ahmedabad__2022_.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 584
+      }
+     },
+     {
+      "id": 585,
+      "name": "Indian Institute of Management (IIM), Bangalore",
+      "logo": "5d08e063d514a_iimb.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e063d514a_iimb.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 585
+      }
+     },
+     {
+      "id": 586,
+      "name": "Indian Institute of Management (IIM), Calcutta",
+      "logo": "5e6893223ec84_1200px-IIM_Calcutta_Logo.svg.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5e6893223ec84_1200px-IIM_Calcutta_Logo.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 586
+      }
+     },
+     {
+      "id": 587,
+      "name": "Indian Institute of Management (IIM), Indore",
+      "logo": "5ea42f3f004fb_1200px-IIM_Indore_Logo.svg.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5ea42f3f004fb_1200px-IIM_Indore_Logo.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 587
+      }
+     },
+     {
+      "id": 588,
+      "name": "Indian Institute of Management (IIM), Kozhikode",
+      "logo": "5c77b3791bb7f_1200px-IIM_Kozhikode_Logo.svg.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77b3791bb7f_1200px-IIM_Kozhikode_Logo.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 588
+      }
+     },
+     {
+      "id": 589,
+      "name": "Indian Institute of Management (IIM), Lucknow",
+      "logo": "5d08dcd5f120b_Webp.net-compress-image__1_.jpg",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08dcd5f120b_Webp.net-compress-image__1_.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 589
+      }
+     },
+     {
+      "id": 935,
+      "name": "Indian Institute of Management (IIM), Mumbai",
+      "logo": "688b0ac38aa81_SCIE__IIM_Mumbai_IIMM_Standard_1.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/688b0ac38aa81_SCIE__IIM_Mumbai_IIMM_Standard_1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 935
+      }
+     },
+     {
+      "id": 7304,
+      "name": "Indian Institute of Management (IIM), Nagpur",
+      "logo": "5f8975b9641dd_IIMNagpur-logo-1.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5f8975b9641dd_IIMNagpur-logo-1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 7304
+      }
+     },
+     {
+      "id": 590,
+      "name": "Indian Institute of Management (IIM), Raipur",
+      "logo": "5d08d8c303e01_220px-Indian_Institute_of_Management_Raipur_logo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08d8c303e01_220px-Indian_Institute_of_Management_Raipur_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 590
+      }
+     },
+     {
+      "id": 591,
+      "name": "Indian Institute of Management (IIM), Ranchi",
+      "logo": "5c77ac1a8ca0e_1200px-Indian_Institute_of_Management_Ranchi.svg.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77ac1a8ca0e_1200px-Indian_Institute_of_Management_Ranchi.svg.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 591
+      }
+     },
+     {
+      "id": 1082,
+      "name": "Indian Institute of Management (IIM), Shillong",
+      "logo": "5d08e2695f014_220px-Rajiv_Gandhi_Indian_Institute_of_Management_Shillong_logo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e2695f014_220px-Rajiv_Gandhi_Indian_Institute_of_Management_Shillong_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1082
+      }
+     },
+     {
+      "id": 595,
+      "name": "Indian Institute of Management (IIM), Tiruchirappalli (Trichy)",
+      "logo": "5c77756f5530c_IIMT.jpg",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77756f5530c_IIMT.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 595
+      }
+     },
+     {
+      "id": 597,
+      "name": "Indian Institute of Management (IIM), Udaipur",
+      "logo": "5c77b31ec00c8_Indian_Institute_of_Management_Udaipur_Logo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77b31ec00c8_Indian_Institute_of_Management_Udaipur_Logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 597
+      }
+     },
+     {
+      "id": 620,
+      "name": "Indian School of Business (ISB)",
+      "logo": "69b51072a5e57_isb_identity_colour_rgb_positive.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/69b51072a5e57_isb_identity_colour_rgb_positive.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 620
+      }
+     },
+     {
+      "id": 557,
+      "name": "Institute of Management Technology (IMT), Ghaziabad",
+      "logo": "5d08e2e66beb3_Institute_of_Management_Technology,_Ghaziabad_logo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e2e66beb3_Institute_of_Management_Technology,_Ghaziabad_logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 557
+      }
+     },
+     {
+      "id": 711,
+      "name": "Jamnalal Bajaj Institute of Management Studies (JBIMS), Mumbai",
+      "logo": "623988ae69fb8_Jamnalal_Bajaj_Institute_of_Management_Studies_Logo-300x107.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/623988ae69fb8_Jamnalal_Bajaj_Institute_of_Management_Studies_Logo-300x107.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 711
+      }
+     },
+     {
+      "id": 836,
+      "name": "Management Development Institute (MDI), Gurgaon",
+      "logo": "5d08df4f96754_management-development-institute.jpg",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08df4f96754_management-development-institute.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 836
+      }
+     },
+     {
+      "id": 135241,
+      "name": "Masters' Union School of Business",
+      "logo": "6344f1fd42bee_Masters_Union_Logo_Black_on_Transparent.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/6344f1fd42bee_Masters_Union_Logo_Black_on_Transparent.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 135241
+      }
+     },
+     {
+      "id": 1234499,
+      "name": "Narsee Monjee Institute of Management Studies (NMIMS), Mumbai",
+      "logo": "new_organisation_image-LBPXMQjyBg670153048AnTGMYlPOo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/new_organisation_image-LBPXMQjyBg670153048AnTGMYlPOo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1234499
+      }
+     },
+     {
+      "id": 176585,
+      "name": "National Law School of India University(NLSIU), Bengaluru",
+      "logo": "62cc01ea7ac95_NLSIU.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/62cc01ea7ac95_NLSIU.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 176585
+      }
+     },
+     {
+      "id": 14619,
+      "name": "Shailesh J. Mehta School of Management (SJMSOM), IIT Bombay",
+      "logo": "5c77ae4b44499_sjmsom_20111210081004.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5c77ae4b44499_sjmsom_20111210081004.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 14619
+      }
+     },
+     {
+      "id": 11447,
+      "name": "SP Jain Institute of Management and Research (SPJIMR), Mumbai",
+      "logo": "64e48bf2c2a62_SPJIMR_Logo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/64e48bf2c2a62_SPJIMR_Logo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 11447
+      }
+     },
+     {
+      "id": 1283,
+      "name": "Symbiosis Institute of Business Management (SIBM), Pune",
+      "logo": "5d08e011c1cb6_SIBMlogo.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e011c1cb6_SIBMlogo.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1283
+      }
+     },
+     {
+      "id": 1305,
+      "name": "Tata Institute of Social Sciences (TISS), Mumbai",
+      "logo": "5d08e16cebbb5_TISS-Logo-1.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/5d08e16cebbb5_TISS-Logo-1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1305
+      }
+     },
+     {
+      "id": 1445,
+      "name": "Xavier Institute of Management (XIMB), Bhubaneswar",
+      "logo": "62e0b9f154bdd_xim-university-logo-1.png",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/62e0b9f154bdd_xim-university-logo-1.png",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1445
+      }
+     },
+     {
+      "id": 1168648,
+      "name": "Xavier School of Management (XLRI), Jamshedpur",
+      "logo": "66a78dcc1165a_xlri_logo.jpg",
+      "eligibility_type": 1,
+      "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/66a78dcc1165a_xlri_logo.jpg",
+      "org_gallery": [],
+      "pivot": {
+       "regn_req_id": 2457026,
+       "organisation_id": 1168648
+      }
+     }
+    ],
+    "attachment": [],
+    "remainingDaysArray": {
+     "durations": 15,
+     "text": " days left"
+    },
+    "isRegistrationFull": false
+   },
+   "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557",
+   "meta_info": {
+    "title": "The Governance Challenge 2026 (TGC 2026) - 2026",
+    "keyword": "",
+    "description": "Find out the best The Governance Challenge 2026 (TGC 2026) that match your interests. Prove your mettle and win exciting prizes like job opportunities and ca...",
+    "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+    "audience": "",
+    "entity_type": "App\\Model\\Opportunity",
+    "entity_id": 1726557,
+    "public_url": null,
+    "keywords": ""
+   },
+   "status": "LIVE",
+   "opportunityCountries": [],
+   "festival": null,
+   "filters": [
+    {
+     "id": 4022,
+     "name": "Management",
+     "type": "eligible",
+     "file_name": null,
+     "domain_id": 0,
+     "subtype": null,
+     "icon_url": "https://d8it4huxumps7.cloudfront.net/images/icons/color_icons/.svg"
+    },
+    {
+     "id": 4025,
+     "name": "Arts, Commerce, Sciences & Others",
+     "type": "eligible",
+     "file_name": null,
+     "domain_id": 0,
+     "subtype": null,
+     "icon_url": "https://d8it4huxumps7.cloudfront.net/images/icons/color_icons/.svg"
+    },
+    {
+     "id": 426,
+     "name": "Undergraduate",
+     "type": "eligible",
+     "file_name": "undergraduate",
+     "domain_id": 0,
+     "subtype": null,
+     "icon_url": "https://d8it4huxumps7.cloudfront.net/images/icons/color_icons/undergraduate.svg"
+    },
+    {
+     "id": 422,
+     "name": "Engineering Students",
+     "type": "eligible",
+     "file_name": "engineering",
+     "domain_id": 0,
+     "subtype": null,
+     "icon_url": "https://d8it4huxumps7.cloudfront.net/images/icons/color_icons/engineering.svg"
+    },
+    {
+     "id": 424,
+     "name": "Postgraduate",
+     "type": "eligible",
+     "file_name": "postgraduate",
+     "domain_id": 0,
+     "subtype": null,
+     "icon_url": "https://d8it4huxumps7.cloudfront.net/images/icons/color_icons/postgraduate.svg"
+    }
+   ],
+   "fields": [],
+   "datesToshow": [],
+   "attachment": [],
+   "prizes": [
+    {
+     "id": 3835493,
+     "rank": "Winner",
+     "cash": 500000,
+     "currency": "fa-rupee",
+     "certificate": 0,
+     "entity_id": 1726557,
+     "entity_type": "App\\Model\\Opportunity",
+     "others": null,
+     "currencyCode": "INR",
+     "cash_postfix": null,
+     "max_cash": null,
+     "pre_placement_internship": 1,
+     "pre_placement_opportunity": 0
+    },
+    {
+     "id": 3835494,
+     "rank": "First Runners-Up",
+     "cash": 300000,
+     "currency": "fa-rupee",
+     "certificate": 0,
+     "entity_id": 1726557,
+     "entity_type": "App\\Model\\Opportunity",
+     "others": null,
+     "currencyCode": "INR",
+     "cash_postfix": null,
+     "max_cash": null,
+     "pre_placement_internship": 1,
+     "pre_placement_opportunity": 0
+    },
+    {
+     "id": 3835495,
+     "rank": "Second Runners-Up",
+     "cash": 100000,
+     "currency": "fa-rupee",
+     "certificate": 0,
+     "entity_id": 1726557,
+     "entity_type": "App\\Model\\Opportunity",
+     "others": null,
+     "currencyCode": "INR",
+     "cash_postfix": null,
+     "max_cash": null,
+     "pre_placement_internship": 1,
+     "pre_placement_opportunity": 0
+    },
+    {
+     "id": 3835496,
+     "rank": "Campus Winners",
+     "cash": null,
+     "currency": "fa-rupee",
+     "certificate": 0,
+     "entity_id": 1726557,
+     "entity_type": "App\\Model\\Opportunity",
+     "others": "The top 30 teams that enter the Nationals will engage with senior government leaders, IAS officers and industry experts, while also receiving exclusive TGC goodies and commemorative gifts.",
+     "currencyCode": "INR",
+     "cash_postfix": null,
+     "max_cash": null,
+     "pre_placement_internship": 0,
+     "pre_placement_opportunity": 0
+    },
+    {
+     "id": 3835497,
+     "rank": "Hiring Opportunity (PPIs with Samagra)",
+     "cash": null,
+     "currency": "fa-rupee",
+     "certificate": 0,
+     "entity_id": 1726557,
+     "entity_type": "App\\Model\\Opportunity",
+     "others": "All 6 finalists will be shortlisted for a Pre-Placement Interview with Samagra.",
+     "currencyCode": "INR",
+     "cash_postfix": null,
+     "max_cash": null,
+     "pre_placement_internship": 1,
+     "pre_placement_opportunity": 0
+    }
+   ],
+   "mod_status": "LIVE",
+   "registerCount": 4127,
+   "short_url": "https://unstop.com/o/PLx3TQd",
+   "review_details": {
+    "avg_rating": null,
+    "usersCount": 0
+   },
+   "MobilecarouselImages": [],
+   "banner": {
+    "id": 3151084,
+    "filename": "6a70e781e7e62_the-governance-challenge-2026-tgc-2026.png",
+    "path": "uploads/images/opportunity/banner/6a70e781e7e62_the-governance-challenge-2026-tgc-2026.png",
+    "image_type": "banner",
+    "image_url": "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/banner/6a70e781e7e62_the-governance-challenge-2026-tgc-2026.png"
+   },
+   "authors": [],
+   "banner_mobile": {
+    "id": 3151085,
+    "filename": "6a70e78dc149c_the-governance-challenge-2026-tgc-2026.png",
+    "path": "uploads/images/opportunity/mobile_banner/6a70e78dc149c_the-governance-challenge-2026-tgc-2026.png",
+    "image_type": "mobile_banner",
+    "image_url": "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/mobile_banner/6a70e78dc149c_the-governance-challenge-2026-tgc-2026.png"
+   },
+   "all_banner": [],
+   "video": null,
+   "gallery": [],
+   "display_configs": {
+    "id": 1427553,
+    "opportunity_id": 1726557,
+    "header_type": 2,
+    "footer_type": 1,
+    "show_registrations_count": 1,
+    "show_tags": 1,
+    "eligible_colleges": 0,
+    "show_rounds": 1,
+    "show_eligibility": 1,
+    "show_region": 1,
+    "show_get_notified": 1,
+    "show_details": 1,
+    "show_imp_dates": 1,
+    "show_organisers": 1,
+    "show_about_organiser": 1,
+    "show_gallery": 1,
+    "show_ratings": 1,
+    "show_feedbacks": 1,
+    "show_articles": 1,
+    "show_deadline": 1,
+    "disclaimer": 0,
+    "convert_to_job": 0,
+    "show_rounds_data": 1,
+    "displayviewport": null,
+    "design_type": 1,
+    "section_order": "[\"roundSectionOrder\",\"detailSectionOrder\",\"bannerThumbOrder\",\"contactUsForm\",\"eligibleCollegesSectionOrder\",\"dateSectionOrder\",\"prizeSectionOrder\",\"speakerSectionOrder\",\"aboutcompanySectionOrder\",\"gallerySectionOrder\",\"relatedSectionOrder\",\"disclaimerSectionOrder\",\"reviewSectionOrder\",\"discussionSectionOrder\"]",
+    "show_add_banner": 0,
+    "hide_registration_button": 0,
+    "show_contact_us": 0,
+    "banner_config": "{\"color\":\"color-bg8\",\"text\":\"The Governance Challenge 2024\",\"type\":6,\"banner_data\":[1]}",
+    "extra_fields": null,
+    "show_organiser_contact": 1,
+    "evaluator_see_all_sideview_rounds": 1,
+    "show_team_size": 1,
+    "enable_webp": 1,
+    "show_ref_banner": 1,
+    "show_impressions": 1,
+    "show_prize": 1,
+    "show_opportunity_menu": 1,
+    "opportunity_theme": "{\"theme\":\"light\",\"bgImage\":\"opportunity_custom_banner_sprite.svg\",\"color\":\"blue\"}",
+    "show_faq": 1,
+    "group_evaluators": 0
+   },
+   "current_messages": [
+    {
+     "id": 72860,
+     "entity_id": 1726557,
+     "entity_type": "App\\Model\\Opportunity",
+     "message": "<p>Join us at the <strong>AMA session scheduled for 14th August, 2026 - <a href=\"https://us06web.zoom.us/meeting/register/31mYzuFCSB6tCAh5AKKQng\">Register Here</a></strong></p>",
+     "start_date": "2024-10-01 20:55:08+05:30",
+     "end_date": "2026-08-16 20:56:08+05:30",
+     "title": "Register Now! for the AMA session || 14th August 2026"
+    }
+   ],
+   "eligible_countries": [],
+   "payment_services": [],
+   "assignTags": {
+    "id": 79769,
+    "entity_id": 11006341,
+    "entity_type": "App\\User",
+    "tag": "d2c-trusted",
+    "category": null
+   },
+   "fullbannerimages": null,
+   "address_with_country_logo": {
+    "id": 1798945,
+    "address": null,
+    "city": null,
+    "state": null,
+    "country": null,
+    "zip": null,
+    "lat": null,
+    "lng": null,
+    "addressable_id": 1726557,
+    "addressable_type": "App\\Model\\Opportunity",
+    "created_at": "2026-07-27T15:11:49+05:30",
+    "updated_at": "2026-08-04T23:16:11+05:30",
+    "deleted_at": null,
+    "address_title": "event_location",
+    "city_id": null,
+    "sort_order": 1,
+    "state_code": null,
+    "country_code": null
+   },
+   "job_detail": null,
+   "referral_leaderboard_banner": {
+    "id": 3136441,
+    "filename": "6a67334307340_the-governance-challenge-2026.png",
+    "path": "uploads/images/opportunity/referral_leaderboard_banner/6a67334307340_the-governance-challenge-2026.png",
+    "image_type": "referral_leaderboard_banner",
+    "image_url": "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/referral_leaderboard_banner/6a67334307340_the-governance-challenge-2026.png"
+   },
+   "m_referral_leaderboard_banner": {
+    "id": 3136443,
+    "filename": "6a67334c51f5f_the-governance-challenge-2026.png",
+    "path": "uploads/images/opportunity/m_referral_leaderboard_banner/6a67334c51f5f_the-governance-challenge-2026.png",
+    "image_type": "m_referral_leaderboard_banner",
+    "image_url": "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/m_referral_leaderboard_banner/6a67334c51f5f_the-governance-challenge-2026.png"
+   },
+   "skills": [
+    {
+     "id": 645706,
+     "skill": "Business Planning",
+     "category": "recommendation_new",
+     "visible": true,
+     "domain": null,
+     "skill_name": "Business Planning",
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 645706,
+      "id": 5707183,
+      "ai_generated": true
+     }
+    },
+    {
+     "id": 647066,
+     "skill": "Public Speaking and Presentation Skills",
+     "category": "recommendation_new",
+     "visible": true,
+     "domain": null,
+     "skill_name": "Public Speaking and Presentation Skills",
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 647066,
+      "id": 5707184,
+      "ai_generated": true
+     }
+    },
+    {
+     "id": 647428,
+     "skill": "Strategic Thinking",
+     "category": "recommendation_new",
+     "visible": true,
+     "domain": null,
+     "skill_name": "Strategic Thinking",
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 647428,
+      "id": 5707185,
+      "ai_generated": true
+     }
+    },
+    {
+     "id": 644644,
+     "skill": "Policy Analysis",
+     "category": "recommendation_new",
+     "visible": true,
+     "domain": null,
+     "skill_name": "Policy Analysis",
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 644644,
+      "id": 5707186,
+      "ai_generated": true
+     }
+    },
+    {
+     "id": 1373,
+     "skill": "Problem Solving",
+     "category": "recommendation_new",
+     "visible": true,
+     "domain": "Arts & Science",
+     "skill_name": "Problem Solving",
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 1373,
+      "id": 5707187,
+      "ai_generated": true
+     }
+    }
+   ],
+   "workfunction": [
+    {
+     "id": 489,
+     "name": "Case Study Competitions",
+     "description": "Work Function For Moengage",
+     "created_at": "2024-12-01T03:14:35+05:30",
+     "updated_at": "2024-12-01T03:14:35+05:30",
+     "work_function_name": "Case Study Competitions",
+     "batch_id": 2,
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 489,
+      "id": 5707188,
+      "ai_generated": false
+     }
+    },
+    {
+     "id": 1864,
+     "name": "Strategy & Planning",
+     "description": "",
+     "created_at": "2026-02-06T23:31:46+05:30",
+     "updated_at": "2026-02-06T23:31:46+05:30",
+     "work_function_name": null,
+     "batch_id": 11,
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 1864,
+      "id": 5707189,
+      "ai_generated": true
+     }
+    },
+    {
+     "id": 1865,
+     "name": "Business Analysis",
+     "description": "",
+     "created_at": "2026-02-06T23:31:46+05:30",
+     "updated_at": "2026-02-06T23:31:46+05:30",
+     "work_function_name": null,
+     "batch_id": 11,
+     "pivot": {
+      "entity_id": 1726557,
+      "subject_id": 1865,
+      "id": 5707190,
+      "ai_generated": true
+     }
+    }
+   ],
+   "listing_status": "Live",
+   "assignedTag": {
+    "tag": "d2c-trusted"
+   },
+   "locations": [],
+   "contacts": [
+    {
+     "id": 2346636,
+     "name": "Helpdesk",
+     "designation": null,
+     "contact_no": null,
+     "contactable_id": 1726557,
+     "contactable_type": "App\\Model\\Opportunity",
+     "email": "support@unstop.com",
+     "sort_order": null
+    }
+   ],
+   "seo_details": [
+    {
+     "id": 1662590,
+     "entity_id": 1726557,
+     "entity_type": "App\\Model\\Opportunity",
+     "title": "The Governance Challenge 2024-Duplicate - 2026",
+     "description": "Find out the best The Governance Challenge 2024-Duplicate that match your interests. Prove your mettle and win exciting prizes like job opportunities and cas...",
+     "keywords": "",
+     "event_type": null,
+     "event_data": null,
+     "public_url": null,
+     "change_data": false,
+     "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png"
+    }
+   ],
+   "isUserAdmin": false,
+   "organisation": {
+    "id": 444757,
+    "name": "Samagra",
+    "description": "<div class=\"description\">\n<div class=\"description\">\n<div class=\"text\">\n<div class=\"text\">\n<div class=\"text\">\n<div class=\"text\">\n<div class=\"gmail-title\"><span style=\"font-family: arial, sans-serif;\">We are working to improve the quality of life of citizens through better governance.</span></div>\n<div class=\"gmail-title\"><span style=\"font-family: arial, sans-serif;\">&nbsp;</span></div>\n<div class=\"gmail-title\"><span style=\"font-family: arial, sans-serif;\"><strong>Our Model:</strong></span></div>\n<div class=\"gmail-description\">\n<p><span style=\"font-family: arial, sans-serif;\">We are a mission-driven governance consulting firm. We firmly believe in governance being the primary lever of change to create large scale impact in the country. We work with the senior political and bureaucratic leadership of states to solve governance problems at scale. From the time we are approached with a problem statement, we cowork with the government to diagnose the challenge, design a transformation roadmap and implement the same. The solutions we develop are rooted in the realities of governance in India. All our engagements are typically two-three year-long systemic transformation programmes.</span></p>\n<div class=\"gmail-title\"><span style=\"font-family: arial, sans-serif;\"><strong>Our Approach:</strong></span></div>\n<div class=\"gmail-description\">\n<p><span style=\"font-family: arial, sans-serif;\">We combine a top-down management consulting approach for problem structuring with a bottom-up understanding of the governance ecosystem for designing solutions, while leveraging data and technology to enable implementation of our solutions, with the objective of making governments accountable and deliver with minimum delays and maximum efficiency.</span></p>\n<div class=\"gmail-text\">\n<div class=\"gmail-text\">\n<div class=\"gmail-text\">\n<div class=\"gmail-text\">To know more about Samagra and its programs, watch this masterclass by Founder &amp; CEO, Gaurav Goel.&nbsp;<br />Please link this video: <a href=\"https://www.youtube.com/watch?v=GPcPdI2SHwU\"><span style=\"font-weight: 400;\">​​https://www.youtube.com/watch?v=GPcPdI2SHwU</span></a></div>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>",
+    "public_url": "c/samagra-governance-444757",
+    "logoUrl": "https://d8it4huxumps7.cloudfront.net/images/partners/partners75/62cbbb9fc616e_logo-colored.png",
+    "logoUrl2": "https://d8it4huxumps7.cloudfront.net/images/partners/partners125/62cbbb9fc616e_logo-colored.png",
+    "organisation_type": "1",
+    "wp_tag": null,
+    "seo_url": "https://unstop.com/c/samagra-governance-444757",
+    "website": "https://www.samagragovernance.in/",
+    "extra_fields": "{\"industry\":\"Governance Consulting\",\"industry_url\":\"\",\"founder\":\"Gaurav Goel\",\"foundedOn\":\"2012\",\"keyPeople\":\"Gaurav Goel (Founder and CEO), Rahul Kulkarni (Chief Technologist)\",\"headquarter\":\"New Delhi\",\"founderUrl\":\"https://www.linkedin.com/in/gaurav-goel-07374680/\"}"
+   },
+   "rounds": [
+    {
+     "id": 1560456,
+     "opportunity_id": 1726557,
+     "entity_id": 1343676,
+     "entity_type": "App\\Model\\OfflineRound",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": "{\"fields\":[{\"label\":\"Overall Comments\",\"comments\":\"\",\"score\":\"\",\"info\":\"\",\"mandatory\":false,\"validations\":{\"mandatory\":false,\"minlength\":0,\"maxlength\":500},\"weight_level\":1,\"weighted_score\":100}],\"score\":5,\"panelButtons\":[\"shortlist\",\"reject\",\"hold\",\"noshow\"],\"extraFields\":[],\"weightAutoAdjust\":true}",
+     "subtype": "assessments",
+     "round_order": 1,
+     "players_count": 87,
+     "register_window": 1,
+     "eliminator_round": 1,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 1343676,
+       "title": "Stage 1: Campus Round",
+       "display_text": "<p><span style=\"font-weight: 400;\">The Campus Round requires teams to register for The Governance Challenge 2026 and submit a 3-minute executive pitch video along with a 2-page concept note outlining their proposed solution to the case study by 21st August. The problem statement to be worked upon will be launched on 10th August. The results of the Campus Round will be announced on 26 August.</span></p>\n<p><br /><br /></p>",
+       "start_date": "2026-08-10T12:00:49+05:30",
+       "end_date": "2026-08-21T23:59:49+05:30",
+       "who_can_play": 1,
+       "round_config": null,
+       "ai_interview_enabled": false,
+       "status": "NOT_STARTED",
+       "can_evaluate": true,
+       "seo_data": {
+        "title": "Stage 1: Campus Round",
+        "keyword": "",
+        "description": "Offline Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1343676",
+        "keywords": "",
+        "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1343676"
+       },
+       "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1343676/details",
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": true
+    },
+    {
+     "id": 1560457,
+     "opportunity_id": 1726557,
+     "entity_id": 1338713,
+     "entity_type": "App\\Model\\OfflineRound",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": null,
+     "subtype": "assessments",
+     "round_order": 2,
+     "players_count": 3,
+     "register_window": 1,
+     "eliminator_round": 1,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 1338713,
+       "title": "Campus Round - Ask me Anything",
+       "display_text": "<p><span style=\"font-weight: 400;\">An online Ask Me Anything (AMA) session will be held at 7 PM on 14th August to address any questions about The Governance Challenge 2026, including the competition format, timelines, evaluation process, and submissions. Click on the button to register for the AMA session. <br /><br /></span></p>",
+       "start_date": "2026-08-14T10:00:49+05:30",
+       "end_date": "2026-08-14T20:00:49+05:30",
+       "who_can_play": 1,
+       "round_config": null,
+       "ai_interview_enabled": false,
+       "status": "NOT_STARTED",
+       "can_evaluate": true,
+       "seo_data": {
+        "title": "Campus Round - Ask me Anything",
+        "keyword": "",
+        "description": "Offline Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338713",
+        "keywords": "",
+        "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338713"
+       },
+       "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338713/details",
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": true
+    },
+    {
+     "id": 1560459,
+     "opportunity_id": 1726557,
+     "entity_id": 834816,
+     "entity_type": "App\\Model\\Rounds",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": "{\"fields\":[{\"label\":\"Overall Comments\",\"comments\":\"\",\"score\":\"\",\"info\":\"\",\"mandatory\":false,\"validations\":{\"mandatory\":false,\"minlength\":0,\"maxlength\":500},\"weight_level\":1,\"weighted_score\":100}],\"score\":5,\"panelButtons\":[\"shortlist\",\"reject\",\"hold\",\"noshow\"],\"extraFields\":[],\"weightAutoAdjust\":true}",
+     "subtype": null,
+     "round_order": 3,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 1,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 834816,
+       "title": "Nationals Round - Preliminary Submissions",
+       "start_date": "2026-08-26T12:00:49+05:30",
+       "end_date": "2026-09-06T23:59:49+05:30",
+       "description": "",
+       "with_reg": 0,
+       "allow_multiple_submissions": 1,
+       "display_text": "<p><span style=\"font-weight: 400;\">The 30 Campus Round winning teams will prepare and submit a preliminary presentation by 6th September, outlining their proposed solution for the Nationals Round. The submissions will be reviewed by leaders from Samagra, who will provide detailed feedback on 7th September to help teams refine their ideas, strengthen their analysis, and enhance the quality of their presentations.</span></p>",
+       "ai_interview_enabled": false,
+       "can_edit_submissions": null,
+       "status": "NOT_STARTED",
+       "seo_data": {
+        "title": "Nationals Round - Preliminary Submissions",
+        "keyword": "",
+        "description": "Online Submission Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/the-governance-challenge-2026-tgc-2026-samagra-1726557/case-submissions/834816",
+        "seo_url": "https://unstop.com/competitions/the-governance-challenge-2026-tgc-2026-samagra-1726557/case-submissions/834816"
+       },
+       "submissions_case": null,
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": false,
+     "submission_types": [
+      {
+       "id": 859753,
+       "opportunity_association_id": 1560459,
+       "title": "Submit your solution here.",
+       "type": "file",
+       "accepted_values": null,
+       "validations": "{\"max_file_size\":50}",
+       "remarks": null,
+       "created_at": "2026-07-30T16:53:56+05:30",
+       "updated_at": "2026-07-30T16:53:56+05:30",
+       "mandatory": 1,
+       "field_order": null,
+       "deleted_at": null,
+       "plagiarism_detection_mode": 0,
+       "field_values": [],
+       "validationsField": {
+        "max_file_size": 50
+       }
+      }
+     ]
+    },
+    {
+     "id": 1560521,
+     "opportunity_id": 1726557,
+     "entity_id": 1338751,
+     "entity_type": "App\\Model\\OfflineRound",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": null,
+     "subtype": null,
+     "round_order": 4,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 0,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 1338751,
+       "title": "Nationals Round - Knowledge Sharing Session",
+       "display_text": "For the Campus Round winners, a series of knowledge-sharing sessions will be conducted on 27th and 29th August by experts and government leaders from across the innovation ecosystem. These sessions will provide insights into advancing research, fostering entrepreneurship, building innovation ecosystems, and commercialising emerging technologies, helping teams strengthen their solutions for the Nationals Round.",
+       "start_date": "2026-08-27T10:00:00+05:30",
+       "end_date": "2026-08-29T21:00:00+05:30",
+       "who_can_play": 1,
+       "round_config": null,
+       "ai_interview_enabled": false,
+       "status": "NOT_STARTED",
+       "can_evaluate": true,
+       "seo_data": {
+        "title": "Nationals Round - Knowledge Sharing Session",
+        "keyword": "",
+        "description": "Offline Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338751",
+        "keywords": "",
+        "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338751"
+       },
+       "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338751/details",
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": true
+    },
+    {
+     "id": 1560526,
+     "opportunity_id": 1726557,
+     "entity_id": 1338754,
+     "entity_type": "App\\Model\\OfflineRound",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": null,
+     "subtype": null,
+     "round_order": 5,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 0,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 1338754,
+       "title": "Nationals Round - Feedback Session",
+       "display_text": "The preliminary submission made on 6th September will be reviewed by leaders from Samagra, who will provide detailed feedback on 7th September to help teams refine their ideas, strengthen their analysis, and enhance the quality of their final presentations.",
+       "start_date": "2026-09-07T10:00:00+05:30",
+       "end_date": "2026-09-07T21:00:00+05:30",
+       "who_can_play": 1,
+       "round_config": null,
+       "ai_interview_enabled": false,
+       "status": "NOT_STARTED",
+       "can_evaluate": true,
+       "seo_data": {
+        "title": "Nationals Round - Feedback Session",
+        "keyword": "",
+        "description": "Offline Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338754",
+        "keywords": "",
+        "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338754"
+       },
+       "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338754/details",
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": true
+    },
+    {
+     "id": 1560455,
+     "opportunity_id": 1726557,
+     "entity_id": 834813,
+     "entity_type": "App\\Model\\Rounds",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": "{\"fields\":[{\"label\":\"Overall Comments\",\"comments\":\"\",\"score\":\"\",\"info\":\"\",\"mandatory\":false,\"validations\":{\"mandatory\":false,\"minlength\":0,\"maxlength\":500},\"weight_level\":1,\"weighted_score\":100}],\"score\":5,\"panelButtons\":[\"shortlist\",\"reject\",\"hold\",\"noshow\"],\"extraFields\":[],\"weightAutoAdjust\":true}",
+     "subtype": null,
+     "round_order": 6,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 1,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 834813,
+       "title": "Nationals Round - Final Submissions",
+       "start_date": "2026-09-07T12:00:49+05:30",
+       "end_date": "2026-09-10T18:00:49+05:30",
+       "description": "",
+       "with_reg": 0,
+       "allow_multiple_submissions": 1,
+       "display_text": "<p><span style=\"font-weight: 400;\">The teams will submit the final presentations on 10th September for Nationals after incorporating the feedback given by leaders from Samagra.</span></p>\n<p><br /><br /></p>",
+       "ai_interview_enabled": false,
+       "can_edit_submissions": null,
+       "status": "NOT_STARTED",
+       "seo_data": {
+        "title": "Nationals Round - Final Submissions",
+        "keyword": "",
+        "description": "Online Submission Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/the-governance-challenge-2026-tgc-2026-samagra-1726557/case-submissions/834813",
+        "seo_url": "https://unstop.com/competitions/the-governance-challenge-2026-tgc-2026-samagra-1726557/case-submissions/834813"
+       },
+       "submissions_case": null,
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": false,
+     "submission_types": [
+      {
+       "id": 859749,
+       "opportunity_association_id": 1560455,
+       "title": "Please submit your solution here.",
+       "type": "file",
+       "accepted_values": "pdf",
+       "validations": "{\"max_file_size\":50}",
+       "remarks": "Maximum file size: 20 MB, Format: pdf.",
+       "created_at": "2026-07-30T16:55:25+05:30",
+       "updated_at": "2026-07-30T16:55:25+05:30",
+       "mandatory": 1,
+       "field_order": null,
+       "deleted_at": null,
+       "plagiarism_detection_mode": 0,
+       "field_values": [
+        "pdf"
+       ],
+       "validationsField": {
+        "max_file_size": 50
+       }
+      }
+     ]
+    },
+    {
+     "id": 1560453,
+     "opportunity_id": 1726557,
+     "entity_id": 1338712,
+     "entity_type": "App\\Model\\OfflineRound",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": null,
+     "subtype": null,
+     "round_order": 7,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 0,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 1338712,
+       "title": "Stage 2: Nationals Round - Presentations",
+       "display_text": "<p><span style=\"font-weight: 400;\">A 10-minute presentation by the teams will be followed by Q&A by the esteemed panel on the 11th and 12th of September. The top 6 teams out of the 30 teams at the Nationals will be shortlisted to pitch their solutions to the Chief Minister and senior bureaucrats at the Summit Round.</span></p>",
+       "start_date": "2026-09-11T10:00:49+05:30",
+       "end_date": "2026-09-12T21:00:49+05:30",
+       "who_can_play": 1,
+       "round_config": null,
+       "ai_interview_enabled": false,
+       "status": "NOT_STARTED",
+       "can_evaluate": true,
+       "seo_data": {
+        "title": "Stage 2: Nationals Round - Presentations",
+        "keyword": "",
+        "description": "Offline Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338712",
+        "keywords": "",
+        "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338712"
+       },
+       "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338712/details",
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": true
+    },
+    {
+     "id": 1560454,
+     "opportunity_id": 1726557,
+     "entity_id": 834812,
+     "entity_type": "App\\Model\\Rounds",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": "{\"fields\":[{\"label\":\"Overall Comments\",\"comments\":\"\",\"score\":\"\",\"info\":\"\",\"mandatory\":false,\"validations\":{\"mandatory\":false,\"minlength\":0,\"maxlength\":500},\"weight_level\":1,\"weighted_score\":100}],\"score\":5,\"panelButtons\":[\"shortlist\",\"reject\",\"hold\",\"noshow\"],\"extraFields\":[],\"weightAutoAdjust\":true}",
+     "subtype": null,
+     "round_order": 8,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 0,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 834812,
+       "title": "Summit Round - Final Submissions",
+       "start_date": "2026-09-13T10:00:49+05:30",
+       "end_date": "2026-09-27T12:00:49+05:30",
+       "description": "",
+       "with_reg": 0,
+       "allow_multiple_submissions": 1,
+       "display_text": "<p><span style=\"font-weight: 400;\">The six finalist teams will submit their final presentations by 12 PM, 27th September, for the Summit Round.&nbsp;&nbsp;</span></p>\n<p><span style=\"font-weight: 400;\">&nbsp;</span></p>",
+       "ai_interview_enabled": false,
+       "can_edit_submissions": null,
+       "status": "NOT_STARTED",
+       "seo_data": {
+        "title": "Summit Round - Final Submissions",
+        "keyword": "",
+        "description": "Online Submission Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/the-governance-challenge-2026-tgc-2026-samagra-1726557/case-submissions/834812",
+        "seo_url": "https://unstop.com/competitions/the-governance-challenge-2026-tgc-2026-samagra-1726557/case-submissions/834812"
+       },
+       "submissions_case": null,
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": false,
+     "submission_types": [
+      {
+       "id": 859748,
+       "opportunity_association_id": 1560454,
+       "title": "Submit your presentation here",
+       "type": "file",
+       "accepted_values": "pptx",
+       "validations": "{\"max_file_size\":50}",
+       "remarks": "Format: PPTx",
+       "created_at": "2026-07-30T16:56:18+05:30",
+       "updated_at": "2026-07-30T16:56:18+05:30",
+       "mandatory": 1,
+       "field_order": 1,
+       "deleted_at": null,
+       "plagiarism_detection_mode": 0,
+       "field_values": [
+        "pptx"
+       ],
+       "validationsField": {
+        "max_file_size": 50
+       }
+      }
+     ]
+    },
+    {
+     "id": 1564775,
+     "opportunity_id": 1726557,
+     "entity_id": 1341429,
+     "entity_type": "App\\Model\\OfflineRound",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": null,
+     "subtype": null,
+     "round_order": 9,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 0,
+     "result_flag": 0,
+     "to_be_announced": null,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": null,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 1341429,
+       "title": "Summit Round - Governance Immersion Visit",
+       "display_text": "To help the top 6 teams develop a deeper understanding of Maharashtra's governance landscape, a two-day Governance Immersion Visit will be organised by the TGC team prior to the Summit Round. The immersion will provide participants with an opportunity to engage with citizens, interact with government officials, and gain first-hand insights into policy implementation through field visits in Pune district and meetings with senior officials in Mumbai, the state capital.",
+       "start_date": "2026-09-28T07:00:00+05:30",
+       "end_date": "2026-09-29T21:00:00+05:30",
+       "who_can_play": 1,
+       "round_config": null,
+       "ai_interview_enabled": false,
+       "status": "NOT_STARTED",
+       "can_evaluate": true,
+       "seo_data": {
+        "title": "Summit Round - Governance Immersion Visit",
+        "keyword": "",
+        "description": "Offline Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1341429",
+        "keywords": "",
+        "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1341429"
+       },
+       "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1341429/details",
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": true
+    },
+    {
+     "id": 1560462,
+     "opportunity_id": 1726557,
+     "entity_id": 1338716,
+     "entity_type": "App\\Model\\OfflineRound",
+     "is_inactive": 0,
+     "is_hidden": 0,
+     "evaluation_fields": null,
+     "subtype": null,
+     "round_order": 10,
+     "players_count": 0,
+     "register_window": 1,
+     "eliminator_round": 1,
+     "result_flag": 0,
+     "to_be_announced": 0,
+     "proctoring": null,
+     "grace_period": 15,
+     "hide_rounds_data": 0,
+     "hosted_on_d2c": 1,
+     "parent": null,
+     "pro_only": false,
+     "show_round_score": 0,
+     "show_live_status": 1,
+     "round_lang": 1,
+     "live_leaderboard": 0,
+     "proctoring_group_id": null,
+     "certificate_at": null,
+     "winner_certificate_at": null,
+     "details": [
+      {
+       "id": 1338716,
+       "title": "Stage 3: Summit Round - Presentations",
+       "display_text": "<p><span style=\"font-weight: 400;\">The six finalist teams will present their solutions on 30th September through a 10-minute presentation before the Chief Minister of Maharashtra, senior IAS officers, and industry leaders..</span></p>",
+       "start_date": "2026-09-30T10:00:50+05:30",
+       "end_date": "2026-09-30T21:00:50+05:30",
+       "who_can_play": 1,
+       "round_config": null,
+       "ai_interview_enabled": false,
+       "status": "NOT_STARTED",
+       "can_evaluate": true,
+       "seo_data": {
+        "title": "Stage 3: Summit Round - Presentations",
+        "keyword": "",
+        "description": "Offline Round as part of The Governance Challenge 2026 (TGC 2026)",
+        "sharable_image_url": "https://d8it4huxumps7.cloudfront.net/lambda-pdfs/opportunity-bannerImages/1785784271.png",
+        "audience": "",
+        "entity_type": "App\\Model\\Opportunity",
+        "entity_id": 1726557,
+        "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338716",
+        "keywords": "",
+        "seo_url": "https://unstop.com/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338716"
+       },
+       "public_url": "/competitions/crp-the-governance-challenge-2026-tgc-2026-samagra-1726557/offline-round/1338716/details",
+       "images": []
+      }
+     ],
+     "status": "NOT_STARTED",
+     "display_only": true
+    }
+   ],
+   "linked_submission": 0,
+   "submissionRound": null,
+   "viewsCount": 29193
+  }
+ }
+}

@@ -20,13 +20,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { ALL_COURSES } from '@/data/courses';
 import type { Course, SpecId, Profile } from '@/types';
 import { useRouter } from 'next/navigation';
-
-const ADMIN_EMAILS = new Set([
-  'tarun.shekhawat2027@bitsom.edu.in',
-  'varad.dharap2027@bitsom.edu.in',
-  'yash.kolhe2027@bitsom.edu.in',
-  'apoorv.sharma2027@bitsom.edu.in',
-]);
+import { isAdminEmail } from '@/lib/admin';
 
 type ViewMode = 'plan' | 'schedule';
 
@@ -363,7 +357,7 @@ export default function KyotoPage() {
 
         {/* Right: admin + export buttons */}
         <div className="flex-1 flex items-center justify-end gap-2">
-          {profile?.email && ADMIN_EMAILS.has(profile.email.toLowerCase()) && (
+          {isAdminEmail(profile?.email) && (
             <button
               onClick={() => router.push('/admin')}
               style={{

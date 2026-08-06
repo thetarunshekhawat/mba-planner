@@ -4,6 +4,111 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Alerts tab (competition & deadline reminders)
+
+A fourth planner tab. Track case competitions from Unstop, watch the round chain advance on
+its own as dates pass, set per-round reminders, and get a push notification on your phone
+before a deadline — even with the site closed.
+
+- **Schema** — migrations `017` (competitions + rounds), `018` (per-user state), `019`
+  (extracted course deadlines, ships empty). Nine tables, RLS on all of them, demo-account
+  RESTRICTIVE write blocks on all seven that hold real state.
+  - `competitions` is `global` (cohort-wide) or `private` (one student). The RLS INSERT policy
+    pins authenticated writes to private/own, so a student with a hand-crafted REST call still
+    cannot publish to the cohort. `owner_key` is a generated column carrying a sentinel uuid
+    for global rows — without it, `created_by IS NULL` would make the unique index accept the
+    same competition twice, because NULLs never conflict in Postgres.
+  - `competition_rounds` are matched on Unstop's `round_key` and **updated in place**. Rounds
+    that vanish upstream are retired, never deleted: `alert_reminder_rules` and
+    `alert_round_outcomes` cascade off `competition_rounds.id`, so recreating a row would
+    silently wipe every reminder a student configured.
+
+- **The reminder model** (`lib/alerts/schedule.ts`) — rules stored sparsely, occurrences
+  computed at dispatch, idempotency in the ledger. No pending-reminder rows exist, so an Unstop
+  date edit is authoritative instantly with no reconciliation pass, a round added in September
+  reaches an August tracker for free, and elimination needs no cascading delete.
+  - `UNIQUE (user_id, dedupe_key)` on `alert_deliveries` is what makes double-sending
+    impossible. Keys carry no timestamp, so a moved round cannot re-fire a sent reminder.
+  - A reminder more than six hours past its anchor is recorded as `skipped_stale` and sends
+    nothing — burning the key, so an overnight outage can't produce a 3am burst about deadlines
+    that already passed.
+
+- **The pass/fail gate** — after an eliminator ends, the card asks whether you cleared it.
+  **Default is PASSED**: ignoring the question changes nothing. Only "No" stops alerts, and
+  it's undoable. Assuming a silent student passed costs one stray notification; assuming they
+  lost costs them a deadline they were still racing.
+
+- **Web push** — VAPID + a deliberately cache-free service worker, a PWA manifest, and
+  192/512/maskable icons generated from the existing brand geometry. Never auto-prompts: a
+  denied permission cannot be re-requested from JavaScript. iOS is detected explicitly and
+  shown Add-to-Home-Screen instructions, because Safari grants push only to installed PWAs.
+
+- **Dispatcher** (`/api/alerts/dispatch`) — one handler, two drivers. Vercel Hobby caps cron at
+  daily so that run is a safety net; GitHub Actions every 15 minutes is the real driver. Both
+  present `Bearer $CRON_SECRET`, compared with `timingSafeEqual` and **failing closed** when
+  the var is unset. Every read pages through `fetchAllRows`.
+
+- **`unstop-import` skill** (`.claude/skills/unstop-import/`) — the only sanctioned path to a
+  cohort-wide competition. Takes an Unstop URL, maps it, POSTs to `/api/alerts/import`.
+
+- **Course dates** — Tier A derives first/last class and exam-week dates from `data/courses.ts`
+  alone, gated on `isCourseCompleted()`. Tier B (assignment dates from outline prose) never
+  runs at runtime: `scripts/extract-course-deadlines.mts` proposes offline, the script discards
+  anything whose verbatim quote isn't in the outline or whose date falls outside the course
+  window, and a human reviews the diff before any migration seeds it. On the first run those
+  guards rejected 36 of 55 proposals, 8 of them for quotes the model had invented.
+
+- **Admin Alerts tab** — reach, per-competition and per-member tables, push health (including
+  the count of students tracking competitions with no working subscription), and the delivery
+  log. Deliberately ignores the dashboard term filter, since competitions aren't course-scoped.
+
+### Added - Alerts (Phase 0: foundations)
+
+- **`lib/alerts/unstop.ts`** — types and `mapUnstopCompetition()` for Unstop's public,
+  unauthenticated API (`GET /api/public/competition/{numericId}`). Written against a live
+  capture of TGC 2026 committed at `scripts/fixtures/unstop-tgc-2026.json`, because several
+  fields are not guessable from the payload's shape: a round carries **no `title`** (it lives
+  in `details[0]`, an array that can be empty), elimination is `round.eliminator_round` as an
+  int 0/1, `entity_type` is a PHP class name needing its namespace stripped, round and
+  competition `public_url`s are relative (`seo_url` is the absolute one), `skills` is an array
+  of objects, and `overall_prizes` is null even when `prizes[]` is populated.
+  - Verified on real data: round *windows overlap* — three of TGC's ten rounds start before
+    their predecessor ends, and round 2 sits entirely inside round 1. Consecutive
+    `round_order` therefore does not mean consecutive time, and two rounds can be live at
+    once. Submission-type rounds also carry no URL at all.
+
+- **`lib/alerts/schedule.ts`** — the reminder model. Rules are stored sparsely, occurrences
+  are computed at dispatch, and idempotency lives in the delivery ledger. Reminder rows are
+  deliberately not materialised: Unstop edits round dates after publishing, so materialised
+  rows would need a reconciliation pass over every tracker × round × offset, while computed
+  ones make a new date authoritative instantly. Dedupe keys (`v1:<kind>:<entity>:<offset>`)
+  contain no timestamp, so a re-import cannot re-fire a reminder already sent.
+
+- **`lib/alerts/progress.ts`** — `roundState()`, `chainProgress()`, elimination-gate
+  detection. A round with no dates is `unknown`, never `done`; progress counts finished
+  rounds rather than the current index, since position-based progress would over-report given
+  overlapping windows.
+
+- **`lib/alerts/time.ts`** — `istToInstant()` for absolute reminders, plus IST display
+  helpers that reuse `campusToday()` rather than making a fresh `Intl` call.
+
+- **`scripts/verify-alerts.mts`** — 79 pure-logic checks: round-state boundaries, overlapping
+  chains, dedupe-key stability across a date change, late-dispatcher and staleness
+  classification, muted/eliminated tracks producing zero occurrences, sparse-override
+  resolution matching between the dispatcher and the card preview, IST conversion, and the
+  mapper against the live fixture plus mutated `details: []` / missing-`details` variants.
+
+### Changed
+
+- **`ADMIN_EMAILS` extracted to `lib/admin.ts`** with `isAdminEmail()` / `isSuperAdminEmail()`.
+  The set had been copy-pasted into **four** files (`app/planner/page.tsx`, `app/admin/page.tsx`,
+  `app/kyoto/page.tsx`, `app/api/admin/query/route.ts`) while `CLAUDE.md` said to update "all
+  three" — so adding an admin could leave a surface still refusing them, invisibly, since a
+  missed admin just sees the ordinary student UI. One source of truth now; docs corrected.
+
+- **`fetchAllRows()` moved to `lib/alerts/paging.ts`** from `AdminDashboard.tsx` and shared
+  with the alerts dispatcher, which hits the same silent 1000-row PostgREST cap.
+
 ### Added - Term 5
 
 - **Full Term 5 catalogue** (`data/courses.ts`) — 21 rows across Blocks 22–26 with course

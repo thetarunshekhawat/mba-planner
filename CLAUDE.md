@@ -37,8 +37,13 @@ data/term4Insights.json / term5Insights.json
 lib/terms.ts           Term dates, current term, "has this course finished?"
 lib/conflicts.ts       Section-clash advisories (A/B section resolution)
 lib/calendar.ts        ICS export
+lib/admin.ts           THE admin allowlist — imported everywhere, declared nowhere else
 lib/chat/*             AI assistant: routing, prompt, nudges, insight selection
-components/planner/*   The main planner UI (Plan / My Schedule / Friends)
+lib/alerts/*           Competition/deadline alerts: Unstop mapping, reminder scheduling,
+                       round progress, IST helpers, shared PostgREST paging
+components/planner/*   The main planner UI (Plan / My Schedule / Friends / Alerts)
+.claude/skills/unstop-import/
+                       The only sanctioned path to a cohort-wide competition
 components/planner-kyoto/*   Alternate visual skin at /kyoto — a parallel design, not admin
 components/admin/*     Admin dashboard + Metrics panel + Ask-AI
 supabase/migrations/*  Schema, applied via the CLI (see "Supabase")
@@ -121,6 +126,8 @@ Rules:
   "Done". Don't remove the ability to ask about it.
 - Any new nudge source goes through `prepare()` in `hooks/useChatNudges.ts` — that gate is the
   backstop that drops nudges tied to finished courses.
+- **Alerts is a governed surface too.** `lib/alerts/courseDeadlines.ts` emits nothing for a
+  finished course, dates everything from `campusToday()`, and never reads a stored flag.
 - The chat model is told the date and each course's status via the `[COMPLETED …]` /
   `[RUNNING NOW]` / `[not started yet]` tags in `lib/chat/prompt.ts`. Any new place that lists
   courses for the model must carry the same tag.
@@ -198,6 +205,112 @@ Smoke-test: `npx tsx scripts/verify-insights.mts`.
 
 ---
 
+## Alerts
+
+The fourth planner tab: case-competition and deadline reminders, delivered in-app and by web
+push. Competitions come from Unstop's public JSON API — no scraping.
+
+### Two-level visibility, and why students can't publish
+
+| Added by | Result |
+|---|---|
+| Admin via the `unstop-import` skill | **Global** — the whole cohort sees it |
+| Anyone via the website | **Private** to them |
+| Admin via the website, "publish to everyone" ticked | Global |
+
+The RLS INSERT policy on `competitions` pins `visibility = 'private' AND created_by =
+auth.uid()`, so a student with a hand-crafted REST call and a valid JWT still cannot publish
+cohort-wide. Global rows are reachable **only** through the service-role client, which means
+only `/api/alerts/import` (bearer `ALERTS_IMPORT_SECRET`) and the admin branch of
+`/api/alerts/unstop`. The admin check lives in the route, not a policy, because a policy can't
+see the caller's email without another SECURITY DEFINER function — see migration 012.
+
+`competitions.owner_key` is a generated column: global rows share a sentinel uuid so that
+`UNIQUE (source, source_id, owner_key)` actually conflicts. With `created_by` NULL it wouldn't
+— NULLs never conflict in a Postgres unique index — and the same competition could be
+published twice.
+
+### The reminder model
+
+**Rules are stored sparsely; occurrences are computed at dispatch; idempotency lives in the
+ledger.** `lib/alerts/schedule.ts` is the single implementation, imported by both the
+dispatcher and the card, so the "you'll be reminded on…" preview cannot disagree with what
+fires.
+
+Defaults are never materialised. `alert_reminder_rules` holds a row only where a student
+deviated. Materialising them would mean reconciling every tracker × round × offset each time
+Unstop edits a date, fanning out writes when a round is added, and cascading deletes on
+elimination — all of which are free when computed.
+
+`dedupe_key` is `v1:<kind>:<entityId>:<offsetCode>` and **contains no timestamp**, so moving a
+round cannot re-fire a reminder already sent. The dispatcher upserts with `ignoreDuplicates`
+and pushes only the rows that come back as newly created, so two dispatchers racing send
+exactly one notification. A reminder more than six hours past its anchor is written as
+`skipped_stale` and sends nothing — that burns the key, so an overnight outage can't cause a
+3am burst about deadlines that already passed.
+
+### Two drivers, one guard
+
+Vercel Hobby caps cron at daily, so `vercel.json`'s run is a safety net. The real driver is
+`.github/workflows/alerts-dispatch.yml` every 15 minutes. Both present
+`Authorization: Bearer $CRON_SECRET`, which Vercel sends automatically once that env var
+exists, so one `timingSafeEqual` guard covers both. It **fails closed** when the var is unset.
+(`/api/keepalive` stays deliberately open — don't change it.)
+
+⚠️ GitHub disables scheduled workflows after 60 days without repo activity. If reminders stop,
+check that first; a rising `skipped_stale` count in the admin Alerts tab is the in-app signal.
+
+### The pass/fail gate defaults to PASSED
+
+After an eliminator round ends, the card asks whether the student cleared it. Ignoring the
+question changes nothing — the chain keeps advancing and reminders keep arriving. Only an
+explicit "No" writes `cleared = false`, demotes the track to `eliminated`, and stops the
+dispatcher. It is undoable.
+
+The asymmetry is the point: assuming a silent student passed costs one irrelevant
+notification, while assuming they lost costs them the deadline for a competition they are
+still in.
+
+### Round order is not a timeline
+
+Sort rounds by `round_order` for display, but **never** derive "which round am I on" from
+position. Round windows overlap — on TGC 2026 three of ten rounds start before their
+predecessor ends, and round 2 sits entirely inside round 1. Two rounds being live at once is
+normal. `chainProgress()` counts *finished* rounds for exactly this reason.
+
+Related trap: a round with no dates is `unknown`, **never** `done`. A green tick on an
+undated round tells a student they've finished something they haven't.
+
+### Course deadlines: Tier A ships, Tier B is offline
+
+**Tier A** (`lib/alerts/courseDeadlines.ts`) derives first-class / last-class / exam-week dates
+purely from `data/courses.ts` + `course_selections`. No table, no extraction, and it rolls over
+on its own when a new term lands.
+
+**Tier B** — real assignment dates from `course_outlines.content` — never runs at runtime.
+`course_outlines.content` is free-form prose and a hallucinated due date would go to a hundred
+phones, which is strictly worse than no feature. It follows the insight-engine pattern:
+`scripts/extract-course-deadlines.mts` proposes candidates offline, the **script** (not the
+model) discards any whose verbatim quote isn't in the outline or whose date falls outside the
+course window ±14 days, `data/courseDeadlineCandidates.json` is reviewed in a diff by a human,
+and only then does a migration seed `course_deadlines`. **Zero runtime model calls, ever.**
+
+The quote guard is necessary but not sufficient: for table-formatted outlines a valid quote can
+prove the assignment exists without proving its date. That is why review is a human step and
+why migration 020 is not written automatically.
+
+### Env vars
+
+`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (web push);
+`CRON_SECRET` (guards `/api/alerts/dispatch`); `ALERTS_IMPORT_SECRET` (guards
+`/api/alerts/import`). All five must exist in Vercel Production **and** Preview.
+
+iOS note: Safari grants push only to a PWA added to the home screen. `usePushSubscription`
+detects this and shows install instructions rather than a button that would silently fail.
+Nothing ever auto-prompts for permission — a denied permission cannot be re-requested from JS.
+
+---
+
 ## Supabase
 
 Project ref **`rtchhbkrzdmfryxxuyih`**. The CLI is authenticated and linked — apply SQL with:
@@ -223,11 +336,25 @@ supabase db query --linked "select ..." -o table     # read-only queries
 | `landing_sessions` | Pre-login funnel; anon-writable by design |
 | `chatbot_messages` | Chat transcripts |
 | `admin_users`, `admin_ai_queries` | Admin gate + Ask-AI audit log |
+| `competitions` | Unstop/manual competitions; `global` (cohort) or `private` (one student) |
+| `competition_rounds` | Round chain; `round_key` is Unstop's id and is **never** renumbered |
+| `alert_tracks` | `(user_id, competition_id)` — who follows what, and whether it's muted |
+| `alert_reminder_rules` | **Sparse overrides only** — defaults are never materialised |
+| `alert_round_outcomes` | Self-declared pass/fail. Absence means *passed* |
+| `custom_deadlines` | Manual deadlines. Always private |
+| `push_subscriptions` | One row per browser; `endpoint` is unique |
+| `alert_deliveries` | The idempotency ledger. `UNIQUE (user_id, dedupe_key)` |
+| `course_deadlines` | Extracted assignment dates. Seeded by migration only; ships empty |
 
 **No table stores a term.** That is deliberate and it works, because `course_id` is globally
 unique across terms. `course_outlines.term` exists for analytics only — its primary key is
 still `code`, which is safe *only while no course code is reused across terms*. Check that
 before adding a term.
+
+Still true after Alerts. `course_deadlines.term` is analytics-only exactly like
+`course_outlines.term` — the real term resolves through `course_code` → `data/courses.ts`. The
+alerts tables have no term at all: competitions aren't course-scoped, and Tier A course dates
+resolve their term through the catalogue like everything else.
 
 ### Storage
 
@@ -256,6 +383,7 @@ tracking worked the moment the Term 5 rows existed.
 
 Adding an event: extend the `EventType` union in `hooks/useAnalytics.ts`, then give it a label
 in `describeEvent` in `components/admin/AdminDashboard.tsx` or it renders as a raw string.
+The Alerts feature added ~30 `alert_*` types via that same path.
 
 ### PostgREST row cap — read this before adding a dashboard query
 
@@ -268,11 +396,13 @@ Metrics work, and the queries had no `ORDER BY`, so *which* 1000 was undefined.
 ### Admin dashboard
 
 Tabs: Cohort Overview · Member Detail · Activity · Insights (Overview / **Metrics**) · In-Depth ·
-AI Chatbot · Ask AI.
+AI Chatbot · Ask AI · **Alerts**.
 
 A **dashboard-wide term filter** in the tab bar narrows every course-scoped figure (selections,
 popularity, member course lists, distributions). Session, login and funnel figures are term-less
-and deliberately ignore it — filtering them would break the funnel.
+and deliberately ignore it — filtering them would break the funnel. The **Alerts** tab opts out
+for the same reason: competitions have no `course_id` and therefore no term, so filtering would
+return nothing rather than a smaller answer.
 
 The **Metrics** sub-tab (`components/admin/MetricsPanel.tsx`) computes reach, engagement
 distributions (mean / median / Q1 / Q3 / IQR / p90), retention cohorts, Pareto concentration,
@@ -283,8 +413,13 @@ already in memory, no new tables.
 
 ## Admin access
 
-Admins are hardcoded in `ADMIN_EMAILS` (a `Set<string>`) at the top of `app/admin/page.tsx`,
-`app/planner/page.tsx`, and `app/kyoto/page.tsx`. All emails must be lowercase.
+Admins are hardcoded in `ADMIN_EMAILS` (a `Set<string>`) in **`lib/admin.ts`**, which also
+exports `isAdminEmail()` / `isSuperAdminEmail()`. All emails must be lowercase.
+
+This list used to be copy-pasted into four files while this section said "all three" — so
+adding an admin had a real chance of leaving one surface still refusing them, invisibly (a
+missed admin just sees the ordinary student UI). Import from `lib/admin.ts`; never re-declare
+the set.
 
 Current admins:
 - `tarun.shekhawat2027@bitsom.edu.in` (super-admin — sees the Ask-AI audit log)
@@ -295,8 +430,8 @@ Current admins:
 Rules:
 - Only these emails should ever see admin-related UI (button, page, links).
 - Non-admin users must see the planner exactly as before — no trace of admin features.
-- The check always uses `.toLowerCase()` on the email before calling `.has()`.
-- When adding a new admin, update `ADMIN_EMAILS` in **all three** files and this list.
+- Always go through `isAdminEmail()` — it lowercases and is null-safe. Don't call `.has()` directly.
+- When adding a new admin, update `ADMIN_EMAILS` in `lib/admin.ts` and this list. That's it.
 
 ---
 
@@ -310,6 +445,7 @@ Rules:
 | `npx tsx scripts/verify-conflicts.mts` | Overlapping pairs resolve as advisories; no stray `conflictGroup` |
 | `npx tsx scripts/verify-insights.mts` | Insight engines fire correctly; no dangling course codes |
 | `npx tsx scripts/verify-metrics.mts` | Distribution maths, and that paged fetches return all rows |
+| `npx tsx scripts/verify-alerts.mts` | Reminder scheduling, round state, dedupe keys, IST, and the Unstop mapper against a committed live fixture |
 | `npx tsx scripts/build-outline-headers.mts` | Regenerates authoritative outline headers |
 
 Run `verify-timings` after any catalogue edit — transcribing a timetable by hand is the step

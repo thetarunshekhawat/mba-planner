@@ -1,0 +1,415 @@
+{
+  "generated_at": "2026-08-06T07:41:04.017Z",
+  "accepted": [
+    {
+      "course_code": "SADT",
+      "term": 4,
+      "title": "Quiz 1 - Shopper & Retailer Study – Submission due on the July 18, 2026",
+      "kind": "quiz",
+      "due_date": "2026-07-18",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/SADT",
+      "source_section": "After Class: Quiz 1 - Shopper & Retailer Study – Submission due on the July 18, 2026",
+      "confidence": "high"
+    },
+    {
+      "course_code": "SADT",
+      "term": 4,
+      "title": "Individual Assignment due on July 19, 2026",
+      "kind": "assignment",
+      "due_date": "2026-07-19",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/SADT",
+      "source_section": "Post Class: Individual Assignment due on July 19, 2026",
+      "confidence": "high"
+    },
+    {
+      "course_code": "SADT",
+      "term": 4,
+      "title": "Group Assignment – submission due date July 24, 2026",
+      "kind": "assignment",
+      "due_date": "2026-07-24",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/SADT",
+      "source_section": "Post Class: Group Assignment – submission due date July 24, 2026",
+      "confidence": "high"
+    },
+    {
+      "course_code": "SADT",
+      "term": 4,
+      "title": "Quiz 2 (MCQ – 1 hour) to be conducted on July 24, 2026",
+      "kind": "quiz",
+      "due_date": "2026-07-24",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/SADT",
+      "source_section": "Quiz 2 (MCQ – 1 hour) to be conducted on July 24, 2026",
+      "confidence": "high"
+    },
+    {
+      "course_code": "SADT",
+      "term": 4,
+      "title": "Group Assignment work to be delivered as a presentation on July 27, 2026",
+      "kind": "presentation",
+      "due_date": "2026-07-27",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/SADT",
+      "source_section": "Post Class: Group Assignment work to be delivered as a presentation on July 27, 2026",
+      "confidence": "high"
+    },
+    {
+      "course_code": "FWKJ",
+      "term": 4,
+      "title": "In class quiz",
+      "kind": "quiz",
+      "due_date": "2026-08-03",
+      "due_time": null,
+      "weight_pct": 30,
+      "source_doc": "course_outlines/FWKJ",
+      "source_section": "11                         In class quiz     Quiz               Quiz",
+      "confidence": "high"
+    },
+    {
+      "course_code": "FWKJ",
+      "term": 4,
+      "title": "Final presentations",
+      "kind": "presentation",
+      "due_date": "2026-08-09",
+      "due_time": null,
+      "weight_pct": 50,
+      "source_doc": "course_outlines/FWKJ",
+      "source_section": "19                         Final\n                            presentations\n\n20                         Final\n                            presentations",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHLG",
+      "term": 4,
+      "title": "Assignment 1 Due",
+      "kind": "assignment",
+      "due_date": "2026-08-15",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHLG",
+      "source_section": "Assignment 1 Due Assignment 2 Released",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHLG",
+      "term": 4,
+      "title": "Assignment 2 Due",
+      "kind": "assignment",
+      "due_date": "2026-08-17",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHLG",
+      "source_section": "Assignment 2 Due Project Proposal Due Assignment 3 Released",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHLG",
+      "term": 4,
+      "title": "Project Proposal Due",
+      "kind": "submission",
+      "due_date": "2026-08-17",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHLG",
+      "source_section": "Assignment 2 Due Project Proposal Due Assignment 3 Released",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHLG",
+      "term": 4,
+      "title": "Assignment 3 Due",
+      "kind": "assignment",
+      "due_date": "2026-08-19",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHLG",
+      "source_section": "Assignment 3 Due",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHLG",
+      "term": 4,
+      "title": "Final Group Project Due",
+      "kind": "project",
+      "due_date": "2026-08-23",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHLG",
+      "source_section": "Final Group Project Due Project Presentations",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHPT",
+      "term": 4,
+      "title": "Submit Team Charter (1,500 words)",
+      "kind": "submission",
+      "due_date": "2026-09-16",
+      "due_time": null,
+      "weight_pct": 10,
+      "source_doc": "course_outlines/MHPT",
+      "source_section": "Submit Team Charter (1,500 words) by start of Session 4",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHPT",
+      "term": 4,
+      "title": "Conduct Live Team Project diagnostic conversation (Wed of Week 1)",
+      "kind": "submission",
+      "due_date": "2026-09-16",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHPT",
+      "source_section": "Conduct Live Team Project diagnostic conversation (Wed of Week 1)",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHPT",
+      "term": 4,
+      "title": "Submit mid-term Team Check-In (200 words, individual)",
+      "kind": "submission",
+      "due_date": "2026-09-20",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHPT",
+      "source_section": "Submit mid-term Team Check-In (200 words, individual)",
+      "confidence": "high"
+    },
+    {
+      "course_code": "PDMT",
+      "term": 4,
+      "title": "Lovable: Ship a Working MVP",
+      "kind": "assignment",
+      "due_date": "2026-09-20",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/PDMT",
+      "source_section": "5.3       Weekend          Lovable: Ship a Working MVP                              Lovable AI app\n          Assignment       • Teams start from their Session 3.1 problem             builder\n                             statement\n                           • AI app builders generate a functional web MVP\n                             from text prompts\n                           • Required output: live URL, 1 working core feature,\n                             1 sign-up form",
+      "confidence": "high"
+    },
+    {
+      "course_code": "PDMT",
+      "term": 4,
+      "title": "Final Presentations",
+      "kind": "presentation",
+      "due_date": "2026-09-25",
+      "due_time": null,
+      "weight_pct": 30,
+      "source_doc": "course_outlines/PDMT",
+      "source_section": "10        25/09/26 (Fri)   Final Presentations                                       Group Presentations",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHPT",
+      "term": 4,
+      "title": "Submit final Team Check-In (200 words, individual)",
+      "kind": "submission",
+      "due_date": "2026-09-27",
+      "due_time": null,
+      "weight_pct": null,
+      "source_doc": "course_outlines/MHPT",
+      "source_section": "Submit final Team Check-In (200 words, individual)",
+      "confidence": "high"
+    },
+    {
+      "course_code": "MHPT",
+      "term": 4,
+      "title": "Submit Live Team Project memo (2,000 words)",
+      "kind": "submission",
+      "due_date": "2026-09-27",
+      "due_time": null,
+      "weight_pct": 20,
+      "source_doc": "course_outlines/MHPT",
+      "source_section": "Submit Live Team Project memo (2,000 words)",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {
+      "code": "STOP",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Case Reports (Individual, any 4): 30%\",\"kind\":\"submission\",\"due_date\":null,\"due_time\":null,\"weight_pct\":30,\"source_section\":\"All case questions should"
+    },
+    {
+      "code": "STOP",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Group Case Slide Deck: Interface's Evergreen Service Agreement\",\"kind\":\"presentation\",\"due_date\":null,\"due_time\":null,\"weight_pct\":null,\"source_sectio"
+    },
+    {
+      "code": "STOP",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Final Project Presentation (Group): 15%\",\"kind\":\"presentation\",\"due_date\":null,\"due_time\":null,\"weight_pct\":15,\"source_section\":\"Final Project Present"
+    },
+    {
+      "code": "STOP",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Final Project Report (Group): 15%\",\"kind\":\"submission\",\"due_date\":null,\"due_time\":null,\"weight_pct\":15,\"source_section\":\"Final Project Report (Group):"
+    },
+    {
+      "code": "ABMA",
+      "reason": "unparseable",
+      "detail": "[\n  {\n    \"title\": \"Midterm (Individual)\",\n    \"kind\": \"exam\",\n    \"due_date\": \"2026-09-07\",\n    \"due_time\": null,\n    \"weight_pct\": 33,\n    \"source_section\": \"Midterm (Individual)\\nOut: Friday (after"
+    },
+    {
+      "code": "VALU",
+      "reason": "unparseable",
+      "detail": "[\n  {\n    \"title\": \"Quiz closed book\",\n    \"kind\": \"quiz\",\n    \"due_date\": null,\n    \"due_time\": null,\n    \"weight_pct\": 10,\n    \"source_section\": \"2. Quiz closed book               10%\",\n    \"confide"
+    },
+    {
+      "code": "TOPS",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Individual Case Write-ups & Plant Visit Writeup\",\"kind\":\"assignment\",\"due_date\":null,\"due_time\":null,\"weight_pct\":30,\"source_section\":\"Individual Case"
+    },
+    {
+      "code": "TOPS",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Final Project\",\"kind\":\"project\",\"due_date\":null,\"due_time\":null,\"weight_pct\":35,\"source_section\":\"Final Project 35%\",\"confidence\":\"high\"}"
+    },
+    {
+      "code": "TOPS",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Individual write-ups\",\"kind\":\"submission\",\"due_date\":null,\"due_time\":\"08:29\",\"weight_pct\":null,\"source_section\":\"Write-ups should be submitted online "
+    },
+    {
+      "code": "TOPS",
+      "reason": "date_outside_course_window",
+      "detail": "2025-08-31 vs 2026-10-12..2026-10-25"
+    },
+    {
+      "code": "CLAW",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Class Attendance and Participation\",\"kind\":\"other\",\"due_date\":null,\"due_time\":null,\"weight_pct\":null,\"source_section\":\"1.Class Attendance and Particip"
+    },
+    {
+      "code": "CLAW",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"In class quiz – (two in-class quizzes – 20 marks each)\",\"kind\":\"quiz\",\"due_date\":null,\"due_time\":null,\"weight_pct\":null,\"source_section\":\"2.In class q"
+    },
+    {
+      "code": "CLAW",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Written assignment- 20 marks\",\"kind\":\"assignment\",\"due_date\":null,\"due_time\":null,\"weight_pct\":null,\"source_section\":\"3.Written assignment- 20 marks\","
+    },
+    {
+      "code": "CLAW",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Viva on written assignment – 20 marks\",\"kind\":\"other\",\"due_date\":null,\"due_time\":null,\"weight_pct\":null,\"source_section\":\"4. Viva on written assignmen"
+    },
+    {
+      "code": "CLAW",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Presentation – 20 marks\",\"kind\":\"presentation\",\"due_date\":null,\"due_time\":null,\"weight_pct\":null,\"source_section\":\"5. Presentation – 20 marks\",\"confid"
+    },
+    {
+      "code": "CIVB",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"One mid-semester Group Submission\",\"kind\":\"submission\",\"due_date\":null,\"due_time\":null,\"weight_pct\":20,\"source_section\":\"Assessment Criteria: Class Pa"
+    },
+    {
+      "code": "CIVB",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Final Group Presentation, Video & Submission\",\"kind\":\"submission\",\"due_date\":null,\"due_time\":null,\"weight_pct\":40,\"source_section\":\"Assessment Criteri"
+    },
+    {
+      "code": "CIVB",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Final Individual Submission\",\"kind\":\"submission\",\"due_date\":null,\"due_time\":null,\"weight_pct\":10,\"source_section\":\"Assessment Criteria: Class Particip"
+    },
+    {
+      "code": "CIVB",
+      "reason": "incomplete",
+      "detail": "{\"title\":\"Individual reflection submissions due\",\"kind\":\"submission\",\"due_date\":null,\"due_time\":null,\"weight_pct\":null,\"source_section\":\"Session 10\\n (1) Innova"
+    },
+    {
+      "code": "AMST",
+      "reason": "date_outside_course_window",
+      "detail": "2025-10-29 vs 2026-10-26..2026-11-08"
+    },
+    {
+      "code": "AMST",
+      "reason": "date_outside_course_window",
+      "detail": "2025-11-05 vs 2026-10-26..2026-11-08"
+    },
+    {
+      "code": "AMST",
+      "reason": "date_outside_course_window",
+      "detail": "2025-11-08 vs 2026-10-26..2026-11-08"
+    },
+    {
+      "code": "ENFF",
+      "reason": "quote_not_in_outline",
+      "detail": "Session 3          VC microcosm, conceptual framework, Orchid case                  Case: Upload memo             raising a VC fund                             "
+    },
+    {
+      "code": "ENFF",
+      "reason": "quote_not_in_outline",
+      "detail": "Session 4          LP-GP structure, VC performance          Oregon  Retirement      Case: Upload memo                                                      case "
+    },
+    {
+      "code": "ENFF",
+      "reason": "quote_not_in_outline",
+      "detail": "Session 5          VC Performance (cont.)                   Oregon Retirement       HW Assignment:                                                      case (re"
+    },
+    {
+      "code": "ENFF",
+      "reason": "quote_not_in_outline",
+      "detail": "Session 6          Valuation; pre- and post-money             valuation"
+    },
+    {
+      "code": "ENFF",
+      "reason": "quote_not_in_outline",
+      "detail": "Session 7          What VCs do – value added role; Term IGT case                    Case: Upload memo             sheet (start)                                 "
+    },
+    {
+      "code": "ENFF",
+      "reason": "quote_not_in_outline",
+      "detail": "Session 8          Term sheet/contracting – staging,                                HW Assignment:             securities, dilution; cap table                  "
+    },
+    {
+      "code": "ENFF",
+      "reason": "quote_not_in_outline",
+      "detail": "Session 10         Exit                                     Fojtasek Companies      Case: Upload memo                                                      case "
+    },
+    {
+      "code": "SBRM",
+      "reason": "date_outside_course_window",
+      "detail": "2025-12-23 vs 2026-11-23..2026-12-06"
+    },
+    {
+      "code": "SBRM",
+      "reason": "quote_not_in_outline",
+      "detail": "Deadline for this project is Friday, December 26, 2025, 8 am (before start of class). Please email the professor and Sayali a single file containing a descripti"
+    },
+    {
+      "code": "INMK",
+      "reason": "date_outside_course_window",
+      "detail": "2025-07-17 vs 2026-12-07..2026-12-20"
+    },
+    {
+      "code": "INMK",
+      "reason": "date_outside_course_window",
+      "detail": "2025-07-19 vs 2026-12-07..2026-12-20"
+    },
+    {
+      "code": "INMK",
+      "reason": "date_outside_course_window",
+      "detail": "2025-07-21 vs 2026-12-07..2026-12-20"
+    },
+    {
+      "code": "INMK",
+      "reason": "date_outside_course_window",
+      "detail": "2025-07-27 vs 2026-12-07..2026-12-20"
+    },
+    {
+      "code": "SVOP",
+      "reason": "unparseable",
+      "detail": "[{\"title\": \"Individual assignment: Quiz # 1 (multiple choice, in-class)\", \"kind\": \"quiz\", \"due_date\": null, \"due_time\": null, \"weight_pct\": null, \"source_section\": \"Class 2: Process Design; Analysis o"
+    }
+  ]
+}

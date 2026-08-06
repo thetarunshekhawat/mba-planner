@@ -108,3 +108,162 @@ export function colorForFriend(id: string): string {
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return FRIEND_COLORS[h % FRIEND_COLORS.length];
 }
+
+// ── Alerts ───────────────────────────────────────────────────────────────────
+// Row shapes mirror supabase/migrations/017 + 018 and therefore use snake_case,
+// like `Profile` above. Derived view models (things the UI computes) use
+// camelCase, like `Friend`.
+//
+// Every instant is an ISO 8601 string with an offset — Unstop hands us
+// `+05:30` and the columns are `timestamptz`, so these are absolute moments,
+// never floating local times. Plain calendar dates stay `YYYY-MM-DD` to match
+// `Course.startDate` and `campusToday()`.
+
+export type CompetitionSource = 'unstop' | 'manual';
+export type CompetitionVisibility = 'global' | 'private';
+export type AlertTrackStatus = 'active' | 'eliminated' | 'archived';
+export type ReminderAnchor =
+  | 'round_end'
+  | 'round_start'
+  | 'registration_deadline'
+  | 'deadline';
+export type ReminderMode = 'offset' | 'absolute';
+export type AlertDeliveryStatus = 'sent' | 'skipped_stale' | 'failed';
+
+/**
+ * Where a round sits relative to now.
+ * `unknown` exists because a round with no dates must never render as `done` —
+ * a fake checkmark tells a student they've finished something they haven't.
+ */
+export type RoundState = 'done' | 'live' | 'upcoming' | 'unknown';
+
+export interface Competition {
+  id: string;
+  source: CompetitionSource;
+  source_id: string | null;
+  visibility: CompetitionVisibility;
+  created_by: string | null;
+  title: string;
+  organiser: string | null;
+  logo_url: string | null;
+  banner_url: string | null;
+  public_url: string | null;
+  region: string | null;
+  registration_opens_at: string | null;
+  registration_deadline: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  min_team_size: number | null;
+  max_team_size: number | null;
+  prize_summary: string | null;
+  skills: string[] | null;
+  register_count: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompetitionRound {
+  id: string;
+  competition_id: string;
+  round_key: string;
+  round_order: number;
+  title: string | null;
+  description_html: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_eliminator: boolean;
+  entity_type: string | null;
+  public_url: string | null;
+  /** Set when the round disappears from Unstop. Rounds are never deleted —
+   *  reminder rules and elimination records point at these ids. */
+  retired_at: string | null;
+  updated_at: string;
+}
+
+export interface AlertTrack {
+  id: string;
+  user_id: string;
+  competition_id: string;
+  status: AlertTrackStatus;
+  notifications_enabled: boolean;
+  eliminated_round_id: string | null;
+  eliminated_at: string | null;
+  tracked_at: string;
+}
+
+/**
+ * A *sparse override*. Defaults (see `lib/alerts/schedule.ts`) are never
+ * materialised, so a row exists here only where the student deviated from them.
+ */
+export interface AlertReminderRule {
+  id: string;
+  track_id: string;
+  anchor: ReminderAnchor;
+  round_id: string | null;
+  mode: ReminderMode;
+  offset_minutes: number | null;
+  absolute_at: string | null;
+  enabled: boolean;
+}
+
+/** Absence means "assumed passed". Only an explicit `cleared: false` stops alerts. */
+export interface AlertRoundOutcome {
+  id: string;
+  user_id: string;
+  round_id: string;
+  cleared: boolean;
+  decided_at: string;
+}
+
+export interface CustomDeadline {
+  id: string;
+  user_id: string;
+  title: string;
+  notes: string | null;
+  url: string | null;
+  due_at: string;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface PushSubscriptionRow {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  user_agent: string | null;
+  failure_count: number;
+  disabled_at: string | null;
+  created_at: string;
+}
+
+/**
+ * The idempotency ledger. `UNIQUE (user_id, dedupe_key)` is what makes
+ * double-sending impossible; a `skipped_stale` row still burns the key, so an
+ * outage can't cause a 3am burst about deadlines that already passed.
+ */
+export interface AlertDelivery {
+  id: string;
+  user_id: string;
+  dedupe_key: string;
+  kind: string;
+  title: string;
+  body: string | null;
+  url: string | null;
+  due_at: string | null;
+  anchor_at: string | null;
+  status: AlertDeliveryStatus;
+  channel_results: unknown;
+  read_at: string | null;
+  created_at: string;
+}
+
+/** A competition plus everything the card needs, assembled client-side. */
+export interface TrackedCompetition {
+  competition: Competition;
+  rounds: CompetitionRound[];
+  track: AlertTrack | null;
+  outcomes: AlertRoundOutcome[];
+  rules: AlertReminderRule[];
+}

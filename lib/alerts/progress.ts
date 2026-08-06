@@ -79,6 +79,48 @@ export function orderedRounds(rounds: CompetitionRound[]): CompetitionRound[] {
   return [...activeRounds(rounds)].sort((a, b) => a.round_order - b.round_order);
 }
 
+export interface CurrentStage {
+  round: CompetitionRound;
+  state: RoundState;
+  /** 1-based position in the display order — "Stage 3 of 10". */
+  position: number;
+}
+
+/**
+ * The one round to name when the card is collapsed.
+ *
+ * Rounds overlap, so "current" is a display choice, not a fact: prefer the
+ * earliest round that is live right now, else the next one to open, else the
+ * last one that finished. Undated rounds are never chosen — naming a round with
+ * no dates as the current stage says nothing.
+ *
+ * Returns null only when there is nothing datable to point at.
+ */
+export function currentStage(
+  rounds: CompetitionRound[],
+  now: Date = new Date(),
+): CurrentStage | null {
+  const ordered = orderedRounds(rounds);
+  if (ordered.length === 0) return null;
+
+  const at = (r: CompetitionRound) => ({
+    round: r,
+    state: roundState(r, now),
+    position: ordered.indexOf(r) + 1,
+  });
+
+  const live = ordered.find((r) => roundState(r, now) === 'live');
+  if (live) return at(live);
+
+  const upcoming = ordered.find((r) => roundState(r, now) === 'upcoming');
+  if (upcoming) return at(upcoming);
+
+  const done = [...ordered].reverse().find((r) => roundState(r, now) === 'done');
+  if (done) return at(done);
+
+  return null;
+}
+
 /**
  * The rounds where an elimination question is owed: an eliminator that has ended
  * and that the student has not answered.

@@ -381,8 +381,8 @@ export default function PlannerPage() {
   return (
     <div className="h-screen bg-slate-900 flex flex-col overflow-hidden print:h-auto print:overflow-visible print:bg-white">
       {/* Top bar */}
-      <header className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 bg-slate-900/95 backdrop-blur border-b border-white/10 sticky top-0 z-30 print:hidden">
-        <div className="flex-1 flex items-center gap-3">
+      <header className="flex-shrink-0 flex items-center justify-between gap-1.5 sm:gap-3 px-2 sm:px-4 py-3 bg-slate-900/95 backdrop-blur border-b border-white/10 sticky top-0 z-30 print:hidden">
+        <div className="flex-1 min-w-0 flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Logo size={28} className="rounded-lg flex-shrink-0" />
             <span className="text-white font-semibold text-sm hidden sm:inline">MBA Planner</span>
@@ -402,27 +402,29 @@ export default function PlannerPage() {
             )}
             <button
               ref={(el) => { tabRefs.current.plan = el; }}
+              aria-label="Plan"
               onClick={() => { setViewMode('plan'); trackEvent('view_changed', { to: 'plan' }); }}
-              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`relative z-10 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 viewMode === 'plan'
                   ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <LayoutList className="w-3.5 h-3.5" />
-              Plan
+              <span className={viewMode === 'plan' ? 'inline' : 'hidden sm:inline'}>Plan</span>
             </button>
             <button
               ref={(el) => { tabRefs.current.schedule = el; }}
+              aria-label="My Schedule"
               onClick={() => { setViewMode('schedule'); trackEvent('view_changed', { to: 'schedule' }); }}
-              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`relative z-10 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 viewMode === 'schedule'
                   ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
-              My Schedule
+              <span className={viewMode === 'schedule' ? 'inline' : 'hidden sm:inline'}>My Schedule</span>
               {selected.size > 0 && (
                 <span className="ml-0.5 bg-orange-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {selected.size}
@@ -431,15 +433,16 @@ export default function PlannerPage() {
             </button>
             <button
               ref={(el) => { tabRefs.current.friends = el; }}
+              aria-label="Friends"
               onClick={() => { setViewMode('friends'); trackEvent('view_changed', { to: 'friends' }); trackEvent('friend_tab_opened'); }}
-              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`relative z-10 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 viewMode === 'friends'
                   ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
-              Friends
+              <span className={viewMode === 'friends' ? 'inline' : 'hidden sm:inline'}>Friends</span>
               {friends.length > 0 && (
                 <span className="ml-0.5 bg-orange-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {friends.length}
@@ -448,15 +451,16 @@ export default function PlannerPage() {
             </button>
             <button
               ref={(el) => { tabRefs.current.alerts = el; }}
+              aria-label="Alerts"
               onClick={() => { setViewMode('alerts'); trackEvent('view_changed', { to: 'alerts' }); trackEvent('alerts_tab_opened'); }}
-              className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`relative z-10 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 viewMode === 'alerts'
                   ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Bell className="w-3.5 h-3.5" />
-              Alerts
+              <span className={viewMode === 'alerts' ? 'inline' : 'hidden sm:inline'}>Alerts</span>
               {alerts.trackedCount > 0 && (
                 <span className="ml-0.5 bg-orange-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {alerts.trackedCount}
@@ -467,7 +471,7 @@ export default function PlannerPage() {
         </div>
 
         {/* Right side actions */}
-        <div className="flex-1 flex items-center justify-end gap-2">
+        <div className="flex-1 min-w-0 flex items-center justify-end gap-1.5 sm:gap-2">
           {/* Honest label for the shared review login: everything works, but a
               reviewer's clicks are not saved, and without this the plan
               silently resetting on the next visit would read as a bug. */}
@@ -736,7 +740,6 @@ export default function PlannerPage() {
               trackEvent={trackEvent}
               canPublish={isAdminEmail(profile?.email)}
               readOnly={isDemo}
-              selectedCourseIds={selected}
               userId={userId}
             />
           ) : (

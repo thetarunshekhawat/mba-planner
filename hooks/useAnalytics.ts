@@ -74,6 +74,7 @@ export type EventType =
   | 'alert_competition_untracked'
   | 'alert_notifications_toggled'
   | 'alert_round_expanded'
+  | 'alert_card_expanded'
   | 'alert_round_link_clicked'
   | 'alert_reminder_sheet_opened'
   | 'alert_reminder_offset_toggled'

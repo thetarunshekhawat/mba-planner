@@ -4,6 +4,43 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed - Alerts: reachable on a phone, readable with five competitions open
+
+- **The Alerts tab was unreachable on a phone.** Four tab buttons ran ~400px wide inside a
+  header sitting in an `overflow-hidden` column, so "Alerts" was pushed past the right edge
+  with no scrollbar to reveal it — the tab existed and could not be opened. Labels now collapse
+  to icons below `sm` for every tab except the active one, with tighter gutters and per-tab
+  padding. Verified at 320px and 360px with an admin button present: zero header overflow on
+  every active tab.
+
+- **Competition cards collapse by default.** A closed card is the title, the current stage, the
+  round count, the registration countdown, and a segmented bar (`components/planner/StageBar.tsx`)
+  that fills green as rounds finish — one card is now ~110px instead of ~700px, so five tracked
+  competitions fit on a screen. Clicking anywhere on the header expands the full round chain.
+  A pending pass/fail question renders whether or not the card is open; burying it behind a
+  click is how it goes unanswered. `currentStage()` in `lib/alerts/progress.ts` picks what to
+  name: earliest live round, else next to open, else last finished, never an undated one.
+
+- **Desktop uses the width it was wasting.** The tab was a single 672px column beside a 300px
+  filter sidebar. It is now a two-column grid from `xl`: competitions on the left, a rail of
+  Due soon / notifications / your deadlines on the right. The rail is only reserved when it has
+  content, so a read-only demo session (which renders none of the three) doesn't trade one kind
+  of empty space for another.
+
+- **The phone-notifications panel shrinks once it's on.** A five-line card earns its space while
+  it's asking for a decision and stops earning it afterwards, so the `granted` state is a single
+  row with a Test button.
+
+- **Course dates no longer reach students.** "Due soon" is competition milestones and
+  hand-entered deadlines only, and `/api/alerts/dispatch` passes `courseItems: []`. First class /
+  last class / exam week are not things that are *due*; counting down to them taught students to
+  discount a list whose only job is to be believed, and to swipe away the channel that also
+  carries real competition deadlines. `lib/alerts/courseDeadlines.ts` and its half of
+  `computeOccurrences` are kept and still covered by `scripts/verify-alerts.mts` — restoring the
+  feature is one line at each of the two call sites.
+
+- **Analytics** — new `alert_card_expanded` event, labelled in the admin dashboard.
+
 ### Added - Alerts tab (competition & deadline reminders)
 
 A fourth planner tab. Track case competitions from Unstop, watch the round chain advance on

@@ -281,13 +281,25 @@ normal. `chainProgress()` counts *finished* rounds for exactly this reason.
 Related trap: a round with no dates is `unknown`, **never** `done`. A green tick on an
 undated round tells a student they've finished something they haven't.
 
-### Course deadlines: Tier A ships, Tier B is offline
+### Course deadlines: neither tier ships
+
+**Alerts is competitions and hand-entered deadlines only.** Nothing course-derived reaches a
+student — not the "Due soon" list, not a push notification.
 
 **Tier A** (`lib/alerts/courseDeadlines.ts`) derives first-class / last-class / exam-week dates
-purely from `data/courses.ts` + `course_selections`. No table, no extraction, and it rolls over
-on its own when a new term lands.
+purely from `data/courses.ts` + `course_selections`. It shipped, then was withdrawn: those dates
+are not things that are *due*, and a countdown against "first class today" taught students to
+discount a list whose only job is to be believed — and, worse, to swipe away the notification
+channel that also carries real competition deadlines.
 
-**Tier B** — real assignment dates from `course_outlines.content` — never runs at runtime.
+The module and its half of `computeOccurrences` are deliberately **kept and still tested**
+(`scripts/verify-alerts.mts`). Two call sites feed them nothing:
+`components/planner/AlertsView.tsx` no longer imports the module at all, and
+`app/api/alerts/dispatch/route.ts` passes `courseItems: []`. Restoring the feature is one line
+in each; do not delete the module to "clean up", and do not re-wire it without deciding what
+makes a course date worth a phone buzz.
+
+**Tier B** — real assignment dates from `course_outlines.content` — never ran at runtime.
 `course_outlines.content` is free-form prose and a hallucinated due date would go to a hundred
 phones, which is strictly worse than no feature. It follows the insight-engine pattern:
 `scripts/extract-course-deadlines.mts` proposes candidates offline, the **script** (not the
@@ -354,7 +366,8 @@ before adding a term.
 Still true after Alerts. `course_deadlines.term` is analytics-only exactly like
 `course_outlines.term` — the real term resolves through `course_code` → `data/courses.ts`. The
 alerts tables have no term at all: competitions aren't course-scoped, and Tier A course dates
-resolve their term through the catalogue like everything else.
+resolved their term through the catalogue like everything else (that path is dormant — see
+"Course deadlines: neither tier ships").
 
 ### Storage
 

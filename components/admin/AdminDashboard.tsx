@@ -135,6 +135,7 @@ const EVENT_LABELS: Record<string, string> = {
   alert_competition_untracked: 'Competition Untracked',
   alert_notifications_toggled: 'Competition Notifications Toggled',
   alert_round_expanded: 'Round Expanded',
+  alert_card_expanded: 'Competition Card Expanded',
   alert_round_link_clicked: 'Round Link Clicked',
   alert_reminder_sheet_opened: 'Reminder Settings Opened',
   alert_reminder_offset_toggled: 'Reminder Offset Toggled',

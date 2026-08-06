@@ -25,7 +25,6 @@ import { timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { fetchAllRows } from '@/lib/alerts/paging';
 import { computeOccurrences, type DispatchInput, type DispatchTrack, type Occurrence } from '@/lib/alerts/schedule';
-import { courseDeadlineItems } from '@/lib/alerts/courseDeadlines';
 import { isPushConfigured, sendToUser } from '@/lib/alerts/push';
 import type {
   AlertReminderRule, AlertRoundOutcome, AlertTrack, Competition,
@@ -68,7 +67,7 @@ async function run() {
 
   // Every read is paged: PostgREST silently caps at 1000 rows, and a dispatcher
   // that quietly skipped the 1001st student would be invisible.
-  const [tracks, competitions, rounds, rules, outcomes, deadlines, selections] = await Promise.all([
+  const [tracks, competitions, rounds, rules, outcomes, deadlines] = await Promise.all([
     fetchAllRows<AlertTrack>(() => db.from('alert_tracks').select('*')
       .eq('status', 'active').eq('notifications_enabled', true).order('id')),
     fetchAllRows<Competition>(() => db.from('competitions').select('*').order('id')),
@@ -78,8 +77,6 @@ async function run() {
     fetchAllRows<AlertRoundOutcome>(() => db.from('alert_round_outcomes').select('*').order('id')),
     fetchAllRows<CustomDeadline>(() => db.from('custom_deadlines').select('*')
       .is('completed_at', null).gte('due_at', windowStart).lte('due_at', windowEnd).order('id')),
-    fetchAllRows<{ user_id: string; course_id: number }>(() =>
-      db.from('course_selections').select('user_id, course_id').order('user_id')),
   ]);
 
   const compById = new Map(competitions.map((c) => [c.id, c]));
@@ -100,7 +97,6 @@ async function run() {
   const userIds = new Set<string>([
     ...tracks.map((t) => t.user_id),
     ...deadlines.map((d) => d.user_id),
-    ...selections.map((s) => s.user_id),
   ]);
 
   const occurrences: Occurrence[] = [];
@@ -122,15 +118,18 @@ async function run() {
       })
       .filter((t): t is DispatchTrack => t !== null);
 
-    const mySelections = new Set(
-      selections.filter((s) => s.user_id === userId).map((s) => s.course_id),
-    );
-
     const input: DispatchInput = {
       userId,
       tracks: myTracks,
       customDeadlines: deadlines.filter((d) => d.user_id === userId),
-      courseItems: courseDeadlineItems(mySelections, now),
+      // Always empty. Tier A course dates (first class / last class / exam week)
+      // were dropped from the product: they are not things that are *due*, and a
+      // push about one trains students to swipe away the notification channel
+      // that also carries real competition deadlines. `lib/alerts/
+      // courseDeadlines.ts` and its half of `computeOccurrences` are kept —
+      // both are still covered by scripts/verify-alerts.mts — so restoring this
+      // is one line, not a rebuild.
+      courseItems: [],
     };
     occurrences.push(...computeOccurrences(input, now));
   }

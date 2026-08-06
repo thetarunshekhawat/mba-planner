@@ -4,6 +4,28 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - the card action row was unreachable on mobile
+
+Notifying / Reminders / Stop tracking on a tracked card, and Track this on an untracked one, sat
+**63px underneath the collapsed MobileDrawer** at every scroll position. Nothing on a phone could
+mute a competition or stop tracking it.
+
+`<main>` had `max-lg:pb-20`, exactly matching the drawer's 80px `HANDLE_H`, so the padding looked
+correct. It was being swallowed. The view wrapper inside carried `h-full` — a definite
+`height: 100%` — so it stayed viewport-tall while its content *overflowed* it, and a scroll
+container does not extend its bottom padding past overflowing content, only past in-flow content.
+The 80px existed at the 785px mark of a 1474px scroll range, below the fold and clearing nothing.
+
+- Wrapper is `min-h-full`, so content stays in flow and the container's padding lands after it.
+- Padding is now `calc(80px + env(safe-area-inset-bottom) + 1.5rem)` — the drawer's height, the
+  iOS home indicator, and breathing room — written in those terms because the drawer is what it
+  has to clear.
+- The empty-schedule state's `h-full min-h-[400px]` becomes `min-h-[60vh]`; `h-full` resolves to
+  auto under a min-height parent, so the fallback was doing the work anyway.
+
+Measured at 390×844: gap from the last card's action row to the drawer went from **−63px to
++41px**. Plan, My Schedule and Friends re-checked for scroll and horizontal overflow.
+
 ### Added - `manual-competition` skill, and a fix to the route it needs
 
 Competitions with no Unstop page had no path to the cohort. `unstop-import` needs a numeric id

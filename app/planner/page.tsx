@@ -687,8 +687,23 @@ export default function PlannerPage() {
         </div>
 
         {/* Main content area — bottom padding on mobile so content clears the drawer */}
-        <main className="flex-1 overflow-y-auto min-h-0 max-lg:pb-20 print:overflow-visible print:h-auto">
-          <div key={viewMode} className="h-full animate-view-fade-in">
+        {/*
+          The bottom padding clears the collapsed MobileDrawer (HANDLE_H = 80px),
+          plus the iOS home indicator, plus breathing room. It is measured in
+          those terms rather than a round number because the drawer is what it
+          has to clear.
+
+          `min-h-full`, not `h-full`, on the wrapper below. With a definite
+          `height: 100%` the wrapper stays viewport-tall and its content
+          *overflows* it, and a scroll container does not extend its bottom
+          padding past overflowing content — only past in-flow content. So the
+          padding existed, sat at the 785px mark inside a 1474px scroll range,
+          and cleared nothing: the last card's action row (Track this / Notifying
+          / Stop tracking) rendered 63px underneath the drawer, unreachable at
+          any scroll position.
+        */}
+        <main className="flex-1 overflow-y-auto min-h-0 max-lg:pb-[calc(80px+env(safe-area-inset-bottom)+1.5rem)] print:overflow-visible print:h-auto">
+          <div key={viewMode} className="min-h-full animate-view-fade-in">
           {viewMode === 'plan' ? (
             <>
               {courseSearchActive && (
@@ -745,7 +760,7 @@ export default function PlannerPage() {
           ) : (
             <>
               {scheduleVisibleIds.size === 0 && friendOverlays.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-3 text-center p-8">
+                <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center p-8">
                   <CalendarDays className="w-12 h-12 text-slate-600" />
                   <p className="text-slate-400 font-medium">No courses selected yet</p>
                   <p className="text-slate-600 text-sm max-w-sm">

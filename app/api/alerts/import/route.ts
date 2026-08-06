@@ -85,7 +85,12 @@ export async function POST(request: Request) {
   }
 
   const mapped: MappedCompetition = {
-    source: 'unstop',
+    // Must be the resolved `source`, not a literal. `importCompetition` matches
+    // existing rows on (source, source_id), so hardcoding 'unstop' here filed
+    // manual competitions under a source they did not come from — and the
+    // response said 'manual' while the row said 'unstop', so the lie was
+    // invisible from the caller's side.
+    source,
     sourceId,
     competition: body.competition,
     rounds,

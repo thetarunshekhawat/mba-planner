@@ -97,7 +97,8 @@ export interface MappedRound {
 }
 
 export interface MappedCompetition {
-  source: 'unstop';
+  /** `manual` covers competitions with no Unstop page, mapped by hand. */
+  source: 'unstop' | 'manual';
   sourceId: string;
   competition: {
     title: string;

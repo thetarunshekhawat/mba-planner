@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventType } from '@/hooks/useAnalytics';
 
 type Track = (type: EventType, payload?: Record<string, unknown>) => void;
@@ -41,6 +41,50 @@ function isStandalone(): boolean {
 }
 
 /**
+ * Registers the service worker, subscribes this browser, and stores the
+ * subscription server-side.
+ *
+ * Assumes permission is already granted — it never asks. Safe to call again on
+ * a browser that is already subscribed: `getSubscription()` reuses the existing
+ * endpoint and `/api/alerts/subscribe` upserts on it, clearing `disabled_at` and
+ * the failure count on the way through.
+ *
+ * Returns whether a *new* browser subscription had to be created — the signal
+ * that this browser genuinely had none, as opposed to the call being a harmless
+ * re-save of one it already had.
+ */
+async function subscribeAndSave(): Promise<{ created: boolean }> {
+  const registration = await navigator.serviceWorker.register('/sw.js');
+  await navigator.serviceWorker.ready;
+
+  const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (!key) throw new Error('Push is not configured on this deployment.');
+
+  // Reuse an existing subscription if the browser already has one —
+  // subscribing twice with the same key returns the same endpoint anyway,
+  // but asking first avoids a needless round trip.
+  const existing = await registration.pushManager.getSubscription();
+  const subscription =
+    existing ??
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key) as BufferSource,
+    }));
+
+  const res = await fetch('/api/alerts/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subscription: subscription.toJSON(),
+      userAgent: navigator.userAgent,
+    }),
+  });
+  if (!res.ok) throw new Error('Could not save the subscription.');
+
+  return { created: !existing };
+}
+
+/**
  * Web push permission and subscription.
  *
  * **Never auto-prompts.** `enable()` runs only from an explicit button press.
@@ -53,10 +97,17 @@ function isStandalone(): boolean {
  * subscribe call rejects with something unhelpful. `ios-needs-pwa` lets the UI
  * show Add-to-Home-Screen instructions instead of a button that cannot work.
  */
-export function usePushSubscription(userId: string | null, trackEvent?: Track) {
+export function usePushSubscription(
+  userId: string | null,
+  trackEvent?: Track,
+  /** Demo account: `push_subscriptions` writes are denied (migration 018), so the
+   *  repair below would only ever produce a failing round trip. */
+  readOnly = false,
+) {
   const [state, setState] = useState<PushState>('default');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const repaired = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -74,6 +125,48 @@ export function usePushSubscription(userId: string | null, trackEvent?: Track) {
     else setState('default');
   }, []);
 
+  /**
+   * Granted permission is not the same thing as a working subscription, and the
+   * UI above reads only the permission — so it can say "notifications on" about
+   * a browser the server has no address for. That happens easily: dismiss the
+   * Chrome prompt (which resolves `default`, so `enable()` returns before ever
+   * subscribing), then allow the site later from the address bar. Permission is
+   * now granted, no subscription was ever stored, and the collapsed card offers
+   * no button to try again — a dead end that only the Test button reveals.
+   *
+   * So whenever permission is granted, make sure the subscription actually
+   * exists. This cannot show a prompt — permission is already granted — so it
+   * does not break the never-auto-prompt rule. It also repairs the other ways a
+   * row goes missing: cleared site data, a rotated endpoint, a subscription
+   * disabled after a run of failures.
+   *
+   * Needs `userId` because /api/alerts/subscribe authenticates the session.
+   */
+  useEffect(() => {
+    if (state !== 'granted' || !userId || readOnly || repaired.current) return;
+    repaired.current = true;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { created } = await subscribeAndSave();
+        // Only report the cases that were actually broken. Firing on every
+        // healthy mount would add an event per page load to a table that is
+        // already paged around (see the PostgREST cap in CLAUDE.md).
+        if (created && !cancelled) trackEvent?.('alert_push_repaired');
+      } catch (e) {
+        if (cancelled) return;
+        // Worth surfacing: if this failed, the reminders this card promises
+        // will not arrive either. The triangle's tooltip carries the message.
+        setError(
+          `${(e as Error).message} Reminders won't reach this device until that succeeds.`,
+        );
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [state, userId, readOnly, trackEvent]);
+
   const enable = useCallback(async () => {
     if (!userId || busy) return;
     setBusy(true);
@@ -81,9 +174,6 @@ export function usePushSubscription(userId: string | null, trackEvent?: Track) {
     trackEvent?.('alert_push_prompt_shown');
 
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
-
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         setState(permission === 'denied' ? 'denied' : 'default');
@@ -92,30 +182,11 @@ export function usePushSubscription(userId: string | null, trackEvent?: Track) {
         return;
       }
 
-      const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!key) throw new Error('Push is not configured on this deployment.');
+      await subscribeAndSave();
 
-      // Reuse an existing subscription if the browser already has one —
-      // subscribing twice with the same key returns the same endpoint anyway,
-      // but asking first avoids a needless round trip.
-      const existing = await registration.pushManager.getSubscription();
-      const subscription =
-        existing ??
-        (await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(key) as BufferSource,
-        }));
-
-      const res = await fetch('/api/alerts/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subscription: subscription.toJSON(),
-          userAgent: navigator.userAgent,
-        }),
-      });
-      if (!res.ok) throw new Error('Could not save the subscription.');
-
+      // The repair effect has nothing left to do — this just stored the
+      // subscription itself, and re-running would be a pointless second upsert.
+      repaired.current = true;
       setState('granted');
       trackEvent?.('alert_push_enabled');
     } catch (e) {

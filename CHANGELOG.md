@@ -4,6 +4,46 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - "Track this" failed silently
+
+`trackCompetition` adds the track optimistically, then rolls back on error with `return` and
+nothing else — no message, no analytics. The card flips to tracking, flips back, and the button
+reads as broken rather than failed. Because the analytics event only fires on the success path,
+the failure was invisible from the admin side too: a student reporting "tracking doesn't work"
+left no trace anywhere to diagnose from. A null `userId` took the same silent path one line up.
+
+- `useAlerts` exposes `writeError` / `dismissWriteError`; `AlertsView` renders it as a
+  dismissible `role="alert"` banner above the competition columns.
+- New `alert_track_failed` event carrying the Postgres error code, so the next report can be
+  diagnosed without reproducing it.
+
+### Fixed - "Phone notifications on" could be true of the browser and false of the server
+
+The card read `Notification.permission` and nothing else, so granted permission was taken as
+proof of a working subscription. It isn't. Dismissing the Chrome prompt resolves `'default'`,
+not `'denied'`, and `enable()` returns at that check — before `pushManager.subscribe()`, before
+anything is POSTed to `/api/alerts/subscribe`. Allow the site later from the address bar and
+permission flips to granted with no subscription ever stored.
+
+The collapsed granted-state card then claims notifications are on, offers no button to try
+again, and the only symptom is the red triangle after pressing Test — whose tooltip says "This
+device isn't subscribed yet. Turn notifications on first." about a card that says they are on.
+Observed on a real account: `alert_push_prompt_shown` then `alert_push_denied {permission:
+"default"}` three seconds later, zero rows in `push_subscriptions`, card showing "on".
+
+- `subscribeAndSave()` is now a standalone function — register, subscribe, POST — used by both
+  `enable()` and a new effect that runs whenever permission is granted.
+- That effect cannot prompt (permission is already granted), so the never-auto-prompt rule in
+  `usePushSubscription` still holds. It also repairs the other ways the row goes missing:
+  cleared site data, a rotated endpoint, a subscription disabled after five failures.
+  `/api/alerts/subscribe` upserts on `endpoint` and clears `disabled_at`, so re-running is safe.
+- A failed repair sets `error`, so the triangle carries a true message instead of the card
+  promising reminders it can't deliver.
+- New `alert_push_repaired` event, fired only when the browser genuinely had no subscription —
+  firing on every healthy mount would add a `user_events` row per page load.
+- Skipped for the demo account: migration 018 denies it `push_subscriptions` writes, so the
+  repair could only ever be a failing round trip.
+
 ### Fixed - the card action row was unreachable on mobile
 
 Notifying / Reminders / Stop tracking on a tracked card, and Track this on an untracked one, sat

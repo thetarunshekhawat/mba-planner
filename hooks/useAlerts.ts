@@ -38,6 +38,18 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
   const [deadlines, setDeadlines] = useState<CustomDeadline[]>([]);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * The last write that failed and rolled back.
+   *
+   * Every write here is optimistic, and a rollback on its own is invisible —
+   * the card flips to "tracking", flips back, and the student is left pressing
+   * a button that appears to do nothing. Nothing was logged either, because the
+   * analytics event only fires on the success path, so the failure could not be
+   * seen from the outside either. Surfacing it is the difference between a bug
+   * that can be diagnosed and one that can only be guessed at.
+   */
+  const [writeError, setWriteError] = useState<string | null>(null);
+
   const trackRef = useRef<Track | undefined>(trackEvent);
   useEffect(() => { trackRef.current = trackEvent; }, [trackEvent]);
 
@@ -84,7 +96,11 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
   // ── Writes ─────────────────────────────────────────────────────────────────
 
   const trackCompetition = useCallback(async (competitionId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      setWriteError('You are not signed in. Reload the page and sign in again.');
+      return;
+    }
+    setWriteError(null);
     const optimistic: AlertTrack = {
       id: `local-${competitionId}`, user_id: userId, competition_id: competitionId,
       status: 'active', notifications_enabled: true, eliminated_round_id: null,
@@ -100,6 +116,11 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
       .single();
     if (error || !data) {
       setTracks((prev) => prev.filter((t) => t.id !== optimistic.id));
+      setWriteError(error?.message ?? "Couldn't start tracking this competition.");
+      trackRef.current?.('alert_track_failed', {
+        competition_id: competitionId,
+        reason: error?.code ?? error?.message ?? 'no_row_returned',
+      });
       return;
     }
     setTracks((prev) => prev.map((t) => (t.id === optimistic.id ? (data as AlertTrack) : t)));
@@ -368,6 +389,8 @@ export function useAlerts(userId: string | null, readOnly = false, trackEvent?: 
     untracked,
     deadlines,
     trackedCount: tracked.length,
+    writeError,
+    dismissWriteError: () => setWriteError(null),
     refetch,
     trackCompetition,
     untrackCompetition,

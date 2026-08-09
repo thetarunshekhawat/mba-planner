@@ -18,7 +18,7 @@ interface Props {
  * button below. See usePushSubscription for why that matters.
  */
 export function NotificationSettings({ userId, trackEvent, readOnly }: Props) {
-  const { state, busy, error, enable, sendTest } = usePushSubscription(userId, trackEvent);
+  const { state, busy, error, enable, sendTest } = usePushSubscription(userId, trackEvent, readOnly);
   const [tested, setTested] = useState<'idle' | 'sending' | 'ok' | 'fail'>('idle');
 
   async function handleTest() {

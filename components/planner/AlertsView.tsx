@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import {
   Bell, CalendarClock, CalendarPlus, Check, Plus, Trash2, Trophy, ExternalLink,
+  TriangleAlert,
 } from 'lucide-react';
 import type { CompetitionRound, CustomDeadline, TrackedCompetition } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
@@ -225,6 +226,25 @@ export function AlertsView({
 
         {/* ── Main column: the competitions themselves ─── */}
         <div className="order-3 xl:order-2 min-w-0 space-y-6">
+
+          {/* A rolled-back optimistic write. Without this the card silently
+              snaps back and the button looks broken rather than failed. */}
+          {alerts.writeError && (
+            <div
+              role="alert"
+              className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-start gap-2"
+            >
+              <TriangleAlert className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-[13px] text-rose-700 min-w-0 flex-1">{alerts.writeError}</p>
+              <button
+                type="button"
+                onClick={alerts.dismissWriteError}
+                className="text-rose-400 hover:text-rose-600 shrink-0 text-[11px] font-semibold"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           {/* ── Tracked competitions ───────────────────── */}
           <section className="space-y-3">

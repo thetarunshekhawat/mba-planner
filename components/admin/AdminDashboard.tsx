@@ -132,6 +132,7 @@ const EVENT_LABELS: Record<string, string> = {
   alert_competition_imported: 'Competition Added (private)',
   alert_competition_published: 'Competition Published (cohort)',
   alert_competition_tracked: 'Competition Tracked',
+  alert_track_failed: 'Track Failed',
   alert_competition_untracked: 'Competition Untracked',
   alert_notifications_toggled: 'Competition Notifications Toggled',
   alert_round_expanded: 'Round Expanded',
@@ -157,6 +158,7 @@ const EVENT_LABELS: Record<string, string> = {
   alert_push_enabled: 'Push Enabled',
   alert_push_denied: 'Push Denied',
   alert_push_test_sent: 'Test Notification Sent',
+  alert_push_repaired: 'Push Subscription Repaired',
   alert_push_ios_instructions_shown: 'iOS Install Instructions Shown',
 };
 
@@ -217,6 +219,8 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'chatbot_answer_received':   return { icon: '🤖', text: `AI answered (${String(p?.intent ?? '')})` };
     case 'chatbot_error':             return { icon: '🔴', text: `AI chat error${p?.status ? ` (${p.status})` : ''}` };
     case 'chatbot_rate_limited':      return { icon: '🚦', text: 'AI chat rate-limited' };
+    case 'progress_basis_changed':    return { icon: '📊', text: `Progress basis → ${p?.basis === 'to-date' ? 'as of today' : 'full year'}` };
+    case 'spec_overview_opened':      return { icon: '🧭', text: `Opened all-specializations view${Number(p?.bonus_complete ?? 0) > 0 ? ` (${p?.bonus_complete} bonus complete)` : ''}` };
     default:                          return { icon: '•', text: e.event_type };
   }
 }

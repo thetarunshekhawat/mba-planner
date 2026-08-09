@@ -35,6 +35,8 @@ data/term1courses.ts   Term 1 retake timeline (reference-only side panel on Term
 data/term4Insights.json / term5Insights.json
                        Generated nudge catalogues (see "Insight engine")
 lib/terms.ts           Term dates, current term, "has this course finished?"
+lib/progress.ts        THE credit counter — electives, WaW and every specialization,
+                       on a full-year or a to-date basis (see "Degree progress")
 lib/conflicts.ts       Section-clash advisories (A/B section resolution)
 lib/calendar.ts        ICS export
 lib/admin.ts           THE admin allowlist — imported everywhere, declared nowhere else
@@ -135,6 +137,54 @@ Rules:
   courses for the model must carry the same tag.
 
 ---
+
+## Degree progress
+
+`lib/progress.ts` is the only place credit is counted. `computeProgress()` returns every figure
+the planner shows — electives, WaW, and all six specializations — so the sidebar bars and the
+"All specializations" dialog cannot disagree. **Do not count selected courses by hand anywhere
+else**; that is how the sidebar and the dialog would drift apart, and how the two bugs below
+came back.
+
+### Two bases, and why both exist
+
+| Basis | Means |
+|---|---|
+| `full-year` | Everything selected, whenever it runs. What the year will add up to. |
+| `to-date` | Only what has been taught by `campusToday()`. **A block that is underway counts** — you are sitting in it now. |
+
+`full-year` is the default, because it is the reading the sidebar has always shown and switching
+it silently would change what every existing number means. `BasisToggle` is the one control;
+the sidebar and the dialog share a single piece of state so they always agree.
+
+Nothing here reads a stored flag or a hardcoded date — `hasStarted()` compares `startDate`
+against `campusToday()`, the same IST-pinned day `lib/terms.ts` uses, so server and client never
+disagree about whether a block has begun.
+
+### One course, several rows
+
+The catalogue is **one row per teaching window**, so a staggered course appears more than once.
+Counting rows therefore over-counts credit: picking Entrepreneurship auto-selects both CIVB rows
+and used to read as 2 of 6 toward ENT, and the Electives bar counted it twice.
+
+`courseKey()` collapses rows to one key per real course. It groups by `code` first (SADT's Aug 5
+makeup row carries the same code as the main row), and falls back to the explicit
+`SAME_COURSE_IDS` list for rows `code` cannot reach — **Term 6 rows have no codes at all**, so
+the Term 6 continuation of CIVB (id 33) can only be grouped by id. Add a new staggered course
+spanning Term 6 and you must add its ids to that list; nothing catches it automatically.
+
+### A specialization is credits *and* its mandatory courses
+
+Six tagged courses is necessary, not sufficient. A spec is `complete` only when its
+`mandatoryFor` courses are selected too — otherwise a student sees "E-Commerce 6/6 ✓" and
+believes they have earned a spec the school will not award. Blocked specs render with the
+missing course named. On the to-date basis a mandatory course that is selected but not yet
+taught is `pendingMandatory`, not missing — a different sentence, because the student has
+nothing to fix.
+
+Every spec is computed, not just the declared ones. Courses carry several spec tags, so a
+student picking three specs accumulates credit toward the other three without asking; surfacing
+that is the entire point of the dialog.
 
 ## Adding a new term
 

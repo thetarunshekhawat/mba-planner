@@ -234,6 +234,7 @@ export function MobileDrawer({
             userAvatarUrl={userAvatarUrl}
             onSignOut={onSignOut}
             mobile
+            trackEvent={trackEvent}
           />
         </div>
       </div>

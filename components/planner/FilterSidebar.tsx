@@ -1,16 +1,22 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { GraduationCap, LogOut, BookOpen, ShieldAlert } from 'lucide-react';
-import { SPECS, ALL_COURSES, WAW_IDS, MANDATORY_IDS } from '@/data/courses';
+import { GraduationCap, LogOut, BookOpen, ShieldAlert, Layers } from 'lucide-react';
+import { SPECS } from '@/data/courses';
+import {
+  computeProgress, formatCampusDay, SPEC_REQUIRED_CREDITS,
+  type ProgressBasis,
+} from '@/lib/progress';
+import { campusToday } from '@/lib/terms';
+import { BasisToggle } from './BasisToggle';
+import { SpecializationsDialog } from './SpecializationsDialog';
+import type { EventType } from '@/hooks/useAnalytics';
 import type { SpecId, WorkloadLevel } from '@/types';
 
 const WORKLOAD_OPTIONS: WorkloadLevel[] = ['Low', 'Low-Moderate', 'Moderate', 'Moderate-High', 'High'];
-const TOTAL_ELECTIVE_CREDITS = 16;
-const SPEC_REQUIRED_CREDITS = 6;
-const TOTAL_WAW = ALL_COURSES.filter(c => c.type === 'waw').length;
 
 export interface Filters {
   specs: SpecId[];          // active specialization filter (empty = show all)
@@ -33,6 +39,7 @@ interface Props {
   userAvatarUrl?: string;
   onSignOut: () => void;
   mobile?: boolean;
+  trackEvent?: (eventType: EventType, payload?: Record<string, unknown>) => void;
 }
 
 function SpecButton({
@@ -70,17 +77,27 @@ export function FilterSidebar({
   userAvatarUrl,
   onSignOut,
   mobile = false,
+  trackEvent,
 }: Props) {
-  const electives = ALL_COURSES.filter(c => c.type === 'elective');
-  const selectedElectives = electives.filter(c => selected.has(c.id));
-  const selectedElectiveCount = selectedElectives.length;
-  const wawCount = ALL_COURSES.filter(c => c.type === 'waw' && selected.has(c.id)).length;
+  // Which question the numbers answer. Defaults to the full-year reading the
+  // planner has always shown, so nobody's sidebar changes meaning unasked.
+  const [basis, setBasis] = useState<ProgressBasis>('full-year');
+  const [specsOpen, setSpecsOpen] = useState(false);
 
-  const specProgress = SPECS.map(spec => {
-    const specCourses = electives.filter(c => c.specs.includes(spec.id));
-    const selectedSpec = specCourses.filter(c => selected.has(c.id)).length;
-    return { spec, selected: selectedSpec, total: specCourses.length };
-  });
+  const today = campusToday();
+  const summary = useMemo(
+    () => computeProgress(selected, userSpecs, { basis, today }),
+    [selected, userSpecs, basis, today],
+  );
+
+  // Specializations completed purely as a side effect of the declared ones —
+  // the number the "All specializations" button exists to surface.
+  const bonusCount = summary.specs.filter(s => !s.declared && s.complete).length;
+
+  function changeBasis(next: ProgressBasis) {
+    setBasis(next);
+    trackEvent?.('progress_basis_changed', { basis: next, surface: mobile ? 'drawer' : 'sidebar' });
+  }
 
   function set(partial: Partial<Filters>) {
     onFiltersChange({ ...filters, ...partial });
@@ -154,7 +171,16 @@ export function FilterSidebar({
 
       {/* Credit Progress */}
       <div className="p-4 border-b border-white/10">
-        <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-3">Progress</p>
+        <div className="flex items-baseline justify-between mb-2">
+          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide">Progress</p>
+          {basis === 'to-date' && (
+            <span className="text-sky-300/80 text-[10px] font-medium">
+              banked by {formatCampusDay(today)}
+            </span>
+          )}
+        </div>
+
+        <BasisToggle basis={basis} onChange={changeBasis} today={today} className="mb-3" />
 
         <div className="space-y-3">
           {/* Total electives */}
@@ -164,11 +190,11 @@ export function FilterSidebar({
                 <BookOpen className="w-3 h-3" /> Electives
               </span>
               <span className="text-white text-xs font-semibold">
-                {selectedElectiveCount}/{TOTAL_ELECTIVE_CREDITS}
+                {summary.electives.earned}/{summary.electives.total}
               </span>
             </div>
             <Progress
-              value={(selectedElectiveCount / TOTAL_ELECTIVE_CREDITS) * 100}
+              value={(summary.electives.earned / summary.electives.total) * 100}
               className="h-1.5 bg-white/10"
               indicatorStyle={{ backgroundColor: '#38bdf8' }}
             />
@@ -181,36 +207,38 @@ export function FilterSidebar({
                 <GraduationCap className="w-3 h-3" /> WaW
               </span>
               <span className="text-white text-xs font-semibold">
-                {TOTAL_WAW}/{TOTAL_WAW}
+                {summary.waw.earned}/{summary.waw.total}
               </span>
             </div>
-            <Progress value={100} className="h-1.5 bg-white/10" indicatorStyle={{ backgroundColor: '#fbbf24' }} />
+            <Progress
+              value={(summary.waw.earned / summary.waw.total) * 100}
+              className="h-1.5 bg-white/10"
+              indicatorStyle={{ backgroundColor: '#fbbf24' }}
+            />
           </div>
 
-          {/* Per-spec progress (for active specs) */}
-          {userSpecs.map(specId => {
-            const entry = specProgress.find(sp => sp.spec.id === specId);
-            if (!entry) return null;
-            const isExceeded = entry.selected > SPEC_REQUIRED_CREDITS;
+          {/* Per-spec progress (for declared specs — the rest live in the dialog) */}
+          {summary.specs.filter(s => s.declared).map(entry => {
+            const isExceeded = entry.earned > SPEC_REQUIRED_CREDITS;
             const indicatorColor = isExceeded ? '#f59e0b' : entry.spec.color;
             return (
-              <div key={specId}>
+              <div key={entry.spec.id}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs" style={{ color: entry.spec.color }}>
                     {entry.spec.label}
                   </span>
                   <span className="text-white text-xs font-semibold">
-                    {entry.selected}/{SPEC_REQUIRED_CREDITS}
+                    {entry.earned}/{SPEC_REQUIRED_CREDITS}
                     <span className="text-slate-500 font-normal"> req</span>
                     {isExceeded && (
                       <span className="ml-1 text-amber-400 font-semibold">
-                        +{entry.selected - SPEC_REQUIRED_CREDITS}
+                        +{entry.earned - SPEC_REQUIRED_CREDITS}
                       </span>
                     )}
                   </span>
                 </div>
                 <Progress
-                  value={Math.min((entry.selected / SPEC_REQUIRED_CREDITS) * 100, 100)}
+                  value={Math.min((entry.earned / SPEC_REQUIRED_CREDITS) * 100, 100)}
                   className="h-1.5 bg-white/10"
                   indicatorStyle={{ backgroundColor: indicatorColor }}
                 />
@@ -218,7 +246,39 @@ export function FilterSidebar({
             );
           })}
         </div>
+
+        {/* Every spec, including the ones earned without declaring them */}
+        <button
+          onClick={() => {
+            setSpecsOpen(true);
+            trackEvent?.('spec_overview_opened', {
+              basis,
+              surface: mobile ? 'drawer' : 'sidebar',
+              bonus_complete: summary.specs.filter(s => !s.declared && s.complete).length,
+            });
+          }}
+          className="mt-3 w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/10 text-slate-400 hover:text-sky-300 hover:border-sky-400/40 transition-all font-semibold text-xs"
+        >
+          <Layers className="w-3.5 h-3.5 flex-shrink-0" />
+          All specializations
+          {bonusCount > 0 && (
+            <span
+              className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: '#10b98122', color: '#6ee7b7' }}
+            >
+              +{bonusCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      <SpecializationsDialog
+        open={specsOpen}
+        onOpenChange={setSpecsOpen}
+        summary={summary}
+        basis={basis}
+        onBasisChange={changeBasis}
+      />
 
       {/* Mandatory courses quick-filter tab */}
       <div className="p-4 border-b border-white/10">

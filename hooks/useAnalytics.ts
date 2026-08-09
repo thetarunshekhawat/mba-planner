@@ -63,6 +63,9 @@ export type EventType =
   | 'search_chip_removed'
   | 'search_no_results'
   | 'search_cleared'
+  // Degree progress
+  | 'progress_basis_changed'
+  | 'spec_overview_opened'
   // Alerts — competition & deadline reminders
   | 'alerts_tab_opened'
   | 'alert_competition_add_opened'
@@ -71,6 +74,7 @@ export type EventType =
   | 'alert_competition_imported'
   | 'alert_competition_published'
   | 'alert_competition_tracked'
+  | 'alert_track_failed'
   | 'alert_competition_untracked'
   | 'alert_notifications_toggled'
   | 'alert_round_expanded'
@@ -96,6 +100,7 @@ export type EventType =
   | 'alert_push_enabled'
   | 'alert_push_denied'
   | 'alert_push_test_sent'
+  | 'alert_push_repaired'
   | 'alert_push_ios_instructions_shown';
 
 export function useAnalytics(userId: string | null) {

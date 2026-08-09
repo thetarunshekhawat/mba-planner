@@ -683,6 +683,7 @@ export default function PlannerPage() {
             userEmail={profile.email}
             userAvatarUrl={profile.avatar_url ?? undefined}
             onSignOut={handleSignOut}
+            trackEvent={trackEvent}
           />
         </div>
 

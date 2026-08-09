@@ -4,6 +4,43 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Progress you can read two ways, and every specialization
+
+The sidebar answered one question: what will the year add up to. A student in August wants the
+other one — what have I banked so far — and the panel could not express it. "Electives 12/16"
+counted courses that start in March.
+
+`lib/progress.ts` is now the only place credit is counted, on either basis. `full-year` is
+unchanged and still the default. `to-date` counts a course once its first class has happened,
+so **an ongoing block counts** — a student sitting in week one of a block has not banked nothing.
+The `BasisToggle` under PROGRESS switches both the sidebar bars and the new dialog from one
+piece of state, so they cannot disagree.
+
+The second half is the "All specializations" dialog. The sidebar only ever showed the specs a
+student declared, but courses carry several spec tags, so declaring three quietly accumulates
+credit toward the other three. The dialog shows all six, groups them into declared and
+everything else, and leads with the answer: *"You have also completed Marketing without
+declaring it."*
+
+### Fixed - a staggered course counted as two credits
+
+CIVB is one course taught in three windows, and the catalogue is one row per window. Selecting
+Entrepreneurship auto-selects two of those rows, so the ENT bar read 4/6 off three courses and
+the Electives bar over-counted by one. `courseKey()` collapses rows to one key per real course:
+by `code` where there is one (SADT's Aug 5 makeup row), and by an explicit id list where there
+is not — Term 6 rows have no codes, so the Term 6 continuation of CIVB is unreachable any other
+way.
+
+### Fixed - 6/6 did not mean a specialization was earned
+
+Credits alone never were the rule: OPS also requires SCAT and OPST, MKT requires AMST, ECOM and
+ENT require Crafting & Delivering Services. Six tagged courses without them is not a spec the
+school will award, and telling a student otherwise is worse than telling them nothing. A spec is
+complete only when its `mandatoryFor` courses are selected as well; blocked specs render amber
+with the missing course named.
+
+New events: `progress_basis_changed`, `spec_overview_opened`.
+
 ### Fixed - "Track this" failed silently
 
 `trackCompetition` adds the track optimistically, then rolls back on error with `return` and

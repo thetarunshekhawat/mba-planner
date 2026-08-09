@@ -98,14 +98,16 @@ export const ALL_COURSES: Course[] = [
       summary: 'General consensus: Recommended. New concept — how being sustainable drives profits.',
     },
   },
-  // WaW — Block 17 (Winning at Workplace, two sections A/B)
+  // WaW — Block 17, two sections A/B. "Winning at Workplace" is the name of the WaW
+  // *programme*, not of this course: the Term 4 structure sheet (O7) and the timetable
+  // legend both read "AITM — AI Tools for Managers".
   {
     id: 101, term: 4, week: 3,
     startDate: '2026-07-13', endDate: '2026-07-26',
     dates: 'Jul 13–26', block: 17,
-    name: 'Winning at Workplace',
+    name: 'AI Tools for Managers',
     code: 'AITM',
-    faculty: 'TBD',
+    faculty: 'Prof. Srinivas Atreya',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
       { slot: '13:30–15:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },

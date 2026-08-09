@@ -4,6 +4,23 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - AITM was carrying the WaW programme's name, not its own
+
+Block 17's WaW course was listed as "Winning at Workplace" with `faculty: 'TBD'`. "Winning at
+Workplace" is what **WaW** stands for — the programme — so the category label had been
+transcribed into the course-name field. Both sources agree on the real name: the Term 4
+structure sheet (`O7`) and the timetable's own legend read `AITM — AI Tools for Managers`, and
+the structure sheet names the faculty as Prof. Srinivas Atreya (`P7`).
+
+The phrase survives correctly elsewhere — `Term5 Insight Engine/course_master.py` uses
+"WaW (Winning at Workplace) faculty" as a programme reference, which is right. `data/courses.ts`
+was the only place it had become a course name.
+
+Audited every `mandatoryFor` in the catalogue against the red-font markers in both structure
+spreadsheets while here. All seven are correct, including FWKJ → LSTR: SCAT→OPS, FWKJ→LSTR
+(Term 4); OPST→OPS, CIVB→ENT (both rows), AMST→MKT (Term 5). No source exists in the repo for
+Term 6, so its specs and `mandatoryFor` remain unverified.
+
 ### Added - Progress you can read two ways, and every specialization
 
 The sidebar answered one question: what will the year add up to. A student in August wants the

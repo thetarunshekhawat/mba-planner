@@ -322,6 +322,10 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
+    seatingCharts: [
+      { section: 'A', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/abma-section-a.pdf' },
+      { section: 'B', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/abma-section-b.pdf' },
+    ],
     review: null,
   },
 
@@ -337,6 +341,10 @@ export const ALL_COURSES: Course[] = [
     timings: [
       { slot: '09:00–10:30', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
       { slot: '13:30–15:00', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+    ],
+    seatingCharts: [
+      { section: 'A', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/pswt-section-a.pdf' },
+      { section: 'B', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/pswt-section-b.pdf' },
     ],
     review: null,
   },

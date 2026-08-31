@@ -36,6 +36,10 @@ const FILES = [
   { source: 'AITM_SecB.pdf', dest: 'aitm-section-b.pdf' },
   { source: 'SADM_SecA.pdf', dest: 'sadt-section-a.pdf' },
   { source: 'SADM_SecB.pdf', dest: 'sadt-section-b.pdf' },
+  { source: 'ABMA_A.pdf',   dest: 'abma-section-a.pdf' },
+  { source: 'ABMA_B.pdf',   dest: 'abma-section-b.pdf' },
+  { source: 'PWMC_A.pdf',   dest: 'pswt-section-a.pdf' },
+  { source: 'PWMC_B.pdf',   dest: 'pswt-section-b.pdf' },
 ];
 
 async function ensureBucket() {

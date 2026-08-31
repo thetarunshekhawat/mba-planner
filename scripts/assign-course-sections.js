@@ -43,6 +43,8 @@ const FORCE = process.argv.includes('--force');
 
 const COURSE_AIB = 101; // AITM / "Winning at Workplace" (WaW, Block 17) — holds the "AI in Business" seating-chart sections per user decision
 const COURSE_SADT = 5;  // Sales & Distribution (elective)
+const COURSE_ABMA = 10;  // AI in Business: From Models to Agents (mandatory, Block 20)
+const COURSE_PSWT = 102; // Persuasive Writing for Managers (WaW, Block 20)
 
 // ── Rosters (hand-transcribed from Subject Sections /*.pdf) ────────────────
 
@@ -133,6 +135,92 @@ const ROSTERS = [
       'Naga Venkata Sridhara Sai Jishnu', 'Nidhi Rajendra', 'Vinamra Pattapu', 'Nischal Ramesh',
     ],
   },
+  {
+    courseId: COURSE_ABMA, section: 'A',
+    names: [
+      'Rithwik Awasthi', 'Piyush Kaushik', 'Anurag Saihari Rachamalla', 'Dharalee Kesharia', 'Prachi Garg',
+      'Sandeepan Das', 'Nischal Ramesh', 'S Vigneshwaran Naidu', 'Uma Madhuri Bandaru', 'Samarth Masih',
+      'Upasana Rao K', 'Lovy Garg', 'Deeksha Chugh', 'Aakarsh Ranjan', 'Saurabh Goyal',
+      'Sanya Bindlish', 'Koyena Das', 'Arpan Mukherjee', 'Anshul Padamchand Pokharna', 'Anshul Sharma',
+      'Trisha Thatipamula', 'Tweesha Agrawal', 'Pavan Kumar Reddy Gangarapu', 'Samanvay Mereddy', 'Tanya Chitloor',
+      'Kopal Tyagi', 'Lakshmi Sarma S', 'Sofia Soni', 'Vibhuti Chichra', 'Siddhi Kabra',
+      'Priya Singh', 'Anoushka Lakshman Krishnan', 'Saurabh Jayram Shetty', 'Rahul Vishal Mishra', 'Muskan Setia',
+      'Mayank Agrawal', 'Urmila Maganaram Choudhary', 'Pratik Singh', 'Ishu Singhal', 'Aromal A',
+      'Tushar Gupta', 'Naitik Shailesh Trivedi', 'Deep Atul Parikh', 'Akshat Agarwal', 'Supraja Manivannan',
+      'B Shruti Chandra', 'Prajakta Dhananjay Bapat', 'Shreshta Ramanand Bhat', 'Bhumika Kukreja', 'Dhriti Dhruva Mall',
+      'Mansi Jain', 'Shikhar Chaturvedi', 'Archana Salendra', 'Yash Kiran Kolhe', 'Karen Pinto',
+      'Lavanya Nandwani', 'Prathamesh Sadanand Satam', 'Sivasankaran Br', 'Akhilesh Nalla', 'Arkaprava Ray',
+      'Harshvardhan Singh Shekhawat', 'Anushka Bhasin', 'Padma Sai Sisira Laasya Pallerla', 'Naga Venkata Sridhara Sai Jishnu', 'M Sai Srikar',
+      'B Srihitha', 'Vipin Syam', 'Varad Nitin Dharap', 'Rithi Varsha V', 'Nisthula Suresh',
+      'Devanshi Khurana', 'Dev Dalmia', 'Aditya Menon', 'Aayush Chugh', 'Khushi Amitkumar Singh',
+      'Naveen Puchakayala', 'Pritima Prithvi Singh', 'Vanshika Gupta', 'Nikita Jayant Gandhi', 'Pranjal Dubey',
+      'Sharma Apoorv',
+    ],
+  },
+  {
+    courseId: COURSE_ABMA, section: 'B',
+    names: [
+      'Arshiya Sehgal', 'Nichiketa Anand', 'Prabhudatta Panda', 'Nidhi Rajendra', 'Riya Elizabeth George',
+      'Pratham Gupta', 'Yada Nagesh', 'Vasudev Jayachandran Nair', 'Mihira Navva', 'Vidisha Rayaprolu',
+      'Vedant Rathi', 'Tarun Raj Singh Shekhawat', 'Diya Maini', 'Harshit Nagpal', 'Veer Mundhara',
+      'Sainithin Ambati Venkata', 'Devyanshi Bhardwaj', 'Rohan Aby P', 'Sanskriti Rathore', 'Manasvi Shirish Shah',
+      'Khushi Baheti', 'Debarshi Dutta', 'Mukund Sharma', 'Manan Mitul Mehta', 'Hemasri Vemulapalli',
+      'Mahak Rajesh Kalani', 'Kirti Ajit Bhandari', 'Stuti Vikas Sinha', 'Shravanth V G', 'Agrima Jaiswal',
+      'Vedika Vyas', 'Shivani Maheshwari', 'Vinamra Pattapu', 'Sarthak Raghuvanshi', 'Shivani R Neelakandan',
+      'Paurush Tiwari', 'Shourya Bardia', 'Khushi Garg', 'Shreya Maheshwari', 'Aagam Shah',
+      'Akarsh Katiyar', 'Anish Banerjee', 'Muskan Abrol', 'Jess Walter Rumao', 'Dhruv Jitendra Krishnani',
+      'Ruturaj Dhairyadhar Bhosale', 'Mahati R', 'Aaditya Laxman Mali', 'Anukruti Keshav Valase', 'Diksha',
+      'Priyanshu Reddy Adama', 'Sanket Surendra Rathi', 'Yash Agarwal', 'Prithvi Nagrath', 'Shashank Jayant Pimpale',
+      'K P Aakash', 'Yash Grover', 'Abhibyakti Singh', 'Muskan Patodia', 'Sanchit Mathur',
+      'Mudita Agarwal', 'Malavika Venu Menon', 'Adithya Bontha', 'Arunima Ghosh', 'Kasula Sumanasa Sharma',
+      'Harsh Singh', 'Shantanu Singh Parihar', 'Preksha Mangla', 'Reeva Shirish Bahalkar', 'Akshitha Reddy Annapureddy',
+      'Ritika Sharma', 'Nilanjana Mazumdar', 'Aliya Rajpal', 'Dushyant Bhardwaj', 'Kanchan',
+      'Vaishnavi Dhake', 'Swathi Shivadasan', 'Shubha Patil', 'Aditi Abrol', 'Krisha Rohit Gohil',
+    ],
+  },
+  {
+    courseId: COURSE_PSWT, section: 'A',
+    names: [
+      'Naitik Shailesh Trivedi', 'Rahul Vishal Mishra', 'Mansi Jain', 'B Shruti Chandra', 'Nischal Ramesh',
+      'Tanya Chitloor', 'Upasana Rao K', 'Sanya Bindlish', 'B Srihitha', 'Padma Sai Sisira Laasya Pallerla',
+      'Aakarsh Ranjan', 'Uma Madhuri Bandaru', 'Urmila Maganaram Choudhary', 'Devanshi Khurana', 'Vipin Syam',
+      'Saurabh Jayram Shetty', 'Dhriti Dhruva Mall', 'Dev Dalmia', 'Sofia Soni', 'Ishu Singhal',
+      'Lakshmi Sarma S', 'Prajakta Dhananjay Bapat', 'Pratik Singh', 'Akhilesh Nalla', 'Saurabh Goyal',
+      'Anshul Padamchand Pokharna', 'Arpan Mukherjee', 'Rithi Varsha V', 'Bhumika Kukreja', 'Nisthula Suresh',
+      'Samarth Masih', 'Piyush Kaushik', 'Yash Kiran Kolhe', 'M Sai Srikar', 'Kopal Tyagi',
+      'Aditya Menon', 'Muskan Setia', 'Mayank Agrawal', 'Sivasankaran Br', 'Deeksha Chugh',
+      'Supraja Manivannan', 'Aromal A', 'Varad Nitin Dharap', 'Naga Venkata Sridhara Sai Jishnu', 'Anoushka Lakshman Krishnan',
+      'Koyena Das', 'Sandeepan Das', 'Lovy Garg', 'Nikita Jayant Gandhi', 'Deep Atul Parikh',
+      'Lavanya Nandwani', 'Priya Singh', 'Prathamesh Sadanand Satam', 'Khushi Amitkumar Singh', 'Anurag Saihari Rachamalla',
+      'Samanvay Mereddy', 'Pavan Kumar Reddy Gangarapu', 'Sharma Apoorv', 'Vanshika Gupta', 'Siddhi Kabra',
+      'Shreshta Ramanand Bhat', 'Naveen Puchakayala', 'Aayush Chugh', 'Akshat Agarwal', 'Arkaprava Ray',
+      'Tweesha Agrawal', 'Trisha Thatipamula', 'Tushar Gupta', 'Prachi Garg', 'Archana Salendra',
+      'Pranjal Dubey', 'Pritima Prithvi Singh', 'Vibhuti Chichra', 'Harshvardhan Singh Shekhawat', 'Karen Pinto',
+      'Anshul Sharma', 'Anushka Bhasin', 'Shikhar Chaturvedi', 'S Vigneshwaran Naidu', 'Dharalee Kesharia',
+      'Rithwik Awasthi',
+    ],
+  },
+  {
+    courseId: COURSE_PSWT, section: 'B',
+    names: [
+      'Vedant Rathi', 'Khushi Baheti', 'Sanskriti Rathore', 'Sainithin Ambati Venkata', 'Prabhudatta Panda',
+      'Muskan Abrol', 'Shourya Bardia', 'Aaditya Laxman Mali', 'Mudita Agarwal', 'Anish Banerjee',
+      'K P Aakash', 'Mahati R', 'Pratham Gupta', 'Paurush Tiwari', 'Kanchan',
+      'Manan Mitul Mehta', 'Arshiya Sehgal', 'Aagam Shah', 'Rohan Aby P', 'Sanchit Mathur',
+      'Nidhi Rajendra', 'Stuti Vikas Sinha', 'Dushyant Bhardwaj', 'Mahak Rajesh Kalani', 'Harshit Nagpal',
+      'Vidisha Rayaprolu', 'Kasula Sumanasa Sharma', 'Adithya Bontha', 'Yash Agarwal', 'Riya Elizabeth George',
+      'Yash Grover', 'Kirti Ajit Bhandari', 'Akarsh Katiyar', 'Harsh Singh', 'Shashank Jayant Pimpale',
+      'Akshitha Reddy Annapureddy', 'Aditi Abrol', 'Muskan Patodia', 'Reeva Shirish Bahalkar', 'Khushi Garg',
+      'Tarun Raj Singh Shekhawat', 'Krisha Rohit Gohil', 'Diya Maini', 'Debarshi Dutta', 'Swathi Shivadasan',
+      'Mukund Sharma', 'Aliya Rajpal', 'Vasudev Jayachandran Nair', 'Hemasri Vemulapalli', 'Yada Nagesh',
+      'Veer Mundhara', 'Malavika Venu Menon', 'Agrima Jaiswal', 'Nilanjana Mazumdar', 'Vinamra Pattapu',
+      'Ruturaj Dhairyadhar Bhosale', 'Devyanshi Bhardwaj', 'Prithvi Nagrath', 'Ritika Sharma', 'Shravanth V G',
+      'Shivani R Neelakandan', 'Vedika Vyas', 'Anukruti Keshav Valase', 'Abhibyakti Singh', 'Mihira Navva',
+      'Arunima Ghosh', 'Nichiketa Anand', 'Priyanshu Reddy Adama', 'Shivani Maheshwari', 'Shreya Maheshwari',
+      'Jess Walter Rumao', 'Shantanu Singh Parihar', 'Sarthak Raghuvanshi', 'Preksha Mangla', 'Shubha Patil',
+      'Manasvi Shirish Shah', 'Diksha', 'Sanket Surendra Rathi', 'Vaishnavi Dhake', 'Dhruv Jitendra Krishnani',
+    ],
+  },
 ];
 
 function normalizeName(name) {
@@ -162,6 +250,8 @@ const OVERRIDES = {
   'archana sajendra': 'archana salendra',
   'naga venkata sridhara sai jishnu': 'saijishnu neeli',
   'shantanu singh parihar': 'shantanu singh',
+  'kasula sumanasa sharma': 'sumanasa sharma',
+  'akshitha reddy annapureddy': 'akshitha a',
 };
 
 function findMatch(rawRosterName, profileMap) {

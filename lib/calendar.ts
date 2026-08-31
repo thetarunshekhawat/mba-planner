@@ -1,5 +1,6 @@
 import { Course } from '@/types';
 import { parseISO, addDays, getDay } from 'date-fns';
+import type { Commitment } from '@/lib/alerts/commitments';
 
 const DAY_MAP: Record<string, number> = {
   'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
@@ -12,7 +13,29 @@ function formatICSDate(date: Date, timeStr: string): string {
   return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 }
 
-export function generateScheduleICS(courses: Course[]): string {
+/**
+ * RFC 5545 text escaping. A competition title with a comma in it ("Round 2, Finals")
+ * ends the property value early otherwise, and the import silently drops the rest.
+ */
+function escapeICS(text: string): string {
+  return text.replace(/\\/g, '\\\\').replace(/[;,]/g, (m) => `\\${m}`).replace(/\r?\n/g, '\\n');
+}
+
+function stampICS(d: Date): string {
+  return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+/** How long a deadline occupies in a calendar. It's an instant, but a zero-length
+ *  event renders as an invisible hairline in most clients. */
+const COMMITMENT_MINUTES = 30;
+
+/**
+ * The student's classes, plus the competition deadlines they're tracking.
+ *
+ * Both in one file on purpose: exporting a schedule that omits the submission
+ * deadline you're planning around is how the deadline gets missed.
+ */
+export function generateScheduleICS(courses: Course[], commitments: Commitment[] = []): string {
   let ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -66,14 +89,36 @@ export function generateScheduleICS(courses: Course[]): string {
              `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
              `DTSTART:${dtStart}`,
              `DTEND:${dtEnd}`,
-             `SUMMARY:${course.name}`,
-             `LOCATION:${timing.room}`,
+             `SUMMARY:${escapeICS(course.name)}`,
+             `LOCATION:${escapeICS(timing.room)}`,
              'END:VEVENT'
            );
         }
         currentDay = addDays(currentDay, 1);
       }
     }
+  }
+
+  for (const item of commitments) {
+    const at = new Date(item.at);
+    if (Number.isNaN(at.getTime())) continue;
+    const end = new Date(at.getTime() + COMMITMENT_MINUTES * 60_000);
+    ics.push(
+      'BEGIN:VEVENT',
+      `UID:commitment-${item.key}@mbaplanner`,
+      `DTSTAMP:${stampICS(new Date())}`,
+      `DTSTART:${stampICS(at)}`,
+      `DTEND:${stampICS(end)}`,
+      `SUMMARY:${escapeICS(`${item.subtitle} — ${item.title}`)}`,
+      ...(item.url ? [`DESCRIPTION:${escapeICS(item.url)}`, `URL:${escapeICS(item.url)}`] : []),
+      // A deadline you find out about when it starts is not a reminder.
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${escapeICS(`${item.subtitle} — ${item.title}`)}`,
+      'TRIGGER:-PT1440M',
+      'END:VALARM',
+      'END:VEVENT',
+    );
   }
 
   ics.push('END:VCALENDAR');

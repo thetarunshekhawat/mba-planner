@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Info, CheckCircle2, BookOpen, Users, Eye, EyeOff, CalendarDays, CalendarCheck } from 'lucide-react';
+import { AlertTriangle, Info, CheckCircle2, BookOpen, Users, Eye, EyeOff, CalendarDays, CalendarCheck, Trophy, Flag, Bell } from 'lucide-react';
 import type { Course, SpecId, Friend, FriendOverlay } from '@/types';
+import type { Commitment, CommitmentKind } from '@/lib/alerts/commitments';
+import { commitmentsByDate } from '@/lib/alerts/commitments';
+import { formatIst } from '@/lib/alerts/time';
 import { colorForFriend } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { EventType } from '@/hooks/useAnalytics';
@@ -23,6 +26,13 @@ interface Props {
   courseSections?: Map<number, string>;
   /** Search hits. When set, matching pills are ringed and everything else dims. */
   highlightIds?: Set<number>;
+  /**
+   * Tracked-competition milestones and custom deadlines, from the Alerts tab.
+   * They land in a Deadlines row under each week's classes, so a submission due
+   * on a teaching day is visible in the same place as the class it clashes with.
+   */
+  commitments?: Commitment[];
+  onCommitmentClick?: (c: Commitment) => void;
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -404,7 +414,105 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
   );
 }
 
-function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs, friendOverlays, highlightIds, onCourseClick }: {
+// ── Alerts on the schedule ──────────────────────────────
+// A week row in the grid is seven consecutive days from `blockInfo.start`, so a
+// commitment lands in a column by plain date equality. Block starts are
+// `YYYY-MM-DD` parsed as UTC midnight and commitment dates are already IST
+// calendar days (lib/alerts/commitments.ts), so both sides are calendar dates —
+// no instant ever gets compared against a wall-clock day here.
+function isoDayFrom(start: string, offsetDays: number): string {
+  const d = new Date(start);
+  d.setUTCDate(d.getUTCDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Commitments falling inside a week row, indexed by day column. */
+function weekCommitments(
+  byDate: Map<string, Commitment[]>,
+  blockInfo: BlockRow,
+): { total: number; perDay: (Commitment[] | undefined)[] } {
+  const perDay = DAYS.map((_, i) => byDate.get(isoDayFrom(blockInfo.start, i)));
+  return { total: perDay.reduce((n, d) => n + (d?.length ?? 0), 0), perDay };
+}
+
+const COMMITMENT_STYLE: Record<CommitmentKind, { bg: string; border: string; fg: string; Icon: typeof Trophy }> = {
+  // Registration and round closes are the ones you can *miss*, so they carry
+  // the same alarm colour the Alerts tab uses for a due date. A round opening
+  // is information, so it stays quiet.
+  registration: { bg: '#fef2f2', border: '#fecaca', fg: '#b91c1c', Icon: Flag },
+  round_end:    { bg: '#fef2f2', border: '#fecaca', fg: '#b91c1c', Icon: Trophy },
+  deadline:     { bg: '#fff7ed', border: '#fed7aa', fg: '#c2410c', Icon: Bell },
+  round_start:  { bg: '#f1f5f9', border: '#e2e8f0', fg: '#475569', Icon: Trophy },
+};
+
+function CommitmentPill({ item, onClick }: { item: Commitment; onClick?: () => void }) {
+  const style = COMMITMENT_STYLE[item.kind];
+  const { Icon } = style;
+  return (
+    <button
+      onClick={onClick}
+      disabled={!onClick}
+      title={`${item.title} — ${item.subtitle} · ${formatIst(item.at)}`}
+      className={`w-full text-left rounded-md px-1.5 py-1 transition-all ${onClick ? 'hover:brightness-95 cursor-pointer' : 'cursor-default'}`}
+      style={{
+        backgroundColor: style.bg,
+        border: `1px solid ${style.border}`,
+        // Done means past (or ticked off): still drawn, because a week with a
+        // deadline in it reads differently from an empty one even afterwards.
+        opacity: item.done ? 0.45 : 1,
+        textDecoration: item.done ? 'line-through' : undefined,
+      }}
+    >
+      <div className="flex items-center gap-1">
+        <Icon size={9} style={{ color: style.fg, flexShrink: 0 }} />
+        {/* Wrapped to two lines rather than truncated: at this column width a
+            single line cuts "The Governance Challenge 2026" down to "The
+            Governanc…", which identifies nothing. */}
+        <span className="text-[9px] font-bold leading-tight line-clamp-2" style={{ color: style.fg }}>
+          {item.subtitle}
+        </span>
+      </div>
+      <div className="text-[9px] leading-tight line-clamp-2" style={{ color: style.fg, opacity: 0.85 }}>
+        {item.title}
+      </div>
+    </button>
+  );
+}
+
+/** The "Deadlines" strip under a week's classes. Renders nothing when empty. */
+function DeadlineRow({ perDay, onCommitmentClick }: {
+  perDay: (Commitment[] | undefined)[];
+  onCommitmentClick?: (c: Commitment) => void;
+}) {
+  return (
+    <tr className="border-t-2 border-red-100 bg-red-50/40">
+      <td className="px-4 py-2 text-[11px] font-semibold text-red-700 border-r border-gray-200 whitespace-nowrap align-middle bg-red-50">
+        <span className="inline-flex items-center gap-1.5">
+          <Trophy size={11} />
+          Deadlines
+        </span>
+      </td>
+      {DAYS.map((day, di) => (
+        <td key={day} className="px-1.5 py-1.5 border-r last:border-r-0 border-gray-100 align-top" style={{ minWidth: 90 }}>
+          {/* A fixed width is what makes `truncate` do anything: without one the
+              cell grows to fit the longest competition title and drags the whole
+              day column wider than its classes. */}
+          <div className="flex flex-col gap-1" style={{ width: 104 }}>
+            {perDay[di]?.map(item => (
+              <CommitmentPill
+                key={item.key}
+                item={item}
+                onClick={onCommitmentClick ? () => onCommitmentClick(item) : undefined}
+              />
+            ))}
+          </div>
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs, friendOverlays, highlightIds, commitmentsByDay, onCommitmentClick, onCourseClick }: {
   blockInfo: BlockRow;
   courses: Course[];
   visibleIds: Set<number>;
@@ -414,6 +522,8 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
   userSpecs: SpecId[];
   friendOverlays: FriendOverlay[];
   highlightIds?: Set<number>;
+  commitmentsByDay: Map<string, Commitment[]>;
+  onCommitmentClick?: (c: Commitment) => void;
   onCourseClick: (c: Course) => void;
 }) {
   const blockCourses = courses
@@ -430,6 +540,8 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
     advisories,
     assignedSections,
   );
+
+  const week = weekCommitments(commitmentsByDay, blockInfo);
 
   const blockHeader = (
     <div className="flex items-center gap-3 mb-3 px-1">
@@ -451,8 +563,19 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
       <div className="mb-6">
         {blockHeader}
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-green-200 bg-green-50 text-green-600 text-sm font-medium">
-          🟢 Free week for you — no courses this week
+          {week.total === 0
+            ? '🟢 Free week for you — no courses this week'
+            : `🟢 No classes this week — but ${week.total} deadline${week.total === 1 ? '' : 's'} below`}
         </div>
+        {week.total > 0 && (
+          <div className="mt-2 overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white print:overflow-visible">
+            <table className="w-full border-collapse" style={{ minWidth: 560 }}>
+              <tbody>
+                <DeadlineRow perDay={week.perDay} onCommitmentClick={onCommitmentClick} />
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     );
   }
@@ -578,6 +701,9 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                 })}
               </tr>
             ))}
+            {week.total > 0 && (
+              <DeadlineRow perDay={week.perDay} onCommitmentClick={onCommitmentClick} />
+            )}
           </tbody>
         </table>
       </div>
@@ -771,7 +897,7 @@ function NoticeBanner({ label, tone }: { label: string; tone: 'exam' | 'break' }
  */
 function TermBlockGrid({
   term, courses, visibleIds, conflictIds, advisories, assignedSections, userSpecs,
-  friendOverlays, highlightIds, searchActive, onCourseClick,
+  friendOverlays, highlightIds, searchActive, commitmentsByDay, onCommitmentClick, onCourseClick,
 }: {
   term: number;
   courses: Course[];
@@ -783,6 +909,8 @@ function TermBlockGrid({
   friendOverlays: FriendOverlay[];
   highlightIds?: Set<number>;
   searchActive: boolean;
+  commitmentsByDay: Map<string, Commitment[]>;
+  onCommitmentClick?: (c: Commitment) => void;
   onCourseClick: (c: Course) => void;
 }) {
   const schedule = SCHEDULE_BY_TERM[term];
@@ -793,9 +921,13 @@ function TermBlockGrid({
   const [showAllBlocks, setShowAllBlocks] = useState(false);
   const startIdx = showAllBlocks ? 0 : currentBlockStartIndex(blocks);
 
+  // A term with no selected courses but a tracked deadline in it still has
+  // something to show — dropping to "No courses selected" would hide the very
+  // date the student came to check.
   const hasContent =
     blocks.some(b => courses.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)))
-    || friendOverlays.some(o => blocks.some(b => friendBlockCourses(o, b.start, b.end).length > 0));
+    || friendOverlays.some(o => blocks.some(b => friendBlockCourses(o, b.start, b.end).length > 0))
+    || blocks.some(b => weekCommitments(commitmentsByDay, b).total > 0);
 
   const todayTs = todayUtc().getTime();
   const todayInTerm = blocks.some(b => parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end));
@@ -811,6 +943,8 @@ function TermBlockGrid({
       userSpecs={userSpecs}
       friendOverlays={friendOverlays}
       highlightIds={highlightIds}
+      commitmentsByDay={commitmentsByDay}
+      onCommitmentClick={onCommitmentClick}
       onCourseClick={onCourseClick}
     />
   );
@@ -965,7 +1099,7 @@ function TermBlockGrid({
 export function TimetableView({
   selected, visibleIds, userSpecs, onCourseClick, selectedTerms,
   friendOverlays = [], friends = [], overlayIds, onToggleOverlay, trackEvent,
-  courseSections, highlightIds,
+  courseSections, highlightIds, commitments = [], onCommitmentClick,
 }: Props) {
   const searchActive = !!highlightIds && highlightIds.size > 0;
 
@@ -989,6 +1123,7 @@ export function TimetableView({
   const conflictIds = getConflictIds(allVisible, visibleIds);
   const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
   const assignedSections = courseSections ?? new Map<number, string>();
+  const commitmentsByDay = commitmentsByDate(commitments);
 
   const conflictCourses = allVisible.filter(c => conflictIds.has(c.id));
 
@@ -1114,6 +1249,8 @@ export function TimetableView({
           friendOverlays={friendOverlays}
           highlightIds={highlightIds}
           searchActive={searchActive}
+          commitmentsByDay={commitmentsByDay}
+          onCommitmentClick={onCommitmentClick}
           onCourseClick={onCourseClick}
         />
       </div>
@@ -1130,6 +1267,8 @@ export function TimetableView({
           friendOverlays={friendOverlays}
           highlightIds={highlightIds}
           searchActive={searchActive}
+          commitmentsByDay={commitmentsByDay}
+          onCommitmentClick={onCommitmentClick}
           onCourseClick={onCourseClick}
         />
       </div>

@@ -160,6 +160,7 @@ const EVENT_LABELS: Record<string, string> = {
   alert_push_test_sent: 'Test Notification Sent',
   alert_push_repaired: 'Push Subscription Repaired',
   alert_push_ios_instructions_shown: 'iOS Install Instructions Shown',
+  schedule_commitment_clicked: 'Deadline Opened From Schedule',
 };
 
 function courseNameById(id: number): string {

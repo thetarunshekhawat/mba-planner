@@ -30,9 +30,12 @@ import {
   type DispatchInput,
 } from '../lib/alerts/schedule';
 import { roundState, chainProgress, pendingEliminationRounds, nextMilestone } from '../lib/alerts/progress';
+import { buildCommitments, commitmentsByDate } from '../lib/alerts/commitments';
 import { istToInstant } from '../lib/alerts/time';
 import type {
   AlertReminderRule,
+  CustomDeadline,
+  TrackedCompetition,
   AlertRoundOutcome,
   AlertTrack,
   Competition,
@@ -360,7 +363,63 @@ check(
 );
 check('an empty selection still yields the mandatory courses', courseDeadlineItems(new Set(), T0).length > 0, true);
 
-// ── 12. Push assets and env ──────────────────────────────────────────────────
+// ── 12. Commitments on the schedule ──────────────────────────────────────────
+// The Alerts→Schedule bridge. What matters here is what must NOT be drawn: an
+// undated round has no day to sit on, an eliminated track is no longer yours,
+// and a retired round never happened. Each of those, drawn, is a deadline on the
+// student's calendar that does not exist.
+console.log('\n— commitments —');
+
+function tracked(over: Partial<TrackedCompetition> = {}): TrackedCompetition {
+  return { competition: competition(), rounds: [], track: track(), outcomes: [], rules: [], ...over };
+}
+
+const commitRounds = [
+  round({ id: 'cr1', round_order: 1, title: 'Screening', starts_at: past, ends_at: future }),
+  round({ id: 'cr2', round_order: 2, title: null, ends_at: future }),
+  round({ id: 'cr3', round_order: 3, title: 'Undated' }),
+  round({ id: 'cr4', round_order: 4, title: 'Gone', ends_at: future, retired_at: past }),
+];
+const commitments = buildCommitments(
+  [tracked({ competition: competition({ registration_deadline: future }), rounds: commitRounds })],
+  [],
+  T0,
+);
+check('one entry per dated edge, retired and undated rounds dropped',
+  commitments.map((c) => c.key).sort(),
+  ['end-cr1', 'end-cr2', 'regn-c1', 'start-cr1']);
+check('an untitled round falls back to its order', commitments.find((c) => c.key === 'end-cr2')?.title, 'Round 2 closes');
+check('sorted by instant', commitments.map((c) => c.at).every((at, i, a) => i === 0 || a[i - 1] <= at), true);
+check('a past edge is marked done', commitments.find((c) => c.key === 'start-cr1')?.done, true);
+check('a future edge is not', commitments.find((c) => c.key === 'end-cr1')?.done, false);
+
+check('an eliminated track contributes nothing',
+  buildCommitments([tracked({ track: track({ status: 'eliminated' }), rounds: commitRounds })], [], T0).length, 0);
+check('an archived track contributes nothing',
+  buildCommitments([tracked({ track: track({ status: 'archived' }), rounds: commitRounds })], [], T0).length, 0);
+check('an untracked competition contributes nothing',
+  buildCommitments([tracked({ track: null, rounds: commitRounds })], [], T0).length, 0);
+
+function deadline(over: Partial<CustomDeadline> = {}): CustomDeadline {
+  return {
+    id: 'd1', user_id: 'u1', title: 'Submit deck', notes: null, url: null,
+    due_at: future, completed_at: null, created_at: T0.toISOString(), ...over,
+  };
+}
+const withDeadlines = buildCommitments([], [deadline(), deadline({ id: 'd2', completed_at: T0.toISOString() })], T0);
+check('custom deadlines come through', withDeadlines.length, 2);
+check('a completed deadline is done even though it is in the future',
+  withDeadlines.find((c) => c.key === 'dl-d2')?.done, true);
+check('a deadline with an unparseable date is dropped',
+  buildCommitments([], [deadline({ due_at: 'nonsense' })], T0).length, 0);
+
+// Day-bucketing is what puts a pill in the right column, and IST is what decides
+// the day: 23:30 IST on the 20th is 18:00 UTC on the 20th, not the 21st.
+const lateNight = buildCommitments([], [deadline({ due_at: istToInstant('2026-08-20', '23:30') })], T0);
+check('a late-night IST deadline stays on its IST day', lateNight[0].date, '2026-08-20');
+check('grouped by day', [...commitmentsByDate(lateNight).keys()], ['2026-08-20']);
+
+// ── 13. Push assets and env ──────────────────────────────────────────────────
 console.log('— push assets —');
 const { existsSync } = await import('node:fs');
 
@@ -403,7 +462,7 @@ if (existsSync('.env.local')) {
   check('CRON_SECRET is long enough to matter', (envMap.CRON_SECRET ?? '').length >= 32, true);
 }
 
-// ── 13. Live database (--live only) ──────────────────────────────────────────
+// ── 14. Live database (--live only) ──────────────────────────────────────────
 if (process.argv.includes('--live')) {
   const { createClient } = await import('@supabase/supabase-js');
   const { importCompetition } = await import('../lib/alerts/import');

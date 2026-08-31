@@ -101,7 +101,9 @@ export type EventType =
   | 'alert_push_denied'
   | 'alert_push_test_sent'
   | 'alert_push_repaired'
-  | 'alert_push_ios_instructions_shown';
+  | 'alert_push_ios_instructions_shown'
+  // Alerts ↔ schedule
+  | 'schedule_commitment_clicked';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

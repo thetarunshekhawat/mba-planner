@@ -43,6 +43,12 @@ lib/admin.ts           THE admin allowlist — imported everywhere, declared now
 lib/chat/*             AI assistant: routing, prompt, nudges, insight selection
 lib/alerts/*           Competition/deadline alerts: Unstop mapping, reminder scheduling,
                        round progress, IST helpers, shared PostgREST paging
+lib/alerts/commitments.ts
+                       THE Alerts→Schedule bridge — tracked dates as calendar items
+data/classSessions.json
+                       Per-date class sessions read off the block timetables
+                       (scripts/build_class_sessions.py). Reference data; nothing reads
+                       it at runtime — the catalogue's `timings` still drives the UI
 components/planner/*   The main planner UI (Plan / My Schedule / Friends / Alerts)
 .claude/skills/unstop-import/
                        Cohort-wide competition from an Unstop link (API-mapped)
@@ -397,6 +403,26 @@ normal. `chainProgress()` counts *finished* rounds for exactly this reason.
 
 Related trap: a round with no dates is `unknown`, **never** `done`. A green tick on an
 undated round tells a student they've finished something they haven't.
+
+### Alerts on the schedule
+
+A tracked competition is a set of dates the student plans *around*, so they belong on the
+planning surface too. `lib/alerts/commitments.ts` is the single derivation — registration close,
+each round open/close, each custom deadline — consumed by the schedule grid's **Deadlines** row
+and by the `.ics` download. It queries nothing and stores nothing; it reshapes rows `useAlerts`
+already has.
+
+Four things never become a commitment, each because drawing it would put a deadline on the
+calendar that does not exist: an **eliminated** or **archived** track, a **retired** round, and
+an **undated** round. This is the same rule as "a round with no dates is `unknown`, never
+`done`" — applied to a surface where the wrong answer is a phantom due date rather than a
+phantom tick.
+
+Day placement is IST (`istDateOf`), matching `campusToday()`, so a 23:30 deadline sits on that
+evening rather than sliding to the next UTC day.
+
+Note this is **not** the withdrawn course-deadline feature below: everything here is something
+the student explicitly signed up to track, which is exactly what that feature lacked.
 
 ### Course deadlines: neither tier ships
 

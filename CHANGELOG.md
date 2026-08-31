@@ -4,6 +4,35 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Tracked competition deadlines now appear on My Schedule
+
+The Alerts tab knew the student had a submission due on a Thursday afternoon and My Schedule
+showed that Thursday as an ordinary teaching day. Two surfaces, one set of dates, no connection
+between them — so the planning surface was silent about the thing most likely to collide with
+a class.
+
+`lib/alerts/commitments.ts` derives every dated milestone the student has signed up for
+(registration close, each round opening and closing, each hand-entered deadline) from the rows
+`useAlerts` already fetched. No new query, nothing stored. The schedule grid renders them as a
+**Deadlines** row under each week's classes, in the day column they fall on; clicking one opens
+the Alerts tab. The `.ics` download carries them too, with a 24-hour alarm on each.
+
+What is deliberately excluded, and why each would be a lie on a calendar: an eliminated or
+archived track (those dates are no longer yours), a retired round (Unstop removed it), and an
+undated round (there is no day to draw it on). A week with no classes but a deadline in it no
+longer reads "Free week for you".
+
+Day placement is IST, via `istDateOf` — a 23:30 IST deadline belongs to that evening, not to the
+next UTC day. New analytics event: `schedule_commitment_clicked`.
+
+### Added - Per-date class sessions extracted from the block timetables
+
+`scripts/build_class_sessions.py` parses the Term 4 (blocks 16-21) and Term 5 (blocks 22-26)
+timetables into `data/classSessions.json` — for every course code, each dated class with its
+day, start/end time, venue, section, and an exam flag. A published block timetable overrides the
+term-wide tentative one for the same block, because they disagree on times. Nothing reads it at
+runtime yet; the catalogue's `timings` is still what the UI draws.
+
 ### Fixed - AITM was carrying the WaW programme's name, not its own
 
 Block 17's WaW course was listed as "Winning at Workplace" with `faculty: 'TBD'`. "Winning at

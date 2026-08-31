@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useSelections } from '@/hooks/useSelections';
 import { useCourseSections } from '@/hooks/useCourseSections';
@@ -19,6 +19,7 @@ import { matchesQuery } from '@/lib/courseSearch';
 import { isDemoEmail } from '@/lib/demo';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { generateScheduleICS } from '@/lib/calendar';
+import { buildCommitments } from '@/lib/alerts/commitments';
 import { LayoutList, CalendarDays, CalendarPlus, CalendarHeart, Download, ShieldCheck, Users, Search, Eye, Bell } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Calendar } from '@/components/ui/calendar';
@@ -98,6 +99,13 @@ export default function PlannerPage() {
 
   // ── Alerts ───────────────────────────────────────────────
   const alerts = useAlerts(userId, isDemo, trackEvent);
+
+  // The Alerts tab's dates, shaped for the schedule grid. Derived here rather
+  // than inside TimetableView so the export path and the grid draw the same list.
+  const commitments = useMemo(
+    () => buildCommitments(alerts.tracked, alerts.deadlines),
+    [alerts.tracked, alerts.deadlines],
+  );
 
   // ── Sliding tab pill (Plan / My Schedule / Friends / Alerts) ─
   const tabRowRef = useRef<HTMLDivElement>(null);
@@ -293,10 +301,16 @@ export default function PlannerPage() {
 
   const handleExportCalendar = () => {
     const coursesToExport = ALL_COURSES.filter(c => scheduleVisibleIds.has(c.id) && selectedTerms.has(c.term));
-    if (coursesToExport.length === 0) return;
-    trackEvent('export_triggered', { type: 'ics' });
-    
-    const icsContent = generateScheduleICS(coursesToExport);
+    // Deadlines are dated, not termed: a commitment ships if it falls inside any
+    // term the student ticked. Past ones are left out — an export is forward-looking.
+    const commitmentsToExport = commitments.filter(c => !c.done && TERM_DATES.some(
+      t => selectedTerms.has(t.term) && c.date >= t.start.toISOString().slice(0, 10)
+        && c.date <= t.end.toISOString().slice(0, 10),
+    ));
+    if (coursesToExport.length === 0 && commitmentsToExport.length === 0) return;
+    trackEvent('export_triggered', { type: 'ics', commitments: commitmentsToExport.length });
+
+    const icsContent = generateScheduleICS(coursesToExport, commitmentsToExport);
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -760,7 +774,7 @@ export default function PlannerPage() {
             />
           ) : (
             <>
-              {scheduleVisibleIds.size === 0 && friendOverlays.length === 0 ? (
+              {scheduleVisibleIds.size === 0 && friendOverlays.length === 0 && commitments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center p-8">
                   <CalendarDays className="w-12 h-12 text-slate-600" />
                   <p className="text-slate-400 font-medium">No courses selected yet</p>
@@ -788,6 +802,12 @@ export default function PlannerPage() {
                   trackEvent={trackEvent}
                   courseSections={courseSections}
                   highlightIds={courseSearchActive ? searchMatchIds : undefined}
+                  commitments={commitments}
+                  onCommitmentClick={(c) => {
+                    trackEvent('schedule_commitment_clicked', { kind: c.kind, competition_id: c.competitionId });
+                    setViewMode('alerts');
+                    trackEvent('view_changed', { to: 'alerts', from: 'schedule_deadline' });
+                  }}
                 />
               )}
             </>

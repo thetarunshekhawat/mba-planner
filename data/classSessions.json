@@ -1,0 +1,5518 @@
+{
+  "ABMA": {
+    "code": "ABMA",
+    "term": 4,
+    "blocks": [
+      20
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-08-31",
+    "lastClass": "2026-09-11",
+    "sessionCount": 20,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-08-31",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-31",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-01",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-01",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-02",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-02",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-03",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-03",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-04",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-04",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-07",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-07",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-08",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-08",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-09",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-09",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-10",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-10",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-11",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-11",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "ABMK": {
+    "code": "ABMK",
+    "term": 4,
+    "blocks": [
+      16
+    ],
+    "sections": [],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-06-29",
+    "lastClass": "2026-07-10",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-06-29",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-06-30",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-01",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-02",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-03",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-06",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-07",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-08",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-09",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-10",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "AITM": {
+    "code": "AITM",
+    "term": 4,
+    "blocks": [
+      17
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-07-13",
+    "lastClass": "2026-07-25",
+    "sessionCount": 17,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-07-13",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-13",
+        "day": "Mon",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-14",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-14",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-15",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-15",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-16",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-16",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-20",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-20",
+        "day": "Mon",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-21",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-21",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-22",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-22",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-23",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-23",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-25",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "AMST": {
+    "code": "AMST",
+    "term": 5,
+    "blocks": [
+      24
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-10-26",
+    "lastClass": "2026-11-06",
+    "sessionCount": 20,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-10-26",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-26",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-27",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-27",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-28",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-28",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-29",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-29",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-30",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-30",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-02",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-02",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-03",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-03",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-04",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-04",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-05",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-05",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-06",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-06",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "BECB": {
+    "code": "BECB",
+    "term": 4,
+    "blocks": [
+      19
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-08-10",
+    "lastClass": "2026-08-25",
+    "sessionCount": 21,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-08-10",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-10",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-11",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-11",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-12",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-12",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-13",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-13",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-14",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-14",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-17",
+        "day": "Mon",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-17",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-18",
+        "day": "Tue",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-18",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-19",
+        "day": "Wed",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-19",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-20",
+        "day": "Thu",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-20",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-21",
+        "day": "Fri",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-21",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-25",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "CIVB": {
+    "code": "CIVB",
+    "term": 5,
+    "blocks": [
+      23,
+      25
+    ],
+    "sections": [],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-10-12",
+    "lastClass": "2026-11-25",
+    "sessionCount": 6,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-10-12",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-13",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-14",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-23",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-24",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-25",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "CLAW": {
+    "code": "CLAW",
+    "term": 5,
+    "blocks": [
+      23
+    ],
+    "sections": [],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-10-12",
+    "lastClass": "2026-10-23",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-10-12",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-13",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-14",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-15",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-16",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-17",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-19",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-21",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-22",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-23",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "DGTK": {
+    "code": "DGTK",
+    "term": 5,
+    "blocks": [
+      24
+    ],
+    "sections": [
+      "A"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-10-26",
+    "lastClass": "2026-11-05",
+    "sessionCount": 16,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-10-26",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-26",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-27",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-27",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-28",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-28",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-29",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-29",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-02",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-02",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-03",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-03",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-04",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-04",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-05",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-05",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      }
+    ]
+  },
+  "DSTK": {
+    "code": "DSTK",
+    "term": 4,
+    "blocks": [
+      21
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S03"
+    ],
+    "firstClass": "2026-09-18",
+    "lastClass": "2026-09-23",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-09-18",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-18",
+        "day": "Fri",
+        "start": "17:00",
+        "end": "20:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-19",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-19",
+        "day": "Sat",
+        "start": "17:00",
+        "end": "20:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-21",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-21",
+        "day": "Mon",
+        "start": "16:30",
+        "end": "18:30",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-22",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-22",
+        "day": "Tue",
+        "start": "16:30",
+        "end": "18:30",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-23",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-23",
+        "day": "Wed",
+        "start": "16:30",
+        "end": "18:30",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "ENFF": {
+    "code": "ENFF",
+    "term": 5,
+    "blocks": [
+      25
+    ],
+    "sections": [],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-11-23",
+    "lastClass": "2026-12-04",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-11-23",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-24",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-25",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-26",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-27",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-30",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-01",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-02",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-03",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-04",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "ESGV": {
+    "code": "ESGV",
+    "term": 5,
+    "blocks": [
+      25
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-11-26",
+    "lastClass": "2026-12-04",
+    "sessionCount": 16,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-11-26",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-26",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-27",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-27",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-28",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-28",
+        "day": "Sat",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-30",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-30",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-01",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-01",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-02",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-02",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-03",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-03",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-04",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-04",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "19:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "EXTT": {
+    "code": "EXTT",
+    "term": 4,
+    "blocks": [
+      18
+    ],
+    "sections": [
+      "A1",
+      "A2",
+      "B1",
+      "B2"
+    ],
+    "rooms": [
+      "MPH",
+      "Moot Court"
+    ],
+    "firstClass": "2026-07-27",
+    "lastClass": "2026-08-06",
+    "sessionCount": 32,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-07-27",
+        "day": "Mon",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-27",
+        "day": "Mon",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-07-27",
+        "day": "Mon",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-27",
+        "day": "Mon",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      },
+      {
+        "date": "2026-07-28",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-28",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-07-28",
+        "day": "Tue",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-28",
+        "day": "Tue",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      },
+      {
+        "date": "2026-07-29",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-29",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-07-29",
+        "day": "Wed",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-29",
+        "day": "Wed",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      },
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "MPH",
+        "section": "A1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "Moot Court",
+        "section": "A2",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "MPH",
+        "section": "B1",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "19:00",
+        "end": "20:30",
+        "room": "Moot Court",
+        "section": "B2",
+        "exam": false
+      }
+    ]
+  },
+  "FDEM": {
+    "code": "FDEM",
+    "term": 5,
+    "blocks": [
+      24
+    ],
+    "sections": [],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-10-26",
+    "lastClass": "2026-11-06",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-10-26",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-27",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-28",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-29",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-30",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-02",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-03",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-04",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-05",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-11-06",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "FSAN": {
+    "code": "FSAN",
+    "term": 4,
+    "blocks": [
+      18,
+      19
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-07-30",
+    "lastClass": "2026-08-24",
+    "sessionCount": 18,
+    "examCount": 2,
+    "sessions": [
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-31",
+        "day": "Fri",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-31",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-08",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": null,
+        "section": null,
+        "exam": true
+      },
+      {
+        "date": "2026-08-12",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-12",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-14",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-14",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-17",
+        "day": "Mon",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-17",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-24",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "FSAT": {
+    "code": "FSAT",
+    "term": 4,
+    "blocks": [
+      18,
+      19
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-07-27",
+    "lastClass": "2026-08-24",
+    "sessionCount": 10,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-07-27",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-29",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-31",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-18",
+        "day": "Tue",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-18",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-20",
+        "day": "Thu",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-20",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-24",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "FWKJ": {
+    "code": "FWKJ",
+    "term": 4,
+    "blocks": [
+      18
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-07-27",
+    "lastClass": "2026-08-08",
+    "sessionCount": 21,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-07-27",
+        "day": "Mon",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-27",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-28",
+        "day": "Tue",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-28",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-29",
+        "day": "Wed",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-29",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-30",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-31",
+        "day": "Fri",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-31",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-03",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-04",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-06",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-07",
+        "day": "Fri",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-07",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-08-08",
+        "day": "Sat",
+        "start": "09:30",
+        "end": "12:30",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "IFIN": {
+    "code": "IFIN",
+    "term": 4,
+    "blocks": [
+      16
+    ],
+    "sections": [],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-07-01",
+    "lastClass": "2026-07-12",
+    "sessionCount": 11,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-07-01",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-02",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-03",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-04",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-06",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-07",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-08",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-09",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-10",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-11",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-12",
+        "day": "Sun",
+        "start": "09:00",
+        "end": "12:00",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "INMK": {
+    "code": "INMK",
+    "term": 5,
+    "blocks": [
+      26
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-12-08",
+    "lastClass": "2026-12-18",
+    "sessionCount": 20,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-12-08",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-08",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-09",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-09",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-10",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-10",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-11",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-11",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-12",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-12",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-14",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-14",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-15",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-15",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-16",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-16",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-17",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-17",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-18",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-18",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "MGAQ": {
+    "code": "MGAQ",
+    "term": 5,
+    "blocks": [
+      26
+    ],
+    "sections": [],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-12-07",
+    "lastClass": "2026-12-18",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-12-07",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-08",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-09",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-10",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-11",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-14",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-15",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-16",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-17",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-12-18",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "MHLG": {
+    "code": "MHLG",
+    "term": 4,
+    "blocks": [
+      19
+    ],
+    "sections": [],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-08-10",
+    "lastClass": "2026-08-25",
+    "sessionCount": 11,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-08-10",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-11",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-12",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-13",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-14",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-17",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-18",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-19",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-20",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-21",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-25",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "MHPT": {
+    "code": "MHPT",
+    "term": 4,
+    "blocks": [
+      21
+    ],
+    "sections": [],
+    "rooms": [
+      "S03"
+    ],
+    "firstClass": "2026-09-14",
+    "lastClass": "2026-09-25",
+    "sessionCount": 11,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-09-14",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-15",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-16",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-17",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-18",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-19",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-21",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-22",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-23",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-24",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-25",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S03",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "MLMC": {
+    "code": "MLMC",
+    "term": 4,
+    "blocks": [
+      19
+    ],
+    "sections": [],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-08-10",
+    "lastClass": "2026-08-21",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-08-10",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-11",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-12",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-13",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-14",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-17",
+        "day": "Mon",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-18",
+        "day": "Tue",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-19",
+        "day": "Wed",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-20",
+        "day": "Thu",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-08-21",
+        "day": "Fri",
+        "start": "17:30",
+        "end": "20:30",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "OPST": {
+    "code": "OPST",
+    "term": 5,
+    "blocks": [
+      22
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-09-28",
+    "lastClass": "2026-10-10",
+    "sessionCount": 20,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-09-28",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-28",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-29",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-29",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-30",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-30",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-01",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-01",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-03",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-03",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-06",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-06",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-07",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-07",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-08",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-08",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-09",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-09",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-10",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-10",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "PDMT": {
+    "code": "PDMT",
+    "term": 4,
+    "blocks": [
+      21
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-09-14",
+    "lastClass": "2026-09-25",
+    "sessionCount": 22,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-09-14",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-14",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-15",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-15",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-16",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-16",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-17",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-17",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-18",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-18",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-19",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-19",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-21",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-21",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-22",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-22",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-23",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-23",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-24",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-24",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-25",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-25",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "PMMC": {
+    "code": "PMMC",
+    "term": 4,
+    "blocks": [
+      21
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-09-14",
+    "lastClass": "2026-09-26",
+    "sessionCount": 23,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-09-14",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-14",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-15",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-15",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-16",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-16",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-17",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-17",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-18",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-18",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-19",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-19",
+        "day": "Sat",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-21",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-21",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-22",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-22",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-23",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-23",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-24",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-24",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-25",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-25",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-26",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "PSWT": {
+    "code": "PSWT",
+    "term": 4,
+    "blocks": [
+      20
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S03"
+    ],
+    "firstClass": "2026-08-31",
+    "lastClass": "2026-09-10",
+    "sessionCount": 16,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-08-31",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-31",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-01",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-01",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-02",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-02",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-03",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-03",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-07",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-07",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-08",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-08",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-09",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-09",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-10",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-10",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "PWMC": {
+    "code": "PWMC",
+    "term": 4,
+    "blocks": [
+      20
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S03"
+    ],
+    "firstClass": "2026-08-31",
+    "lastClass": "2026-09-10",
+    "sessionCount": 16,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-08-31",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-31",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-01",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-01",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-02",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-02",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-03",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-03",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-07",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-07",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-08",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-08",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-09",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-09",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-10",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "10:30",
+        "room": "S03",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-10",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S03",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "RAIG": {
+    "code": "RAIG",
+    "term": 5,
+    "blocks": [
+      22
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-09-28",
+    "lastClass": "2026-10-09",
+    "sessionCount": 16,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-09-28",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-28",
+        "day": "Mon",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-29",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-29",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-09-30",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-09-30",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-01",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-01",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-06",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-06",
+        "day": "Tue",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-07",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-07",
+        "day": "Wed",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-08",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-08",
+        "day": "Thu",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-10-09",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "15:00",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-10-09",
+        "day": "Fri",
+        "start": "17:00",
+        "end": "18:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "SADM": {
+    "code": "SADM",
+    "term": 4,
+    "blocks": [
+      18
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-08-05",
+    "lastClass": "2026-08-05",
+    "sessionCount": 2,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "09:30",
+        "end": "12:30",
+        "room": "S02",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-08-05",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S02",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "SADT": {
+    "code": "SADT",
+    "term": 4,
+    "blocks": [
+      17
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-07-13",
+    "lastClass": "2026-07-24",
+    "sessionCount": 20,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-07-13",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-13",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-14",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-14",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-15",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-15",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-16",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-16",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-17",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-17",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-20",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-20",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-21",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-21",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-22",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-22",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-23",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-23",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-07-24",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-07-24",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "SBRM": {
+    "code": "SBRM",
+    "term": 5,
+    "blocks": [
+      25
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-11-23",
+    "lastClass": "2026-12-04",
+    "sessionCount": 20,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-11-23",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-23",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-24",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-24",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-25",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-25",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-26",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-26",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-27",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-27",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-11-30",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-11-30",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-01",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-01",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-02",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-02",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-03",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-03",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-04",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-04",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "SCAT": {
+    "code": "SCAT",
+    "term": 4,
+    "blocks": [
+      16
+    ],
+    "sections": [],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-06-29",
+    "lastClass": "2026-07-12",
+    "sessionCount": 11,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-06-29",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-06-30",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-01",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-02",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-03",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-06",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-07",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-08",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-09",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-10",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-12",
+        "day": "Sun",
+        "start": "13:30",
+        "end": "16:30",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "STOP": {
+    "code": "STOP",
+    "term": 4,
+    "blocks": [
+      17
+    ],
+    "sections": [],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-07-13",
+    "lastClass": "2026-07-25",
+    "sessionCount": 11,
+    "examCount": 1,
+    "sessions": [
+      {
+        "date": "2026-07-13",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-14",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-15",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-16",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-17",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-18",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-20",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-21",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-22",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-23",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-07-25",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": null,
+        "section": null,
+        "exam": true
+      }
+    ]
+  },
+  "SVOP": {
+    "code": "SVOP",
+    "term": 5,
+    "blocks": [
+      26
+    ],
+    "sections": [
+      "A",
+      "B"
+    ],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-12-07",
+    "lastClass": "2026-12-18",
+    "sessionCount": 20,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-12-07",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-07",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-08",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-08",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-09",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-09",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-10",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-10",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-11",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-11",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-14",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-14",
+        "day": "Mon",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-15",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-15",
+        "day": "Tue",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-16",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-16",
+        "day": "Wed",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-17",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-17",
+        "day": "Thu",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      },
+      {
+        "date": "2026-12-18",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": "A",
+        "exam": false
+      },
+      {
+        "date": "2026-12-18",
+        "day": "Fri",
+        "start": "13:30",
+        "end": "16:30",
+        "room": "S04",
+        "section": "B",
+        "exam": false
+      }
+    ]
+  },
+  "TOPS": {
+    "code": "TOPS",
+    "term": 5,
+    "blocks": [
+      23
+    ],
+    "sections": [],
+    "rooms": [
+      "S04"
+    ],
+    "firstClass": "2026-10-12",
+    "lastClass": "2026-10-23",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-10-12",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-13",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-14",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-15",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-16",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-17",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-19",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-21",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-22",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-23",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S04",
+        "section": null,
+        "exam": false
+      }
+    ]
+  },
+  "VALU": {
+    "code": "VALU",
+    "term": 5,
+    "blocks": [
+      22
+    ],
+    "sections": [],
+    "rooms": [
+      "S02"
+    ],
+    "firstClass": "2026-09-28",
+    "lastClass": "2026-10-10",
+    "sessionCount": 10,
+    "examCount": 0,
+    "sessions": [
+      {
+        "date": "2026-09-28",
+        "day": "Mon",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-29",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-09-30",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-01",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-03",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-06",
+        "day": "Tue",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-07",
+        "day": "Wed",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-08",
+        "day": "Thu",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-09",
+        "day": "Fri",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      },
+      {
+        "date": "2026-10-10",
+        "day": "Sat",
+        "start": "09:00",
+        "end": "12:00",
+        "room": "S02",
+        "section": null,
+        "exam": false
+      }
+    ]
+  }
+}

@@ -128,14 +128,32 @@ export default function PlannerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [friendIds.join(',')]);
 
-  // Only the toggled-on friends, with a stable color + their selected courses.
+  // Mandatory and WaW courses are never in anyone's `course_selections` — the
+  // whole cohort sits them, so your own schedule adds them unconditionally
+  // (see `scheduleVisibleIds`). A friend overlay built from selections alone
+  // therefore drew nothing in a block made entirely of them, which read as
+  // "the overlay is broken" rather than "they didn't pick anything here".
+  // Mirror the same rule so a friend is overlaid on the courses you share by
+  // default — the section-aware overlay then puts them in *their* half of the
+  // day, which is the whole point of turning it on.
+  const cohortCourseIds = useMemo(
+    () => ALL_COURSES
+      .filter(c => c.type === 'mandatory' || (c.type === 'waw' && filters.showWaw))
+      .map(c => c.id),
+    [filters.showWaw],
+  );
+
+  // Only the toggled-on friends, with a stable color + their courses.
   const friendOverlays: FriendOverlay[] = friends
     .filter(f => overlayIds.has(f.id))
     .map(f => ({
       id: f.id,
       name: f.name,
       color: colorForFriend(f.id),
-      selected: friendSelections.get(f.id) ?? new Set<number>(),
+      selected: new Set<number>([
+        ...(friendSelections.get(f.id) ?? new Set<number>()),
+        ...cohortCourseIds,
+      ]),
       sections: friendSections.get(f.id) ?? new Map<number, string>(),
     }));
 

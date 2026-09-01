@@ -131,6 +131,14 @@ knowing before touching that code:
 
 The pill carries their section as a badge, filled when it differs from yours.
 
+**An overlay is not just their `course_selections`.** Mandatory and WaW courses are never rows
+in that table — the whole cohort sits them, so `scheduleVisibleIds` adds them to your own
+schedule unconditionally. `friendOverlays` in `app/planner/page.tsx` applies the same rule
+(selections + every mandatory course + WaW when `filters.showWaw`). Building it from selections
+alone left a block made entirely of cohort courses — Block 20 is ABMA + PWMC — overlaying
+nothing, which reads as the overlay being broken rather than as the friend having picked
+nothing there. The Friends tab's comparison counts deliberately still read raw selections.
+
 ### Course time-awareness (applies to every student-facing surface)
 
 A course whose last class has passed is **finished**, and the app must never talk about it as

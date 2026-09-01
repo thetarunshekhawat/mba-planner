@@ -4,6 +4,22 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - Friend overlays now cover the courses the whole cohort sits
+
+Turning a friend on in My Schedule drew nothing in Block 20, which read as the overlay being
+broken by the A/B section split. It wasn't the section filter. Mandatory and WaW courses are
+never rows in anyone's `course_selections` — the cohort sits them all, so your own schedule
+adds them unconditionally (`scheduleVisibleIds` in `app/planner/page.tsx`). The friend overlay
+was built from `course_selections` alone, so those courses were invisible for friends, and a
+block made entirely of them (Block 20 is ABMA + PWMC) overlaid nothing at all.
+
+`friendOverlays` now applies the same rule your own schedule does: their selections plus every
+mandatory course, plus WaW when the WaW filter is on. The section-aware overlay then places
+them in *their* half of the day — a friend in ABMA Section A appears in the 09:00–12:00 row
+even though you sit the 13:30–16:30 one — which is what the toggle is for. The Friends tab's
+comparison counts still read raw `course_selections` and are unchanged.
+
+
 ### Fixed - Blocks 20 and 21 rebuilt from the revised timetables
 
 The tentative Term 4 timetable was still driving My Schedule for the last two blocks, and the

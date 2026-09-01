@@ -309,7 +309,7 @@ export const ALL_COURSES: Course[] = [
     faculty: '', seats: null, specs: [], type: 'exam', conflictGroup: null, review: null,
   },
 
-  // Block 20 (Aug 31 – Sep 13) — ABMA + PSWT (WaW)
+  // Block 20 (Aug 31 – Sep 13) — ABMA + PWMC (WaW)
   {
     id: 10, term: 4, week: 10,
     startDate: '2026-08-31', endDate: '2026-09-11',
@@ -335,13 +335,17 @@ export const ALL_COURSES: Course[] = [
     startDate: '2026-08-31', endDate: '2026-09-11',
     dates: 'Aug 31–Sep 11', block: 20,
     name: 'Persuasive Writing for Managers',
-    code: 'PSWT',
+    code: 'PWMC',
     faculty: 'Prof. Somak Ghoshal',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
+    // Per the revised Block 20 timetable the sections are swapped relative to the
+    // tentative one: Section B takes the morning slot, Section A the afternoon.
     timings: [
-      { slot: '09:00–10:30', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
-      { slot: '13:30–15:00', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+      { slot: '09:00–10:30', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+      { slot: '13:30–15:00', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
     ],
+    // Storage keys keep the old `pswt` code — they are real object names in the
+    // seating-charts bucket, not derived from `code`. Renaming them here 404s.
     seatingCharts: [
       { section: 'A', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/pswt-section-a.pdf' },
       { section: 'B', url: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/seating-charts/pswt-section-b.pdf' },
@@ -355,13 +359,15 @@ export const ALL_COURSES: Course[] = [
     startDate: '2026-09-14', endDate: '2026-09-27',
     dates: 'Sep 14–27', block: 21,
     name: 'Product Management',
-    code: 'PDMT',
+    code: 'PMMC',
     faculty: 'Prof. Srinivas Pingali',
     seats: 60, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: null,
+    // Week 1 skips Mon Sep 14 (Ganesh Chaturthi); week 2 has no Saturday class.
     timings: [
-      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
-      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+      { slot: '09:00–12:00', room: 'S04', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
+    // Storage key keeps the old `pdmt` code — see the note on PWMC's seating charts.
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/pdmt.pdf',
     review: {
       learningDepth: 1, workload: 'Low-Moderate', careerRelevance: 4,
@@ -385,7 +391,8 @@ export const ALL_COURSES: Course[] = [
     code: 'MHPT',
     faculty: 'Prof. Pooja Mishra',
     seats: 60, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: null,
-    timings: [{ slot: '09:00–12:00', room: 'S03', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
+    // Week 1 skips Mon Sep 14 (Ganesh Chaturthi); week 2 has no Saturday class.
+    timings: [{ slot: '09:00–12:00', room: 'S03', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] }],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/mhpt.docx',
     review: {
       learningDepth: 2, workload: 'Low-Moderate', careerRelevance: 3,

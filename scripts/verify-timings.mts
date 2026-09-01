@@ -22,6 +22,13 @@ const EXPECTED: Record<string, string[]> = {
   CIVB: ['1012', '1013', '1014', '1123', '1124', '1125'],
   // Term 4 regression guard: FSAT spans blocks 18 and 19.
   FSAT: ['0730', '0731', '0803', '0804', '0806', '0812', '0814', '0817', '0818', '0820'],
+  // Blocks 20-21, transcribed from the revised block timetables
+  // ("Term 4, Block 20 new.pdf" / "Term 4, Block 21 new.pdf").
+  ABMA: ['0831', '0901', '0902', '0903', '0904', '0907', '0908', '0909', '0910', '0911'],
+  PWMC: ['0831', '0901', '0902', '0903', '0907', '0908', '0909', '0910'],
+  // Block 21 week 1 opens on Tue Sep 15 — Mon Sep 14 is Ganesh Chaturthi.
+  PMMC: ['0915', '0916', '0917', '0918', '0919', '0921', '0922', '0923', '0924', '0925'],
+  MHPT: ['0915', '0916', '0917', '0918', '0919', '0921', '0922', '0923', '0924', '0925'],
 };
 
 let failures = 0;

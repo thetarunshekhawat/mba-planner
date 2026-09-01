@@ -22,6 +22,23 @@ interface KyotoBlock {
   banners?: { label: string; tone: 'exam' | 'break' }[];
 }
 
+/** Dashed strip for a non-teaching notice: an exam window, break, or one-off exam. */
+function NoticeStrip({ label, tone }: { label: string; tone: 'exam' | 'break' }) {
+  return (
+    <div
+      style={{
+        marginBottom: 14, borderRadius: 'var(--radius)', padding: '7px 12px',
+        fontSize: 12, fontWeight: 500,
+        border: tone === 'exam' ? '1px dashed #fca5a5' : '1px dashed #93c5fd',
+        backgroundColor: tone === 'exam' ? '#fff5f5' : '#eff6ff',
+        color: tone === 'exam' ? '#ef4444' : '#3b82f6',
+      }}
+    >
+      {tone === 'exam' ? '📝' : '🗓'} {label}
+    </div>
+  );
+}
+
 // Whole-block rows (this skin collapses both weeks of a block into one table).
 // Keep in sync with SCHEDULE_BY_TERM in components/planner/TimetableView.tsx.
 const BLOCKS_BY_TERM: Record<number, KyotoBlock[]> = {
@@ -32,7 +49,11 @@ const BLOCKS_BY_TERM: Record<number, KyotoBlock[]> = {
     { block: 19, dates: 'Aug 10 – 23',     start: '2026-08-10', end: '2026-08-23' },
     { block: 20, dates: 'Aug 31 – Sep 13', start: '2026-08-31', end: '2026-09-13',
       banners: [{ label: 'Exam Week — Aug 24–28', tone: 'exam' }] },
-    { block: 21, dates: 'Sep 14 – 27',     start: '2026-09-14', end: '2026-09-27' },
+    { block: 21, dates: 'Sep 14 – 27',     start: '2026-09-14', end: '2026-09-27',
+      banners: [
+        { label: 'Mid Block — Persuasive Writing · Sat Sep 5, 09:00–12:00', tone: 'exam' },
+        { label: 'End Block Exam — Persuasive Writing · Sat Sep 12, 09:00–12:00', tone: 'exam' },
+      ] },
   ],
   5: [
     { block: 22, dates: 'Sep 28 – Oct 11', start: '2026-09-28', end: '2026-10-11' },
@@ -44,6 +65,15 @@ const BLOCKS_BY_TERM: Record<number, KyotoBlock[]> = {
         { label: 'Placements Week — Nov 16–22', tone: 'break' },
       ] },
     { block: 26, dates: 'Dec 7 – 20',      start: '2026-12-07', end: '2026-12-20' },
+  ],
+};
+
+// Notices falling after a term's last teaching block. Term 4 closes on Sun Sep 27
+// and the grid runs Mon–Sat, so those exams have no cell to live in.
+const TRAILING_BY_TERM: Record<number, { label: string; tone: 'exam' | 'break' }[]> = {
+  4: [
+    { label: 'End Block Exam — Product Management · Sun Sep 27, 09:00–12:00', tone: 'exam' },
+    { label: 'End Block Exam — Managing High Performance Teams · Sun Sep 27, 13:30–16:30', tone: 'exam' },
   ],
 };
 
@@ -467,20 +497,7 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
         ) : (
           blocks.map(b => (
             <div key={b.block}>
-              {b.banners?.map((n, ni) => (
-                <div
-                  key={ni}
-                  style={{
-                    marginBottom: 14, borderRadius: 'var(--radius)', padding: '7px 12px',
-                    fontSize: 12, fontWeight: 500,
-                    border: n.tone === 'exam' ? '1px dashed #fca5a5' : '1px dashed #93c5fd',
-                    backgroundColor: n.tone === 'exam' ? '#fff5f5' : '#eff6ff',
-                    color: n.tone === 'exam' ? '#ef4444' : '#3b82f6',
-                  }}
-                >
-                  {n.tone === 'exam' ? '📝' : '🗓'} {n.label}
-                </div>
-              ))}
+              {b.banners?.map((n, ni) => <NoticeStrip key={ni} {...n} />)}
               <BlockTable
                 blockInfo={b}
                 courses={courses}
@@ -492,6 +509,7 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
             </div>
           ))
         )}
+        {hasContent && TRAILING_BY_TERM[term]?.map((n, ni) => <NoticeStrip key={ni} {...n} />)}
       </div>
     );
   }

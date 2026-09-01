@@ -4,6 +4,57 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - Blocks 20 and 21 rebuilt from the revised timetables
+
+The tentative Term 4 timetable was still driving My Schedule for the last two blocks, and the
+registrar has since published both. Three things were wrong on the student's own schedule:
+
+- **Persuasive Writing had its sections inverted.** The revised Block 20 sheet puts Section B
+  in the 09:00–10:30 slot and Section A in 13:30–15:00 — the tentative one had it the other
+  way. Anyone with a recorded section was being shown the wrong half of the day, every
+  teaching day of the block.
+- **Mon Sep 14 is Ganesh Chaturthi**, not a teaching day. Product Management and Managing High
+  Performance Teams both carried a class on it. Their week-1 patterns now start on Tue Sep 15.
+- **Two courses were renamed** by the published sheets: `PSWT` → `PWMC` (Persuasive Writing
+  for Managers) and `PDMT` → `PMMC` (Product Management). The code is what the insight engine
+  matches on and what the chatbot looks outlines up by, so the rename runs through
+  `data/courses.ts`, `data/term4Insights.json`, `data/courseOutlines.json`,
+  `data/courseDeadlineCandidates.json` and a `course_outlines` migration (021). The numeric
+  `course_id` is untouched, so no saved selection or section assignment moved.
+
+AI in Business already matched the published sheet and is unchanged.
+
+`scripts/verify-timings.mts` now guards all four Block 20/21 courses, so the next hand
+transcription of these blocks fails loudly instead of silently. `build_class_sessions.py`
+gained a `CODE_ALIASES` map: the tentative and published sheets disagreed on two codes, which
+left `classSessions.json` carrying both a stale and a current copy of the same course.
+
+### Added - End-block exam dates for Blocks 20 and 21
+
+The revised sheets carry assessment dates the planner had nowhere to put: Persuasive Writing's
+mid block (Sat Sep 5) and end block exam (Sat Sep 12), and the Term 4 closers on **Sunday**
+Sep 27 — Product Management at 09:00–12:00, Managing High Performance Teams at 13:30–16:30.
+
+These render as dated notice strips rather than grid cells. The grid runs Mon–Sat, so Sep 27
+has no column at all, and modelling an exam as a `timings` entry would put it into conflict
+detection and the section filter as though it were a class. The Term 1 gantt panel used to be
+triggered by *any* exam-tone banner in Term 4; it now opts in explicitly (`withTerm1Gantt`),
+so these three banners don't each drag a duplicate panel onto the page.
+
+### Added - Friend overlays show the friend's own section
+
+Overlaying a friend drew them in *your* section's slots. If they were in the other section the
+overlay put them beside you in a class you don't share, and the slot they actually attend had
+no row in your grid to render them in — so a genuine "we're both busy Tuesday morning, in
+different rooms" read as sitting together.
+
+`useFriendSections` fetches overlaid friends' registrar assignments (the existing
+`course_sections_read_all` policy already permitted this), and the overlay filters their
+timings by their own section, adds any slot rows they need, and badges the section on the pill
+— filled when it differs from yours. Clash detection follows the same narrowing, so a friend
+in the other section no longer counts as a clash in a slot they were never in. With no section
+on file the previous behaviour stands: every part shows, because guessing would be worse.
+
 ### Added - Tracked competition deadlines now appear on My Schedule
 
 The Alerts tab knew the student had a submission due on a Thursday afternoon and My Schedule

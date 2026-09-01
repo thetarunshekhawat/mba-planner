@@ -85,6 +85,9 @@ export interface FriendOverlay {
   name: string;
   color: string;
   selected: Set<number>;
+  /** Their registrar section per course id. Empty when unknown, in which case
+   *  the overlay can't narrow which part of a two-section course they attend. */
+  sections?: Map<number, string>;
 }
 
 // Distinct hues for overlaid friends (cycled by friend ordering).

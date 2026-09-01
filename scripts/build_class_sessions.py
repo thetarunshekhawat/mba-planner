@@ -33,6 +33,12 @@ MONTHS = {
 # The source files spell months loosely ("Sept", "Augt"), so match on the first
 # three letters only.
 NON_VENUE = re.compile(r"exam|holiday|celebration", re.I)
+
+# The term-wide tentative timetable used provisional codes for two Block 20/21
+# courses that the published block timetables later renamed. Normalising here
+# keeps both sources under one key so the priority rule below can supersede the
+# tentative rows instead of leaving a stale duplicate course behind.
+CODE_ALIASES = {"PSWT": "PWMC", "PDMT": "PMMC"}
 EXAM_SLOTS = {"Morning": ("09:00", "12:00"), "Afternoon": ("13:30", "16:30")}
 
 
@@ -105,6 +111,7 @@ def parse_grid(rows, term, sessions, source, priority=0):
             if not cm or not dates[i]:
                 continue
             code, section, group, suffix = cm.groups()
+            code = CODE_ALIASES.get(code, code)
             label = rooms[i] if i < len(rooms) else ""
             # An exam/holiday column carries a label like "EB-EXAMS" where the
             # venue normally goes, so it is not a room.

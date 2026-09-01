@@ -7,6 +7,7 @@ import { useCourseSections } from '@/hooks/useCourseSections';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useFriends } from '@/hooks/useFriends';
 import { useFriendSelections } from '@/hooks/useFriendSelections';
+import { useFriendSections } from '@/hooks/useFriendSections';
 import { TimetableView } from '@/components/planner/TimetableView';
 import { PlannerListView } from '@/components/planner/PlannerListView';
 import { FriendsView } from '@/components/planner/FriendsView';
@@ -116,6 +117,7 @@ export default function PlannerPage() {
 
   const friendIds = friends.map(f => f.id);
   const friendSelections = useFriendSelections(friendIds);
+  const friendSections = useFriendSections(friendIds);
 
   // Drop overlays for friends that are no longer in the list (e.g. removed).
   useEffect(() => {
@@ -134,6 +136,7 @@ export default function PlannerPage() {
       name: f.name,
       color: colorForFriend(f.id),
       selected: friendSelections.get(f.id) ?? new Set<number>(),
+      sections: friendSections.get(f.id) ?? new Map<number, string>(),
     }));
 
   function handleToggleOverlay(friend: Friend, source: 'friends' | 'schedule' = 'friends') {

@@ -48,6 +48,16 @@ function searchStateFor(highlightIds: Set<number> | undefined, id: number): Sear
   return highlightIds.has(id) ? 'hit' : 'miss';
 }
 
+/** A non-teaching notice strip: an exam window, a break, or a one-off assessment. */
+interface Notice {
+  label: string;
+  tone: 'exam' | 'break';
+  /** Pairs this banner with the Term 1 gantt panel when the Term 1 overlay is on.
+   *  Only the term-wide exam week does this — a one-off exam date must not, or
+   *  every added exam banner would draw its own duplicate panel. */
+  withTerm1Gantt?: boolean;
+}
+
 /** A single teaching week of a block — one grid table on the schedule. */
 interface BlockRow {
   block: number;
@@ -56,7 +66,7 @@ interface BlockRow {
   start: string;
   end: string;
   /** Non-teaching notices to render above this row (exam break, placements week, …). */
-  banners?: { label: string; tone: 'exam' | 'break' }[];
+  banners?: Notice[];
 }
 
 /** Everything the schedule needs to lay out one term. */
@@ -65,7 +75,7 @@ interface TermSchedule {
   dateRange: string;
   blocks: BlockRow[];
   /** Notices that fall after the last teaching block of the term. */
-  trailing?: { label: string; tone: 'exam' | 'break' }[];
+  trailing?: Notice[];
 }
 
 // Block calendars per term. These must stay in sync with the `block` / `startDate` /
@@ -84,10 +94,18 @@ const SCHEDULE_BY_TERM: Record<number, TermSchedule> = {
       { block: 19, weekNum: 1, dates: 'Aug 10 – Aug 16', start: '2026-08-10', end: '2026-08-16' },
       { block: 19, weekNum: 2, dates: 'Aug 17 – Aug 23', start: '2026-08-17', end: '2026-08-23' },
       { block: 20, weekNum: 1, dates: 'Aug 31 – Sep 6',  start: '2026-08-31', end: '2026-09-06',
-        banners: [{ label: 'Exam Week — Aug 24–28', tone: 'exam' }] },
-      { block: 20, weekNum: 2, dates: 'Sep 7 – Sep 13',  start: '2026-09-07', end: '2026-09-13' },
-      { block: 21, weekNum: 1, dates: 'Sep 14 – Sep 20', start: '2026-09-14', end: '2026-09-20' },
+        banners: [{ label: 'Exam Week — Aug 24–28', tone: 'exam', withTerm1Gantt: true }] },
+      { block: 20, weekNum: 2, dates: 'Sep 7 – Sep 13',  start: '2026-09-07', end: '2026-09-13',
+        banners: [{ label: 'Mid Block — Persuasive Writing · Sat Sep 5, 09:00–12:00', tone: 'exam' }] },
+      { block: 21, weekNum: 1, dates: 'Sep 14 – Sep 20', start: '2026-09-14', end: '2026-09-20',
+        banners: [{ label: 'End Block Exam — Persuasive Writing · Sat Sep 12, 09:00–12:00', tone: 'exam' }] },
       { block: 21, weekNum: 2, dates: 'Sep 21 – Sep 27', start: '2026-09-21', end: '2026-09-27' },
+    ],
+    // Sun Sep 27 closes Term 4. The grid runs Mon–Sat, so these land here rather
+    // than in a cell.
+    trailing: [
+      { label: 'End Block Exam — Product Management · Sun Sep 27, 09:00–12:00', tone: 'exam' },
+      { label: 'End Block Exam — Managing High Performance Teams · Sun Sep 27, 13:30–16:30', tone: 'exam' },
     ],
   },
   5: {
@@ -177,12 +195,19 @@ function getUniqueSlots(
   courses: Course[],
   advisories?: Map<number, SectionAdvisory>,
   assignedSections?: Map<number, string>,
+  friendBlocks?: { overlay: FriendOverlay; courses: Course[] }[],
 ): string[] {
   const set = new Set<string>();
   courses.forEach(c => c.timings?.forEach(t => {
     if (!isTimingVisible(c.id, t, assignedSections ?? new Map(), advisories ?? new Map())) return;
     set.add(t.slot);
   }));
+  // A friend in the other section meets in a slot the viewer may not have a row
+  // for. Without this their pill has nowhere to render and the overlay drops them.
+  friendBlocks?.forEach(({ overlay, courses: fcs }) => fcs.forEach(c => c.timings?.forEach(t => {
+    if (!friendTimingVisible(overlay, c.id, t)) return;
+    set.add(t.slot);
+  })));
   return [...set].sort((a, b) => {
     const ta = parseInt(a.split('–')[0].replace(':', ''), 10);
     const tb = parseInt(b.split('–')[0].replace(':', ''), 10);
@@ -241,6 +266,34 @@ function friendBlockCourses(overlay: FriendOverlay, start: string, end: string):
   );
 }
 
+// Which part of a two-section course a friend actually sits in. Their recorded
+// section wins; with no record on file we can't narrow it, so every part stays
+// visible rather than guessing them into your slot.
+function friendTimingVisible(
+  overlay: FriendOverlay,
+  courseId: number,
+  timing: NonNullable<Course['timings']>[number],
+): boolean {
+  const assigned = overlay.sections?.get(courseId);
+  if (!assigned) return true;
+  return !timing.part || timing.part === assigned;
+}
+
+// matchesSlotDay, narrowed to the section the friend is actually in.
+function friendMatchesSlotDay(
+  overlay: FriendOverlay,
+  c: Course,
+  slot: string,
+  day: string,
+  weekNum: 1 | 2,
+  blockStart: string,
+): boolean {
+  return !!c.timings?.some(t => {
+    if (!friendTimingVisible(overlay, c.id, t)) return false;
+    return t.slot === slot && effectiveDaysFor(c, t, blockStart, weekNum).includes(day);
+  });
+}
+
 type FriendCellState = 'together' | 'clash' | 'solo';
 
 interface Clash {
@@ -267,13 +320,13 @@ function computeClashes(visibleIds: Set<number>, overlays: FriendOverlay[]): Cla
     for (const overlay of overlays) {
       const theirs = friendBlockCourses(overlay, block.start, block.end);
       if (theirs.length === 0) continue;
-      const slots = getUniqueSlots([...mine, ...theirs]);
+      const slots = getUniqueSlots(mine, undefined, undefined, [{ overlay, courses: theirs }]);
       for (const slot of slots) {
         for (const day of DAYS) {
           const myHere = mine.filter(c => matchesSlotDay(c, slot, day, block.weekNum, block.start));
           if (myHere.length === 0) continue;
           for (const tc of theirs) {
-            if (!matchesSlotDay(tc, slot, day, block.weekNum, block.start)) continue;
+            if (!friendMatchesSlotDay(overlay, tc, slot, day, block.weekNum, block.start)) continue;
             if (myHere.some(mc => mc.id === tc.id)) continue; // same class — together
             out.push({
               friendId: overlay.id,
@@ -293,20 +346,28 @@ function computeClashes(visibleIds: Set<number>, overlays: FriendOverlay[]): Cla
   return out;
 }
 
-function FriendCoursePill({ course, overlay, state, onClick }: {
+function FriendCoursePill({ course, overlay, state, mySection, onClick }: {
   course: Course;
   overlay: FriendOverlay;
   state: FriendCellState;
+  /** The viewer's own section for this course, when they're taking it too. */
+  mySection: string | undefined;
   onClick: () => void;
 }) {
   const color = overlay.color;
+  const section = overlay.sections?.get(course.id);
+  // Worth calling out only when it differs from yours — otherwise it's noise.
+  const splitSection = !!section && !!mySection && section !== mySection;
   const note = state === 'clash' ? ' — clashes with your class'
     : state === 'together' ? ' — same class as you' : '';
+  const sectionNote = section
+    ? ` · Section ${section}${splitSection ? ` (you're in ${mySection})` : ''}`
+    : '';
   return (
     <button
       onClick={onClick}
       className="w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1"
-      title={`${overlay.name}: ${course.name}${note}`}
+      title={`${overlay.name}: ${course.name}${sectionNote}${note}`}
       style={{
         background: color + '14',
         borderLeft: `3px dashed ${color}`,
@@ -326,6 +387,18 @@ function FriendCoursePill({ course, overlay, state, onClick }: {
         <span className="font-semibold text-[11px] leading-tight" style={{ color }}>
           {course.code ?? course.name.slice(0, 4).toUpperCase()}
         </span>
+        {section && (
+          <span
+            className="text-[9px] font-semibold leading-tight flex-shrink-0 rounded-sm px-1"
+            style={
+              splitSection
+                ? { color: '#fff', backgroundColor: color }
+                : { color, opacity: 0.75 }
+            }
+          >
+            {section}
+          </span>
+        )}
       </div>
     </button>
   );
@@ -535,11 +608,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
     courses: friendBlockCourses(o, blockInfo.start, blockInfo.end),
   }));
 
-  const slots = getUniqueSlots(
-    [...blockCourses, ...friendBlock.flatMap(f => f.courses)],
-    advisories,
-    assignedSections,
-  );
+  const slots = getUniqueSlots(blockCourses, advisories, assignedSections, friendBlock);
 
   const week = weekCommitments(commitmentsByDay, blockInfo);
 
@@ -652,7 +721,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                       {(() => {
                         const friendPills = friendBlock.flatMap(({ overlay, courses: fcs }) =>
                           fcs
-                            .filter(c => matchesSlotDay(c, slot, day, blockInfo.weekNum, blockInfo.start))
+                            .filter(c => friendMatchesSlotDay(overlay, c, slot, day, blockInfo.weekNum, blockInfo.start))
                             .map(c => {
                               const together = dayCourses.some(mc => mc.id === c.id);
                               const state: FriendCellState = together
@@ -664,6 +733,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                                   course={c}
                                   overlay={overlay}
                                   state={state}
+                                  mySection={assignedSections.get(c.id)}
                                   onClick={() => onCourseClick(c)}
                                 />
                               );
@@ -863,6 +933,14 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
                     {c.code && (
                       <span className="text-xs font-bold" style={{ color: overlay.color }}>{c.code}</span>
                     )}
+                    {overlay.sections?.get(c.id) && (
+                      <span
+                        className="text-[9px] font-semibold rounded-sm px-1 text-white"
+                        style={{ backgroundColor: overlay.color }}
+                      >
+                        {overlay.sections.get(c.id)}
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm font-semibold text-gray-800 leading-snug">{c.name}</div>
                   <div className="text-[10px] mt-0.5" style={{ color: overlay.color }}>{overlay.name}</div>
@@ -1042,7 +1120,7 @@ function TermBlockGrid({
                 data-current-block={isCurrentBlockWeek ? String(term) : undefined}
               >
                 {b.banners?.map((n, ni) => (
-                  supportsTerm1 && showTerm1 && n.tone === 'exam' ? (
+                  supportsTerm1 && showTerm1 && n.withTerm1Gantt ? (
                     <div key={ni} className="flex flex-col lg:flex-row mb-3 rounded-lg overflow-hidden" style={{ border: '1px dashed #fca5a5' }}>
                       <div style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 14px', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center' }}>
                         📝 Term 4 {n.label}
@@ -1191,6 +1269,10 @@ export function TimetableView({
           </span>
           <span className="inline-flex items-center gap-1 text-slate-500">
             <Users className="w-3 h-3" /> = same class as you
+          </span>
+          <span className="inline-flex items-center gap-1 text-slate-500">
+            <span className="text-[9px] font-semibold rounded-sm px-1 text-white bg-slate-500">A</span>
+            = their section (filled when it differs from yours)
           </span>
         </div>
       )}

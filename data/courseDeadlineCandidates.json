@@ -182,26 +182,26 @@
       "confidence": "high"
     },
     {
-      "course_code": "PDMT",
+      "course_code": "PMMC",
       "term": 4,
       "title": "Lovable: Ship a Working MVP",
       "kind": "assignment",
       "due_date": "2026-09-20",
       "due_time": null,
       "weight_pct": null,
-      "source_doc": "course_outlines/PDMT",
+      "source_doc": "course_outlines/PMMC",
       "source_section": "5.3       Weekend          Lovable: Ship a Working MVP                              Lovable AI app\n          Assignment       • Teams start from their Session 3.1 problem             builder\n                             statement\n                           • AI app builders generate a functional web MVP\n                             from text prompts\n                           • Required output: live URL, 1 working core feature,\n                             1 sign-up form",
       "confidence": "high"
     },
     {
-      "course_code": "PDMT",
+      "course_code": "PMMC",
       "term": 4,
       "title": "Final Presentations",
       "kind": "presentation",
       "due_date": "2026-09-25",
       "due_time": null,
       "weight_pct": 30,
-      "source_doc": "course_outlines/PDMT",
+      "source_doc": "course_outlines/PMMC",
       "source_section": "10        25/09/26 (Fri)   Final Presentations                                       Group Presentations",
       "confidence": "high"
     },

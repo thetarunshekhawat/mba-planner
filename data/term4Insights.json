@@ -38,7 +38,7 @@
    "IFIN",
    "MHLG",
    "MHPT",
-   "PDMT",
+   "PMMC",
    "SADT",
    "SCAT",
    "STOP"
@@ -179,7 +179,7 @@
     "21"
    ]
   },
-  "PDMT": {
+  "PMMC": {
    "name": "Product Management",
    "specs": [
     "ECOM",
@@ -599,7 +599,7 @@
    "scope": "pair",
    "courseCodes": [
     "MHPT",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "fact",
@@ -626,11 +626,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(MHPT) AND selected(PDMT)"
+   "cond_src": "selected(MHPT) AND selected(PMMC)"
   },
   {
    "id": "INS-S-FSA-03",
@@ -732,9 +732,9 @@
    "source": "insight",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "Product Management has a NEW professor for Co'27 (Srinivas Pingali). The legendary 'use a laptop and AI for almost every assignment' review was for the OLD, now-departed instructor — useful signal, wrong course.",
    "variants": [
@@ -752,9 +752,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "INS-S-MHPT-03",
@@ -1138,9 +1138,9 @@
    "source": "insight",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "Good news: the new Product Management is even MORE AI-tool-driven. You ship an MVP with Lovable, design in Figma/FigJam, run funnel analysis in PostHog, and plan sprints in Jira/Notion. Laptops aren't just allowed, they're the point.",
    "variants": [
@@ -1159,9 +1159,9 @@
    "facet": "pedagogy",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-05",
@@ -1401,7 +1401,7 @@
    "scope": "pair",
    "courseCodes": [
     "ABMA",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "fact",
@@ -1428,11 +1428,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(ABMA) AND selected(PDMT)"
+   "cond_src": "selected(ABMA) AND selected(PMMC)"
   },
   {
    "id": "INS-P-AIB+FSA-handoff",
@@ -1893,9 +1893,9 @@
    "source": "insight",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "Product Management has a WEEKEND assignment mid-course: your team ships a working web MVP (live URL + one working feature + a sign-up form) using the Lovable AI app builder. Plan that weekend.",
    "variants": [
@@ -1914,9 +1914,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "INS-S-MHPT-05",
@@ -2137,14 +2137,14 @@
    "source": "deterministic",
    "scope": "pair",
    "courseCodes": [
-    "PDMT",
+    "PMMC",
     "MHPT"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
-   "text": "Picking both PDMT and MHPT? Their morning slots overlap — you'd be sectioned into PDMT 13:30–16:30 (Section B).",
+   "text": "Picking both PMMC and MHPT? Their morning slots overlap — you'd be sectioned into PMMC 13:30–16:30 (Section B).",
    "variants": [],
-   "seedQuestion": "Do PDMT and MHPT clash in the timetable?",
+   "seedQuestion": "Do PMMC and MHPT clash in the timetable?",
    "tier": "High",
    "score": 69.0,
    "tags": [
@@ -2158,7 +2158,7 @@
     "args": [
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      },
      {
       "op": "selected",
@@ -2166,7 +2166,7 @@
      }
     ]
    },
-   "cond_src": "(selected(PDMT) AND selected(MHPT))"
+   "cond_src": "(selected(PMMC) AND selected(MHPT))"
   },
   {
    "id": "DET-T4-52",
@@ -2176,12 +2176,12 @@
     "FSAT",
     "BECB",
     "SADT",
-    "PDMT",
+    "PMMC",
     "ABMA"
    ],
    "primaryCourse": "FSAT",
    "type": "question",
-   "text": "Watch your exam pile-up: FSAT, BECB, SADT and PDMT each end in a real test.",
+   "text": "Watch your exam pile-up: FSAT, BECB, SADT and PMMC each end in a real test.",
    "variants": [],
    "seedQuestion": "Which Term 4 courses have exams?",
    "tier": "High",
@@ -2198,12 +2198,12 @@
      "FSAT",
      "BECB",
      "SADT",
-     "PDMT"
+     "PMMC"
     ],
     "cmp": ">=",
     "val": 2
    },
-   "cond_src": "count_selected(FSAT,BECB,SADT,PDMT) >= 2"
+   "cond_src": "count_selected(FSAT,BECB,SADT,PMMC) >= 2"
   },
   {
    "id": "INS-S-ABM-04",
@@ -2836,7 +2836,7 @@
    "scope": "pair",
    "courseCodes": [
     "ABMA",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "question",
@@ -2864,11 +2864,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(ABMA) AND selected(PDMT)"
+   "cond_src": "selected(ABMA) AND selected(PMMC)"
   },
   {
    "id": "INS-P-AIB+ML-synergy",
@@ -3245,9 +3245,9 @@
    "source": "insight",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "Product Management runs two sections in Block 21 — mornings (Sec A) or afternoons (Sec B). The afternoon section dodges the morning clash with Managing High Performance Teams.",
    "variants": [
@@ -3266,9 +3266,9 @@
    "facet": "timing",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "INS-P-ECOM+PM-synergy",
@@ -3276,7 +3276,7 @@
    "scope": "pair",
    "courseCodes": [
     "BECB",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "question",
@@ -3304,11 +3304,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(BECB) AND selected(PDMT)"
+   "cond_src": "selected(BECB) AND selected(PMMC)"
   },
   {
    "id": "INS-P-SCA+SUSTOPS-synergy",
@@ -3683,11 +3683,11 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "question",
-   "text": "Despite the AI-everything vibe, PDMT still ends in a 30% individual closed final exam.",
+   "text": "Despite the AI-everything vibe, PMMC still ends in a 30% individual closed final exam.",
    "variants": [
     "Product Management now has a real structure: a textbook, six modules (Discover/Define/Deliver/Growth/Leadership), AND a 30% individual final exam. It's no longer the unstructured course of reviews past.",
     "PM (new) is textbook-backed with six modules and a 30% individual final exam.",
@@ -3705,9 +3705,9 @@
    "facet": "grading",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)",
+   "cond_src": "selected(PMMC)",
    "merged_from": [
     "INS-S-PM-03"
    ]
@@ -3781,11 +3781,11 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
-   "text": "PDMT is a coin-flip: career-relevant content, but last cohort found it unstructured — and the prof is changing.",
+   "text": "PMMC is a coin-flip: career-relevant content, but last cohort found it unstructured — and the prof is changing.",
    "variants": [],
    "seedQuestion": "Is the Product Management course any good?",
    "tier": "Medium",
@@ -3798,9 +3798,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-13",
@@ -3859,11 +3859,11 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
-   "text": "PDMT is the AI-friendliest course of the term: laptop open, LLM allowed, MVP shipped.",
+   "text": "PMMC is the AI-friendliest course of the term: laptop open, LLM allowed, MVP shipped.",
    "variants": [],
    "seedQuestion": "Can I use AI in the Product Management course?",
    "tier": "Medium",
@@ -3876,9 +3876,9 @@
    "facet": "pedagogy",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-134",
@@ -4218,9 +4218,9 @@
    "source": "insight",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "Product Management is the hands-on PM toolkit: PRDs, the Amazon PR/FAQ method, AARRR metrics, roadmaps, design sprints, and mock PM interviews. If a PM job is the goal, the artefacts here go straight into your prep.",
    "variants": [
@@ -4239,9 +4239,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "INS-S-MHPT-07",
@@ -4365,11 +4365,11 @@
     "SCAT",
     "SADT",
     "BECB",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": "SCAT",
    "type": "fact",
-   "text": "Chasing E-Commerce? 4 Term-4 electives count toward it: SCAT, SADT, BECB, PDMT.",
+   "text": "Chasing E-Commerce? 4 Term-4 electives count toward it: SCAT, SADT, BECB, PMMC.",
    "variants": [],
    "seedQuestion": "Which of my courses count toward E-Commerce?",
    "tier": "Medium",
@@ -4394,11 +4394,11 @@
     "ABMK",
     "SADT",
     "MHLG",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": "ABMK",
    "type": "fact",
-   "text": "Chasing Marketing? 4 Term-4 electives count toward it: ABMK, SADT, MHLG, PDMT.",
+   "text": "Chasing Marketing? 4 Term-4 electives count toward it: ABMK, SADT, MHLG, PMMC.",
    "variants": [],
    "seedQuestion": "Which of my courses count toward Marketing?",
    "tier": "Medium",
@@ -4815,7 +4815,7 @@
    "source": "insight",
    "scope": "pair",
    "courseCodes": [
-    "PDMT",
+    "PMMC",
     "SADT"
    ],
    "primaryCourse": null,
@@ -4840,7 +4840,7 @@
     "args": [
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      },
      {
       "op": "selected",
@@ -4848,7 +4848,7 @@
      }
     ]
    },
-   "cond_src": "selected(PDMT) AND selected(SADT)"
+   "cond_src": "selected(PMMC) AND selected(SADT)"
   },
   {
    "id": "DET-T4-30",
@@ -5036,13 +5036,13 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
-   "text": "PDMT has only 60 seats — one of the smaller, faster-filling Term-4 electives.",
+   "text": "PMMC has only 60 seats — one of the smaller, faster-filling Term-4 electives.",
    "variants": [],
-   "seedQuestion": "How many seats does PDMT have?",
+   "seedQuestion": "How many seats does PMMC have?",
    "tier": "Medium",
    "score": 54.0,
    "tags": [
@@ -5053,9 +5053,9 @@
    "facet": "seats",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-133",
@@ -5233,9 +5233,9 @@
    "source": "insight",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "Product Management grades 50/50 solo-and-team: 20% individual class contribution + 30% individual final exam vs 20% group in-class assignments + 30% group final presentation.",
    "variants": [
@@ -5253,9 +5253,9 @@
    "facet": "grading",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "INS-S-GLOBFIN-04",
@@ -5599,7 +5599,7 @@
     "SCAT",
     "SADT",
     "BECB",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": "SCAT",
    "type": "question",
@@ -5629,7 +5629,7 @@
     "ABMK",
     "SADT",
     "MHLG",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": "ABMK",
    "type": "question",
@@ -5945,13 +5945,13 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "question",
-   "text": "PDMT is evenly split: roughly 50% of the grade is group work, 50% individual.",
+   "text": "PMMC is evenly split: roughly 50% of the grade is group work, 50% individual.",
    "variants": [],
-   "seedQuestion": "How much of PDMT is group work vs individual?",
+   "seedQuestion": "How much of PMMC is group work vs individual?",
    "tier": "Low",
    "score": 49.0,
    "tags": [
@@ -5962,9 +5962,9 @@
    "facet": "grading",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-132",
@@ -6131,10 +6131,10 @@
    "source": "insight",
    "scope": "forward",
    "courseCodes": [
-    "PDMT",
+    "PMMC",
     "BECB"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "question",
    "text": "Skipping both Product Management and Building an E-Commerce Business means no hands-on digital-build course in Term 4 — no MVP, no prototype, no shipping. If product or startup roles are the goal, you're leaving the most portfolio-friendly courses on the table.",
    "variants": [
@@ -6157,7 +6157,7 @@
       "op": "not",
       "arg": {
        "op": "selected",
-       "code": "PDMT"
+       "code": "PMMC"
       }
      },
      {
@@ -6175,7 +6175,7 @@
      }
     ]
    },
-   "cond_src": "NOT selected(PDMT) AND NOT selected(BECB) AND selected_count >= 3"
+   "cond_src": "NOT selected(PMMC) AND NOT selected(BECB) AND selected_count >= 3"
   },
   {
    "id": "INS-G-NO-ANALYTICS",
@@ -6546,7 +6546,7 @@
    "scope": "pair",
    "courseCodes": [
     "MHLG",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "fact",
@@ -6573,11 +6573,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(MHLG) AND selected(PDMT)"
+   "cond_src": "selected(MHLG) AND selected(PMMC)"
   },
   {
    "id": "INS-P-ML+SDM-none",
@@ -6662,7 +6662,7 @@
    "source": "insight",
    "scope": "pair",
    "courseCodes": [
-    "PDMT",
+    "PMMC",
     "SCAT"
    ],
    "primaryCourse": null,
@@ -6686,7 +6686,7 @@
     "args": [
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      },
      {
       "op": "selected",
@@ -6694,7 +6694,7 @@
      }
     ]
    },
-   "cond_src": "selected(PDMT) AND selected(SCAT)"
+   "cond_src": "selected(PMMC) AND selected(SCAT)"
   },
   {
    "id": "INS-P-SCA+SDM-none",
@@ -6792,14 +6792,14 @@
    "source": "deterministic",
    "scope": "combo",
    "courseCodes": [
-    "PDMT",
+    "PMMC",
     "MHLG",
     "ABMA",
     "BECB"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "question",
-   "text": "Term 4 is quietly an AI bootcamp: PDMT, MHLG, ABMA and BECB all put tools in your hands.",
+   "text": "Term 4 is quietly an AI bootcamp: PMMC, MHLG, ABMA and BECB all put tools in your hands.",
    "variants": [],
    "seedQuestion": "Which Term 4 courses are hands-on with AI?",
    "tier": "Low",
@@ -6813,7 +6813,7 @@
    "cond": {
     "op": "count",
     "codes": [
-     "PDMT",
+     "PMMC",
      "MHLG",
      "ABMA",
      "BECB"
@@ -6821,7 +6821,7 @@
     "cmp": ">=",
     "val": 2
    },
-   "cond_src": "count_selected(PDMT,MHLG,ABMA,BECB) >= 2"
+   "cond_src": "count_selected(PMMC,MHLG,ABMA,BECB) >= 2"
   },
   {
    "id": "INS-S-ML-07",
@@ -6857,9 +6857,9 @@
    "source": "insight",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "One product idea carries through the whole PM course: you generate it in Session 3.1 and build, design, prototype, and pitch it all the way to the final presentation. Pick an idea you can stand for two weeks.",
    "variants": [
@@ -6877,9 +6877,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-04",
@@ -7009,11 +7009,11 @@
    "scope": "pair",
    "courseCodes": [
     "BECB",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": "BECB",
    "type": "question",
-   "text": "BECB + PDMT: E-commerce building plus product management.",
+   "text": "BECB + PMMC: E-commerce building plus product management.",
    "variants": [],
    "seedQuestion": "Do Building an E-Commerce Business and Product Management complement each other?",
    "tier": "Low",
@@ -7033,11 +7033,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "(selected(BECB) AND selected(PDMT))"
+   "cond_src": "(selected(BECB) AND selected(PMMC))"
   },
   {
    "id": "DET-T4-70",
@@ -8258,9 +8258,9 @@
    "source": "insight",
    "scope": "forward",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
    "text": "Product Management feeds straight into Strategic Digital Transformation and E-Commerce Strategies in India — both extend the digital-product lens into transformation and live go-to-market. Natural next steps for an aspiring PM or digital strategist.",
    "variants": [
@@ -8279,9 +8279,9 @@
    "facet": "forward",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "INS-F-MHPT",
@@ -8358,7 +8358,7 @@
    "scope": "pair",
    "courseCodes": [
     "ABMK",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "question",
@@ -8386,11 +8386,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(ABMK) AND selected(PDMT)"
+   "cond_src": "selected(ABMK) AND selected(PMMC)"
   },
   {
    "id": "INS-P-ECOM+SDM-synergy",
@@ -8687,13 +8687,13 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "question",
-   "text": "PDMT is aimed at: Product management, Tech / startups, E-commerce.",
+   "text": "PMMC is aimed at: Product management, Tech / startups, E-commerce.",
    "variants": [],
-   "seedQuestion": "Is PDMT useful for my career?",
+   "seedQuestion": "Is PMMC useful for my career?",
    "tier": "Low",
    "score": 40.0,
    "tags": [
@@ -8703,9 +8703,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-130",
@@ -9112,13 +9112,13 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "fact",
-   "text": "In PDMT you'll walk away with: The PM role: discover, define, deliver, growth, leadership.",
+   "text": "In PMMC you'll walk away with: The PM role: discover, define, deliver, growth, leadership.",
    "variants": [],
-   "seedQuestion": "What will I learn in PDMT?",
+   "seedQuestion": "What will I learn in PMMC?",
    "tier": "Low",
    "score": 38.0,
    "tags": [
@@ -9128,9 +9128,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-129",
@@ -9581,13 +9581,13 @@
    "source": "deterministic",
    "scope": "single",
    "courseCodes": [
-    "PDMT"
+    "PMMC"
    ],
-   "primaryCourse": "PDMT",
+   "primaryCourse": "PMMC",
    "type": "question",
    "text": "Want the inside scoop on Product Management?",
    "variants": [],
-   "seedQuestion": "Tell me about PDMT (Product Management)",
+   "seedQuestion": "Tell me about PMMC (Product Management)",
    "tier": "Flavor",
    "score": 29.0,
    "tags": [
@@ -9597,9 +9597,9 @@
    "facet": "general",
    "cond": {
     "op": "selected",
-    "code": "PDMT"
+    "code": "PMMC"
    },
-   "cond_src": "selected(PDMT)"
+   "cond_src": "selected(PMMC)"
   },
   {
    "id": "DET-T4-128",
@@ -10088,7 +10088,7 @@
    "scope": "pair",
    "courseCodes": [
     "FSAT",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "fact",
@@ -10114,11 +10114,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(FSAT) AND selected(PDMT)"
+   "cond_src": "selected(FSAT) AND selected(PMMC)"
   },
   {
    "id": "INS-P-FSA+SDM-none",
@@ -10278,7 +10278,7 @@
    "scope": "pair",
    "courseCodes": [
     "FWKJ",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "fact",
@@ -10304,11 +10304,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(FWKJ) AND selected(PDMT)"
+   "cond_src": "selected(FWKJ) AND selected(PMMC)"
   },
   {
    "id": "INS-P-FOW+SDM-none",
@@ -10468,7 +10468,7 @@
    "scope": "pair",
    "courseCodes": [
     "IFIN",
-    "PDMT"
+    "PMMC"
    ],
    "primaryCourse": null,
    "type": "fact",
@@ -10494,11 +10494,11 @@
      },
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      }
     ]
    },
-   "cond_src": "selected(IFIN) AND selected(PDMT)"
+   "cond_src": "selected(IFIN) AND selected(PMMC)"
   },
   {
    "id": "INS-P-GLOBFIN+SDM-none",
@@ -10657,7 +10657,7 @@
    "source": "insight",
    "scope": "pair",
    "courseCodes": [
-    "PDMT",
+    "PMMC",
     "STOP"
    ],
    "primaryCourse": null,
@@ -10680,7 +10680,7 @@
     "args": [
      {
       "op": "selected",
-      "code": "PDMT"
+      "code": "PMMC"
      },
      {
       "op": "selected",
@@ -10688,7 +10688,7 @@
      }
     ]
    },
-   "cond_src": "selected(PDMT) AND selected(STOP)"
+   "cond_src": "selected(PMMC) AND selected(STOP)"
   }
  ]
 }

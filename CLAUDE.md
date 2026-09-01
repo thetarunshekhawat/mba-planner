@@ -48,7 +48,10 @@ lib/alerts/commitments.ts
 data/classSessions.json
                        Per-date class sessions read off the block timetables
                        (scripts/build_class_sessions.py). Reference data; nothing reads
-                       it at runtime — the catalogue's `timings` still drives the UI
+                       it at runtime — the catalogue's `timings` still drives the UI.
+                       A published block timetable supersedes the tentative one by
+                       `priority`; when a block also renamed the course, the old code
+                       goes in that script's `CODE_ALIASES` so both land on one key
 components/planner/*   The main planner UI (Plan / My Schedule / Friends / Alerts)
 .claude/skills/unstop-import/
                        Cohort-wide competition from an Unstop link (API-mapped)
@@ -110,6 +113,21 @@ A term's block structure (which fortnights exist, and their dates) is written ou
 
 **These must stay in sync.** There is no runtime check. `scripts/verify-timings.mts` catches
 drift between (1) and the real timetable, but nothing catches drift between (1) and (2)/(3).
+
+### Friend overlays are section-aware
+
+A friend overlaid on My Schedule is drawn only in the slots their **own** registrar section
+meets (`useFriendSections` → `FriendOverlay.sections` → `friendTimingVisible` /
+`friendMatchesSlotDay` in `components/planner/TimetableView.tsx`). Two consequences worth
+knowing before touching that code:
+
+- `getUniqueSlots` takes the overlaid friends separately from your own courses. A friend in
+  the other section meets in a slot **you have no row for**; folding their courses in under
+  your `assignedSections` would filter their timing out and drop them from the grid entirely.
+- With no section on file for them the overlay can't narrow anything, so every part stays
+  visible. That is deliberate — inventing a section puts them in the wrong half of the day.
+
+The pill carries their section as a badge, filled when it differs from yours.
 
 ### Course time-awareness (applies to every student-facing surface)
 
@@ -485,7 +503,7 @@ supabase db query --linked "select ..." -o table     # read-only queries
 | `cohort_whitelist` | Invited emails; readable by anon for the pre-login check |
 | `course_selections` | `(user_id, course_id)` — **term-agnostic**, term resolved via `data/courses.ts` |
 | `course_sections` | Registrar A/B section assignments; written only by a service-role script |
-| `course_outlines` | Keyed by `code`, with a `term` column. Read by the chatbot |
+| `course_outlines` | Keyed by `code`, with a `term` column. Read by the chatbot — renaming a course code in `data/courses.ts` needs a migration to match, or outline lookups silently miss |
 | `friendships` | Directed edges; inserts go through `add_friend_by_code` |
 | `user_sessions`, `user_events` | Analytics (see below) |
 | `landing_sessions` | Pre-login funnel; anon-writable by design |

@@ -44,7 +44,7 @@ const FORCE = process.argv.includes('--force');
 const COURSE_AIB = 101; // AITM / "Winning at Workplace" (WaW, Block 17) — holds the "AI in Business" seating-chart sections per user decision
 const COURSE_SADT = 5;  // Sales & Distribution (elective)
 const COURSE_ABMA = 10;  // AI in Business: From Models to Agents (mandatory, Block 20)
-const COURSE_PSWT = 102; // Persuasive Writing for Managers (WaW, Block 20)
+const COURSE_PWMC = 102; // Persuasive Writing for Managers (WaW, Block 20)
 
 // ── Rosters (hand-transcribed from Subject Sections /*.pdf) ────────────────
 
@@ -179,7 +179,7 @@ const ROSTERS = [
     ],
   },
   {
-    courseId: COURSE_PSWT, section: 'A',
+    courseId: COURSE_PWMC, section: 'A',
     names: [
       'Naitik Shailesh Trivedi', 'Rahul Vishal Mishra', 'Mansi Jain', 'B Shruti Chandra', 'Nischal Ramesh',
       'Tanya Chitloor', 'Upasana Rao K', 'Sanya Bindlish', 'B Srihitha', 'Padma Sai Sisira Laasya Pallerla',
@@ -201,7 +201,7 @@ const ROSTERS = [
     ],
   },
   {
-    courseId: COURSE_PSWT, section: 'B',
+    courseId: COURSE_PWMC, section: 'B',
     names: [
       'Vedant Rathi', 'Khushi Baheti', 'Sanskriti Rathore', 'Sainithin Ambati Venkata', 'Prabhudatta Panda',
       'Muskan Abrol', 'Shourya Bardia', 'Aaditya Laxman Mali', 'Mudita Agarwal', 'Anish Banerjee',

@@ -50,8 +50,10 @@ data/classSessions.json
                        (scripts/build_class_sessions.py). Reference data; nothing reads
                        it at runtime — the catalogue's `timings` still drives the UI.
                        A published block timetable supersedes the tentative one by
-                       `priority`; when a block also renamed the course, the old code
-                       goes in that script's `CODE_ALIASES` so both land on one key
+                       `priority`, per code; when a block also renamed the course, the
+                       old code goes in that script's `CODE_ALIASES` so both land on
+                       one key. The script flags two codes claiming one room at one
+                       time so a rename can't duplicate a course silently again
 components/planner/*   The main planner UI (Plan / My Schedule / Friends / Alerts)
 .claude/skills/unstop-import/
                        Cohort-wide competition from an Unstop link (API-mapped)
@@ -617,6 +619,7 @@ Rules:
 | `npx tsc --noEmit` | Types |
 | `npm run build` | Full production build |
 | `npx tsx scripts/verify-timings.mts` | Every course's generated class dates vs the timetable |
+| `python3 scripts/build_class_sessions.py` | Rebuilds `classSessions.json`; **read its `!!` lines** — two codes in one room at one time is a rename to add to `CODE_ALIASES`, or a real clash in the sheet |
 | `npx tsx scripts/verify-conflicts.mts` | Overlapping pairs resolve as advisories; no stray `conflictGroup` |
 | `npx tsx scripts/verify-insights.mts` | Insight engines fire correctly; no dangling course codes |
 | `npx tsx scripts/verify-metrics.mts` | Distribution maths, and that paged fetches return all rows |

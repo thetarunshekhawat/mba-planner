@@ -29,6 +29,21 @@ transcription of these blocks fails loudly instead of silently. `build_class_ses
 gained a `CODE_ALIASES` map: the tentative and published sheets disagreed on two codes, which
 left `classSessions.json` carrying both a stale and a current copy of the same course.
 
+The supersede rule is per code, so a rename is invisible to it — the two histories never meet.
+The build now reports **two different codes claiming one room at one date and time**, which is
+that fingerprint, and prints it as a `!!` block naming the pair and the block. With the aliases
+removed it flags both renames (`PSWT/PWMC`, 16 slots; `PDMT/PMMC`, 20 slots), so the next one
+cannot repeat this silently. Section is deliberately not part of that key — Block 20's revision
+swapped PWMC's A and B, and keying on it would have let exactly this case through.
+
+The tempting fix — "a published block sheet wins for every course in that block" — is wrong and
+was tried first: a block's published grid does not list every course that runs in it, so it
+deletes real classes (FSAT lost its whole block 18, 10 sessions down to 4; MHLG disappeared).
+The guard reports and never guesses. It currently also flags a pre-existing overlap in Block 19,
+where `MHLG` holds S02 13:30–16:30 every weekday while `FSAT` and `FSAN` claim the same room and
+time on five days between Aug 12 and Aug 20. That is a disagreement in the source sheets, not a
+regression, and it predates this change.
+
 ### Added - End-block exam dates for Blocks 20 and 21
 
 The revised sheets carry assessment dates the planner had nowhere to put: Persuasive Writing's

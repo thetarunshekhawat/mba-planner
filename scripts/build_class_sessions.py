@@ -156,6 +156,36 @@ def main():
         from_pdf(pdf, 4, sessions, priority=1)
     from_xlsx(ROOT / "Term 5" / "Term 5 (Tentative Time Table).xlsx", 5, sessions, priority=1)
 
+    # A rename is invisible to the per-code supersede rule below: the tentative
+    # and published sheets disagree on the code, so the two histories never meet
+    # and the output keeps a stale copy of the course alongside the current one.
+    # That is what PSWT/PWMC and PDMT/PMMC did, silently, until someone read the
+    # file and found 36 courses where there were 34.
+    #
+    # Two different codes claiming one room at one date and time is the
+    # fingerprint. It is either a rename (resolve it in CODE_ALIASES) or a real
+    # timetable clash. The block-level "published sheet wins for every course in
+    # the block" rule looks tempting here and is wrong: a block's published grid
+    # does not list every course that runs in it (FSAT's block 18 and MHLG's
+    # block 19 appear only in the tentative sheet), so acting on it deletes real
+    # classes. Report, never guess.
+    claims = {}
+    for code, items in sessions.items():
+        for s in items:
+            if not s["room"]:
+                continue
+            # Section is deliberately not part of the key: Block 20's revision
+            # swapped PWMC's A and B, so keying on it would have let exactly the
+            # rename this guard exists to catch slip past. A room at a time is a
+            # physical fact; the label on the half of the cohort in it is not.
+            key = (s["term"], s["block"], s["room"], s["date"], s["start"])
+            claims.setdefault(key, set()).add(code)
+
+    collisions = {}
+    for key, codes in claims.items():
+        if len(codes) > 1:
+            collisions.setdefault(tuple(sorted(codes)), []).append(key)
+
     out = {}
     for code, items in sorted(sessions.items()):
         # A block published as its own timetable supersedes the term-wide
@@ -193,6 +223,12 @@ def main():
         print(f"{code}  term {c['term']}  blocks {c['blocks']}  "
               f"{c['sessionCount']:3d} sessions  {c['firstClass']}..{c['lastClass']}  "
               f"rooms {','.join(c['rooms']) or '-'}  sections {','.join(c['sections']) or '-'}")
+    if collisions:
+        print("\n!! two codes claim the same room at the same time.")
+        print("!! a rename? add it to CODE_ALIASES. a real clash? check the sheet.")
+        for codes, keys in sorted(collisions.items()):
+            blocks = sorted({k[1] for k in keys if k[1]})
+            print(f"  {' / '.join(codes)}  block {blocks}  {len(keys)} slots")
     print(f"\n{len(out)} courses -> {OUT}")
 
 

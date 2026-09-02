@@ -651,7 +651,16 @@ data still gets a real spotlight rather than a full-screen wash.
 
 Desktop and mobile are separate DOM trees (`FilterSidebar` vs `MobileDrawer`), so the profile
 step has a `desktop` and a `mobile` variant sharing one `slot`; the counter reads `n / 11` on
-both. `MobileDrawer.forceExpanded` is how the tour opens the drawer, deliberately bypassing
+both.
+
+**An anchor can match more than one element.** `FilterSidebar` renders twice — the desktop
+`<aside>` and again inside `MobileDrawer` — so `sidebar-profile`, `specializations` and
+`progress` each match two nodes, and only one is laid out. `useAnchorRect` takes the first match
+with a real box, never `querySelector`'s first match: that returns the desktop copy, which is
+`hidden` below `lg`, so on a phone the tour measured 0x0 and drew no spotlight at all — just a
+flat dim over the whole screen. **An invisible match is treated as "not there", which is also
+what makes the fail-open timeout reachable**; while a zero-size element counted as found, the
+rAF loop span forever and never auto-advanced. `MobileDrawer.forceExpanded` is how the tour opens the drawer, deliberately bypassing
 `snapToState` so a tour-opened drawer never fires `mobile_drawer_toggled`.
 
 ### The tour must not poison the existing analytics

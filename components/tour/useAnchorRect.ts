@@ -36,8 +36,26 @@ export interface AnchorState {
 const pending = (stepId: string): AnchorState =>
   ({ for: stepId, rect: null, found: false, retryMs: 0, settled: false });
 
+/**
+ * The first anchor match that is actually laid out.
+ *
+ * `FilterSidebar` renders TWICE — the desktop `<aside>` and again inside
+ * `MobileDrawer` — so `sidebar-profile`, `specializations` and `progress` each
+ * match two elements, and exactly one of them has a box. `querySelector` returns
+ * the desktop copy, which is `hidden` below `lg`: on a phone the tour measured a
+ * 0x0 rect and drew no spotlight at all, just a flat dim over the whole screen.
+ *
+ * Zero-size also covers the legitimately-not-ready cases — a drawer mid-spring,
+ * a list that has not laid out — which is why "invisible" and "not there yet"
+ * are deliberately the same answer here.
+ */
 function query(anchor: string): HTMLElement | null {
-  return document.querySelector<HTMLElement>(`[data-tour="${anchor}"]`);
+  const all = document.querySelectorAll<HTMLElement>(`[data-tour="${anchor}"]`);
+  for (const el of all) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return el;
+  }
+  return null;
 }
 
 /**
@@ -82,20 +100,20 @@ export function useAnchorRect(
       const el = query(anchor!) ?? (fallbackAnchor ? query(fallbackAnchor) : null);
       const elapsed = performance.now() - startedAt.current;
 
+      // `query` only ever returns a laid-out element, so the timeout below is
+      // reachable whenever nothing is visible. It used to sit in this `else`,
+      // which made it unreachable while a zero-size element matched — the loop
+      // span forever, drew no spotlight, and never fired the fail-open advance.
       if (el) {
         if (resolvedIn < 0) resolvedIn = elapsed;
         const r = el.getBoundingClientRect();
-        // Zero-size elements (a collapsed drawer mid-spring, a list that has not
-        // laid out yet) are treated as not-yet-there, not as a found anchor.
-        if (r.width > 0 && r.height > 0) {
-          setState({
-            for: stepId,
-            rect: { top: r.top, left: r.left, width: r.width, height: r.height },
-            found: true,
-            retryMs: Math.round(resolvedIn),
-            settled: true,
-          });
-        }
+        setState({
+          for: stepId,
+          rect: { top: r.top, left: r.left, width: r.width, height: r.height },
+          found: true,
+          retryMs: Math.round(resolvedIn),
+          settled: true,
+        });
       } else if (elapsed >= ANCHOR_TIMEOUT_MS) {
         setState({ for: stepId, rect: null, found: false, retryMs: Math.round(elapsed), settled: true });
         return; // stop polling; the caller advances

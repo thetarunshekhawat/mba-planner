@@ -59,6 +59,22 @@ nothing. `tour_runs` was fine because it awaits, which is what made this invisib
 appeared, and the entire per-step half of the dashboard was quietly empty. Both fire-and-forget
 writes now go through a helper that calls `.then()` and logs failures.
 
+### Fixed - Tour drew no spotlight at all on mobile
+
+`FilterSidebar` renders twice — once as the desktop `<aside>`, once inside `MobileDrawer` — so
+the profile, specializations and progress steps each matched two elements. `querySelector`
+returns the first, which is the desktop copy, and that is `hidden` below `lg`. On a phone the
+tour therefore measured a 0x0 box for three consecutive steps and drew no cutout: the screen
+dimmed uniformly and nothing was highlighted.
+
+Worse, it could not recover. A zero-size element still counted as *found*, which put the
+fail-open timeout in an unreachable branch — the measuring loop span forever, so the step never
+auto-advanced and never logged a missing anchor. That defeated the guarantee the whole no-Skip
+design rests on.
+
+Anchors now resolve to the first match with a real box, and an invisible match is treated the
+same as an absent one, which is what makes the timeout reachable again.
+
 ### Added - Admin → In-Depth → Onboarding Tour
 
 Ten sections: completion funnel (first runs only — replays would flatter every drop-off

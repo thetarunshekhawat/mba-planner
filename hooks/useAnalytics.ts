@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { deviceInfo } from '@/lib/analytics/device';
 
 export type EventType =
   | 'course_viewed'
@@ -103,7 +104,15 @@ export type EventType =
   | 'alert_push_repaired'
   | 'alert_push_ios_instructions_shown'
   // Alerts ↔ schedule
-  | 'schedule_commitment_clicked';
+  | 'schedule_commitment_clicked'
+  // Onboarding tour — run-level milestones only. Per-step views live in
+  // tour_step_events, not here: at 11 rows per user they would drown the feed.
+  | 'tour_started'
+  | 'tour_completed'
+  | 'tour_abandoned'
+  | 'tour_replayed'
+  | 'tour_anchor_missing'
+  | 'tour_aborted_error';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();
@@ -128,20 +137,11 @@ export function useAnalytics(userId: string | null) {
         sessionStartRef.current = Date.now();
 
         const metadata = {
-          device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile'
-                     : /Tablet|iPad/i.test(navigator.userAgent) ? 'tablet' : 'desktop',
-          browser: navigator.userAgent.includes('Chrome') ? 'Chrome'
-                 : navigator.userAgent.includes('Firefox') ? 'Firefox'
-                 : navigator.userAgent.includes('Safari') ? 'Safari'
-                 : navigator.userAgent.includes('Edge') ? 'Edge' : 'Other',
-          os: navigator.userAgent.includes('Mac') ? 'macOS'
-            : navigator.userAgent.includes('Windows') ? 'Windows'
-            : navigator.userAgent.includes('Android') ? 'Android'
-            : navigator.userAgent.includes('iPhone') ? 'iOS' : 'Other',
+          // Shared with tour_runs via lib/analytics/device.ts so the two data
+          // sets bucket devices identically.
+          ...deviceInfo(),
           screen_width: window.screen.width,
           screen_height: window.screen.height,
-          viewport_width: window.innerWidth,
-          viewport_height: window.innerHeight,
           language: navigator.language,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

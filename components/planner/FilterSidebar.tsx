@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { GraduationCap, LogOut, BookOpen, ShieldAlert, Layers } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, ShieldAlert, Layers, RotateCcw } from 'lucide-react';
 import { SPECS } from '@/data/courses';
 import {
   computeProgress, formatCampusDay, SPEC_REQUIRED_CREDITS,
@@ -38,6 +38,8 @@ interface Props {
   userEmail: string;
   userAvatarUrl?: string;
   onSignOut: () => void;
+  /** Replays the onboarding tour. Omitted where there is no tour to replay. */
+  onReplayTour?: () => void;
   mobile?: boolean;
   trackEvent?: (eventType: EventType, payload?: Record<string, unknown>) => void;
 }
@@ -76,6 +78,7 @@ export function FilterSidebar({
   userEmail,
   userAvatarUrl,
   onSignOut,
+  onReplayTour,
   mobile = false,
   trackEvent,
 }: Props) {
@@ -118,7 +121,7 @@ export function FilterSidebar({
   return (
     <Wrapper className={wrapperClass}>
       {/* User header */}
-      <div className="p-4 border-b border-white/10">
+      <div data-tour="sidebar-profile" className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           {userAvatarUrl ? (
             <img
@@ -135,6 +138,16 @@ export function FilterSidebar({
             <p className="text-white text-sm font-medium truncate">{userName}</p>
             <p className="text-slate-500 text-xs truncate">{userEmail}</p>
           </div>
+          {onReplayTour && (
+            <button
+              onClick={onReplayTour}
+              className="text-slate-500 hover:text-orange-400 transition-colors"
+              title="Take the tour again"
+              aria-label="Take the tour again"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={onSignOut}
             className="text-slate-500 hover:text-slate-300 transition-colors"
@@ -146,7 +159,7 @@ export function FilterSidebar({
       </div>
 
       {/* Specialization selector */}
-      <div className="p-4 border-b border-white/10">
+      <div data-tour="specializations" className="p-4 border-b border-white/10">
         <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-3">My Specializations</p>
         <div className="flex flex-wrap gap-1.5">
           {SPECS.map(s => (
@@ -170,7 +183,7 @@ export function FilterSidebar({
       </div>
 
       {/* Credit Progress */}
-      <div className="p-4 border-b border-white/10">
+      <div data-tour="progress" className="p-4 border-b border-white/10">
         <div className="flex items-baseline justify-between mb-2">
           <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide">Progress</p>
           {basis === 'to-date' && (

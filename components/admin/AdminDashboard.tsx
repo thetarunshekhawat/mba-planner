@@ -15,6 +15,7 @@ import { AskAiPanel } from './AskAiPanel';
 import { MetricsPanel } from './MetricsPanel';
 import { fetchAllRows } from '@/lib/alerts/paging';
 import { AlertsAdminPanel } from './AlertsAdminPanel';
+import { TourAnalytics } from './TourAnalytics';
 
 interface MemberSelection {
   user_id: string;
@@ -161,6 +162,12 @@ const EVENT_LABELS: Record<string, string> = {
   alert_push_repaired: 'Push Subscription Repaired',
   alert_push_ios_instructions_shown: 'iOS Install Instructions Shown',
   schedule_commitment_clicked: 'Deadline Opened From Schedule',
+  tour_started: 'Onboarding Tour Started',
+  tour_completed: 'Onboarding Tour Completed',
+  tour_abandoned: 'Onboarding Tour Abandoned',
+  tour_replayed: 'Onboarding Tour Replayed',
+  tour_anchor_missing: 'Tour Step Skipped (Anchor Missing)',
+  tour_aborted_error: 'Tour Aborted (Too Many Missing Anchors)',
 };
 
 function courseNameById(id: number): string {
@@ -222,6 +229,12 @@ function describeEvent(e: EventRow): { icon: string; text: string } {
     case 'chatbot_rate_limited':      return { icon: '🚦', text: 'AI chat rate-limited' };
     case 'progress_basis_changed':    return { icon: '📊', text: `Progress basis → ${p?.basis === 'to-date' ? 'as of today' : 'full year'}` };
     case 'spec_overview_opened':      return { icon: '🧭', text: `Opened all-specializations view${Number(p?.bonus_complete ?? 0) > 0 ? ` (${p?.bonus_complete} bonus complete)` : ''}` };
+    case 'tour_started':        return { icon: '🧭', text: `Started the onboarding tour (v${p?.tour_version}, ${p?.steps_total} steps)` };
+    case 'tour_replayed':       return { icon: '🔁', text: 'Replayed the onboarding tour' };
+    case 'tour_completed':      return { icon: '🏁', text: `Finished the tour in ${Math.round((p?.active_ms as number ?? 0) / 1000)}s${(p?.back_count as number) > 0 ? ` · went back ${p?.back_count}x` : ''}` };
+    case 'tour_abandoned':      return { icon: '🚪', text: `Left the tour at step ${p?.step_index}` };
+    case 'tour_anchor_missing': return { icon: '🕳', text: `Tour step "${p?.step_id}" had nothing to point at` };
+    case 'tour_aborted_error':  return { icon: '💥', text: `Tour aborted — ${(p?.missing_anchor_steps as string[] ?? []).length} steps could not anchor` };
     default:                          return { icon: '•', text: e.event_type };
   }
 }
@@ -484,7 +497,7 @@ export function AdminDashboard({
   // logins and sessions stay visible under every filter, otherwise the funnel would break.
   const [termFilter, setTermFilter] = useState<number | 'all'>('all');
 
-  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel' | 'friends-social' | 'ai-chatbot' | 'admin-ai-activity';
+  type InDepthSection = 'dau' | 'login-timing' | 'member-engagement' | 'user-status' | 'mobile-drawer' | 'term1-panel' | 'friends-social' | 'ai-chatbot' | 'onboarding-tour' | 'admin-ai-activity';
   const [inDepthSection, setInDepthSection] = useState<InDepthSection | null>(null);
   const [adminAiQueries, setAdminAiQueries] = useState<AdminAiQueryRow[]>([]);
   const [adminAiExpanded, setAdminAiExpanded] = useState<string | null>(null);
@@ -3080,6 +3093,7 @@ export function AdminDashboard({
                       { key: 'term1-panel' as InDepthSection, label: 'Term 1 Panel', desc: 'Who toggled Term 1 courses, how long they kept it on, engagement intent', color: 'text-indigo-400', border: 'border-indigo-500/30 hover:border-indigo-500/60' },
                       { key: 'friends-social' as InDepthSection, label: 'Friends & Social', desc: 'Network graph, who visited, copy/reset/overlay usage, full connection list', color: 'text-rose-400', border: 'border-rose-500/30 hover:border-rose-500/60' },
                       { key: 'ai-chatbot' as InDepthSection, label: 'AI Course Assistant', desc: 'Per-user chat history, intent patterns, engagement depth, power users', color: 'text-indigo-400', border: 'border-indigo-500/30 hover:border-indigo-500/60' },
+                      { key: 'onboarding-tour' as InDepthSection, label: 'Onboarding Tour', desc: 'Completion funnel, per-step drop-off, time to complete, adoption lift', color: 'text-orange-400', border: 'border-orange-500/30 hover:border-orange-500/60' },
                       ...(isSuperAdmin ? [{ key: 'admin-ai-activity' as InDepthSection, label: 'Admin AI Activity', desc: 'Every Ask-AI query across admins — question, results, and the SQL it ran', color: 'text-amber-400', border: 'border-amber-500/30 hover:border-amber-500/60' }] : []),
                     ].map(({ key, label, desc, color, border }) => (
                       <button
@@ -3114,10 +3128,14 @@ export function AdminDashboard({
                     {inDepthSection === 'term1-panel' && 'Term 1 Panel'}
                     {inDepthSection === 'friends-social' && 'Friends & Social'}
                     {inDepthSection === 'ai-chatbot' && 'AI Course Assistant'}
+                    {inDepthSection === 'onboarding-tour' && 'Onboarding Tour'}
                     {inDepthSection === 'admin-ai-activity' && 'Admin AI Activity'}
                   </span>
                 </div>
               )}
+
+              {/* ── Onboarding Tour In-Depth ── */}
+              {inDepthSection === 'onboarding-tour' && <TourAnalytics profiles={profiles} />}
 
               {/* ── Admin AI Activity In-Depth (super-admin only) ── */}
               {inDepthSection === 'admin-ai-activity' && isSuperAdmin && (

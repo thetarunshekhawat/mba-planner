@@ -14,6 +14,12 @@ interface Props {
   isSelected: boolean;
   onToggle: (id: number) => void;
   onClose: () => void;
+  /**
+   * Drops the modal focus trap. Set while the onboarding tour is open: base-ui
+   * makes everything outside a modal popup inert, which would leave the tour's
+   * own Next button unclickable — and the tour has no Skip button to escape with.
+   */
+  nonModal?: boolean;
 }
 
 function Stars({ value, max = 5 }: { value: number; max?: number }) {
@@ -31,7 +37,7 @@ function Stars({ value, max = 5 }: { value: number; max?: number }) {
   );
 }
 
-export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose }: Props) {
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, nonModal }: Props) {
   // Snapshot the course + its selected state so the content stays rendered while the
   // sheet slides out (the parent zeroes these props the instant `course` goes null).
   const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
@@ -46,8 +52,9 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
   const isExamOrFree = course?.type === 'exam' || course?.type === 'free';
 
   return (
-    <Sheet open={!!courseProp} onOpenChange={open => { if (!open) onClose(); }}>
+    <Sheet open={!!courseProp} modal={nonModal ? false : undefined} onOpenChange={open => { if (!open) onClose(); }}>
       <SheetContent
+        data-tour="course-detail"
         side="right"
         className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-white/10 text-white"
       >

@@ -257,7 +257,7 @@ export function AlertsView({
                 Loading…
               </div>
             ) : tracked.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
+              <div data-tour="alerts-empty" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
                 <Trophy className="w-8 h-8 text-slate-200 mx-auto mb-2" />
                 <p className="text-sm font-semibold text-slate-700">Nothing tracked yet</p>
                 <p className="text-xs text-slate-400 mt-1">
@@ -265,9 +265,10 @@ export function AlertsView({
                 </p>
               </div>
             ) : (
-              tracked.map((item) => (
+              tracked.map((item, i) => (
                 <CompetitionCard
                   key={item.competition.id}
+                  tourAnchor={i === 0}
                   item={item}
                   now={now}
                   onTrack={() => alerts.trackCompetition(item.competition.id)}
@@ -298,9 +299,10 @@ export function AlertsView({
               <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide px-1">
                 Also happening
               </h2>
-              {untracked.map((item) => (
+              {untracked.map((item, i) => (
                 <CompetitionCard
                   key={item.competition.id}
+                  tourAnchor={i === 0 && tracked.length === 0}
                   item={item}
                   now={now}
                   onTrack={() => alerts.trackCompetition(item.competition.id)}

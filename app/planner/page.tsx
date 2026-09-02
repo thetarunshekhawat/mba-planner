@@ -31,6 +31,9 @@ import { TERM_DATES, getCurrentTerm, getTermCourses } from '@/lib/terms';
 import { isAdminEmail } from '@/lib/admin';
 import { useAlerts } from '@/hooks/useAlerts';
 import { AlertsView } from '@/components/planner/AlertsView';
+import { useTour } from '@/hooks/useTour';
+import { TourOverlay } from '@/components/tour/TourOverlay';
+import type { TourContext } from '@/lib/tour/types';
 import type { Course, SpecId, Profile, Friend, FriendOverlay } from '@/types';
 import { colorForFriend } from '@/types';
 import type { ChatAction } from '@/lib/chat/actions';
@@ -114,6 +117,10 @@ export default function PlannerPage() {
     plan: null, schedule: null, friends: null, alerts: null,
   });
   const [pill, setPill] = useState<{ left: number; width: number } | null>(null);
+
+  // ── Onboarding tour ──────────────────────────────────────
+  // `undefined` = the tour is not driving the drawer, so it keeps its own state.
+  const [tourDrawerOpen, setTourDrawerOpen] = useState<boolean | undefined>(undefined);
 
   const friendIds = friends.map(f => f.id);
   const friendSelections = useFriendSelections(friendIds);
@@ -405,6 +412,30 @@ export default function PlannerPage() {
     }
   };
 
+  // The course the tour opens in the detail modal. A course the student has
+  // already picked reads as "yours"; failing that, the best-reviewed elective in
+  // the current term, so the modal is never showing an empty shell.
+  const sampleCourse: Course | null = (() => {
+    const picked = ALL_COURSES.find(c => selected.has(c.id) && c.type === 'elective');
+    if (picked) return picked;
+    const term = getCurrentTerm();
+    const termElectives = getTermCourses(new Set(ALL_COURSES.map(c => c.id)), term)
+      .filter(c => c.type === 'elective' && c.review);
+    return termElectives.sort(
+      (a, b) => (b.review!.careerRelevance) - (a.review!.careerRelevance),
+    )[0] ?? ALL_COURSES.find(c => c.type === 'elective') ?? null;
+  })();
+
+  const tourCtx: TourContext = {
+    setViewMode,
+    setActiveModal,
+    setDrawerExpanded: setTourDrawerOpen,
+    sampleCourse,
+    isMobile: typeof window !== 'undefined' && window.innerWidth <= 1023,
+  };
+
+  const tour = useTour({ profile, userId, ctx: tourCtx, trackEvent });
+
   if (loading || !profile) {
     return (
       <div className="h-screen bg-slate-900 flex items-center justify-center">
@@ -427,7 +458,7 @@ export default function PlannerPage() {
 
         {/* View toggle — centered */}
         <div className="flex-none flex justify-center">
-          <div ref={tabRowRef} className="relative flex bg-slate-800 rounded-lg p-0.5 border border-white/10">
+          <div data-tour="tabs" ref={tabRowRef} className="relative flex bg-slate-800 rounded-lg p-0.5 border border-white/10">
             {pill && (
               <span
                 aria-hidden
@@ -718,6 +749,7 @@ export default function PlannerPage() {
             userEmail={profile.email}
             userAvatarUrl={profile.avatar_url ?? undefined}
             onSignOut={handleSignOut}
+            onReplayTour={tour.active ? undefined : tour.restart}
             trackEvent={trackEvent}
           />
         </div>
@@ -738,7 +770,7 @@ export default function PlannerPage() {
           / Stop tracking) rendered 63px underneath the drawer, unreachable at
           any scroll position.
         */}
-        <main className="flex-1 overflow-y-auto min-h-0 max-lg:pb-[calc(80px+env(safe-area-inset-bottom)+1.5rem)] print:overflow-visible print:h-auto">
+        <main data-tour="main" className="flex-1 overflow-y-auto min-h-0 max-lg:pb-[calc(80px+env(safe-area-inset-bottom)+1.5rem)] print:overflow-visible print:h-auto">
           <div key={viewMode} className="min-h-full animate-view-fade-in">
           {viewMode === 'plan' ? (
             <>
@@ -796,7 +828,7 @@ export default function PlannerPage() {
           ) : (
             <>
               {scheduleVisibleIds.size === 0 && friendOverlays.length === 0 && commitments.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center p-8">
+                <div data-tour="timetable-empty" className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center p-8">
                   <CalendarDays className="w-12 h-12 text-slate-600" />
                   <p className="text-slate-400 font-medium">No courses selected yet</p>
                   <p className="text-slate-600 text-sm max-w-sm">
@@ -847,6 +879,8 @@ export default function PlannerPage() {
           userEmail={profile.email}
           userAvatarUrl={profile.avatar_url ?? undefined}
           onSignOut={handleSignOut}
+          onReplayTour={tour.active ? undefined : tour.restart}
+          forceExpanded={tour.active ? tourDrawerOpen : undefined}
           trackEvent={trackEvent}
         />
       </div>
@@ -856,6 +890,7 @@ export default function PlannerPage() {
         isSelected={activeModal ? selected.has(activeModal.id) : false}
         onToggle={toggle}
         onClose={() => setActiveModal(null)}
+        nonModal={tour.active}
       />
 
       <FriendDetailModal
@@ -872,7 +907,26 @@ export default function PlannerPage() {
         specializations={profile?.specializations ?? []}
         trackEvent={trackEvent}
         onAction={handleChatAction}
+        suppressNudges={tour.active}
       />
+
+      {/*
+        Last in the tree so its portal sits above the chat widget and both
+        modals. Mandatory: there is no Skip button, and the overlay swallows
+        clicks to the app underneath — see hooks/useTour.ts for the three
+        fail-open layers that keep a missing anchor from trapping a student.
+      */}
+      {tour.active && tour.step && (
+        <TourOverlay
+          step={tour.step}
+          index={tour.index}
+          total={tour.total}
+          canGoBack={tour.canGoBack}
+          onBack={tour.back}
+          onNext={tour.next}
+          onAnchorSettled={tour.onAnchorSettled}
+        />
+      )}
     </div>
   );
 }

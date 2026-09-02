@@ -75,6 +75,7 @@ export function ChatWidget({
   specializations,
   trackEvent,
   onAction,
+  suppressNudges,
 }: {
   userId: string | null;
   /** The student's locked courses for the current term, ordered by occurrence. */
@@ -91,6 +92,12 @@ export function ChatWidget({
   trackEvent: TrackEvent;
   /** Runs a chat action the bot proposed (export, etc.). Links open on their own. */
   onAction: (action: ChatAction) => void;
+  /**
+   * Silences proactive nudges. Set while the onboarding tour is running:
+   * NUDGE_FIRST_DELAY is 2.5s, so without this a chat bubble pops over the tour
+   * overlay on every student's very first visit.
+   */
+  suppressNudges?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   // Keeps the panel mounted through its "genie" retract animation after open flips false.
@@ -240,7 +247,7 @@ export function ChatWidget({
   // Scheduler: fetch the pool, fire the first nudge after a short idle, then on a gentle
   // cadence. Torn down on unmount or when the student's selection signature changes.
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || suppressNudges) return;
     void loadPool();
     const first = setTimeout(() => {
       fireNudgeRef.current();
@@ -251,7 +258,7 @@ export function ChatWidget({
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (ttlTimerRef.current) clearTimeout(ttlTimerRef.current);
     };
-  }, [userId, loadPool]);
+  }, [userId, loadPool, suppressNudges]);
 
   // Personality timer: makes the icon animate randomly every 5–7 s while chat is closed,
   // giving it a sense of life regardless of the nudge scheduler.
@@ -622,6 +629,7 @@ export function ChatWidget({
 
       {/* Launcher */}
       <Button
+        data-tour="assistant"
         size="icon-lg"
         onClick={open ? closeWidget : openWidget}
         aria-label={open ? 'Close course assistant' : 'Open course assistant'}

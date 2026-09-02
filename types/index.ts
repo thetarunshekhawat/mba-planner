@@ -66,6 +66,8 @@ export interface Profile {
   specializations: SpecId[];
   friend_code?: string;
   avatar_url?: string;
+  /** Highest TOUR_VERSION this student has completed. 0 = never seen the tour. */
+  tour_seen_version?: number;
 }
 
 // A friend the current user can see (their viewer→friend edge exists).

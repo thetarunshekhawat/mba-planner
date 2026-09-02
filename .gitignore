@@ -43,3 +43,6 @@ next-env.d.ts
 # supabase local CLI metadata
 supabase/.temp/
 .gstack/
+
+# Stale agent worktrees (a full 37MB copy of the app)
+.claude/worktrees/

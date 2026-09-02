@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { SPECS, ALL_COURSES } from '@/data/courses';
 import type { SpecId } from '@/types';
@@ -17,6 +17,13 @@ interface Props {
   userEmail: string;
   userAvatarUrl?: string;
   onSignOut: () => void;
+  onReplayTour?: () => void;
+  /**
+   * Forces the drawer open past its own internal state, for the onboarding tour:
+   * the profile, specializations and progress steps all live inside here, and on
+   * a phone the drawer is 80px tall until someone drags it.
+   */
+  forceExpanded?: boolean;
   trackEvent: (type: EventType, payload?: Record<string, unknown>) => void;
 }
 
@@ -37,6 +44,8 @@ export function MobileDrawer({
   userEmail,
   userAvatarUrl,
   onSignOut,
+  onReplayTour,
+  forceExpanded,
   trackEvent,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
@@ -81,6 +90,16 @@ export function MobileDrawer({
       trackEvent('mobile_drawer_toggled', { open: shouldExpand, has_specs: hasSpecs, gesture: fromTouch });
     }
   }
+
+  // The tour drives the drawer through this prop. Deliberately not routed via
+  // snapToState: that fires `mobile_drawer_toggled`, and a tour-opened drawer
+  // must not show up in the admin dashboard as a student using the drawer.
+  useEffect(() => {
+    if (forceExpanded === undefined) return;
+    applyTY(forceExpanded ? 0 : collapsedY(), true);
+    setExpanded(forceExpanded);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceExpanded]);
 
   // Click toggle used only by the backdrop overlay
   function toggle() {
@@ -172,6 +191,7 @@ export function MobileDrawer({
       >
         {/* Drag handle — h-20 matches HANDLE_H so content never peeks through when collapsed */}
         <div
+          data-tour="mobile-drawer"
           className="flex-shrink-0 h-20 cursor-pointer select-none"
           style={{ touchAction: 'none' }}
           onTouchStart={handleTouchStart}
@@ -233,6 +253,7 @@ export function MobileDrawer({
             userEmail={userEmail}
             userAvatarUrl={userAvatarUrl}
             onSignOut={onSignOut}
+            onReplayTour={onReplayTour}
             mobile
             trackEvent={trackEvent}
           />

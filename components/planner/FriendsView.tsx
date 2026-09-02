@@ -161,7 +161,7 @@ export function FriendsView({
       <div className="mx-auto max-w-2xl space-y-6">
 
         {/* ── Your code ────────────────────────────────── */}
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+        <section data-tour="friends" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-1">
             <Users className="w-4 h-4 text-orange-500" />
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Your friend code</h2>

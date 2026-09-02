@@ -4,6 +4,85 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Mandatory onboarding tour, and the analytics to tell whether it works
+
+The portal had grown to four tabs, a sidebar, global search, friend overlays, competition
+alerts with push, and an AI assistant, with **zero onboarding**. Students found features by
+accident; most never found Friends overlays, elimination gates, or the assistant at all. The
+only thing doing onboarding's job was one empty-state card on My Schedule.
+
+An 11-step spotlight tour now runs on the live UI the first time a student opens `/planner`.
+It drives the app — switches tabs, springs the mobile drawer open, opens a real course modal —
+while a dimmed SVG mask cuts out whatever is being explained. It is **mandatory: there is no
+Skip button**, replayable from the circular arrow beside your name, and versioned, so shipping
+a feature later can trigger a short "what's new" run of only the new steps instead of making
+the whole cohort sit through it again.
+
+**Because there is no Skip, it fails open in three layers.** A blocking overlay is the one UI
+element that can lock a student out of the portal, and an anchor can go missing for reasons
+that have nothing to do with the tour — a restyle, a viewport where the element does not
+render, a list that has not laid out yet. So: a step whose anchor has not resolved in 1200ms
+is logged and auto-advanced; a run that loses more than half its anchors aborts and marks the
+version seen rather than repeating a broken tour forever; and `?tour=off` gets support past it
+without marking it complete.
+
+Anchors are `data-tour` attributes, never CSS selectors — a class-based selector would break
+on the next restyle silently, and every student would eat a 1.2s pause per step.
+
+**The tour deliberately does not touch the existing analytics.** Its steps call the raw state
+setters, never the tracked handlers. Routing them through `trackEvent` would have injected a
+fake engagement funnel into the admin dashboard from every student's first session on the day
+this shipped, shifting the Activity, Insights and In-Depth numbers with nothing to explain it.
+Chat nudges are suppressed while it runs for the same reason, plus the obvious one: a nudge
+bubble would pop over the overlay 2.5 seconds in.
+
+### Fixed - Three defects caught in first-run QA
+
+**The spotlight covered the whole screen on three steps.** Schedule, Friends and Alerts anchored
+their tab's root container — which is the entire scroll area, so the cutout was the viewport,
+nothing was dimmed, and the "spotlight" pointed at nothing. They now anchor one block-week grid,
+the friend-code card, and the first competition card, with the matching empty state as the
+fallback so a student with no data still gets a real spotlight instead of a full-screen wash.
+
+**The analytics were off by one for every step after the profile step.** `TOUR_STEPS` has 12
+entries because the profile step ships a desktop and a mobile variant, but any run sees exactly
+one of them, so `furthest_step_index` indexes an 11-long list. The dashboard read those indices
+against the 12-entry array: a phantom 12th funnel bar nobody could reach, the real last step
+showing a 100% drop-off, and every completed student's "furthest step" reading as the
+second-to-last one. Aggregation now happens on `TOUR_SLOTS`, where a slot index *is* a run index
+and the two profile variants collapse into one row.
+
+**No step-level telemetry was being written at all.** PostgREST query builders are lazy
+thenables — they issue no request until something calls `.then()` — so
+`void supabase.from('tour_step_events').insert(...)` type-checked, linted clean, and sent
+nothing. `tour_runs` was fine because it awaits, which is what made this invisible: runs
+appeared, and the entire per-step half of the dashboard was quietly empty. Both fire-and-forget
+writes now go through a helper that calls `.then()` and logs failures.
+
+### Added - Admin → In-Depth → Onboarding Tour
+
+Ten sections: completion funnel (first runs only — replays would flatter every drop-off
+number), per-step dwell with automatic *copy ignored* / *too long* / *prior step unclear*
+flags, time-to-complete, device split, version cohorts, feature-adoption lift, anchor health,
+the full roster with a "not completed" filter, and replays.
+
+Two calls worth knowing about. `active_ms` counts only dwell while the tab was visible and is
+the number to read; `total_ms` is wall clock and folds in the student answering a phone call.
+And the adoption-lift panel is labelled in the UI as observational rather than a randomized
+test — the comparison group is largely people who have not logged in, so it is direction, not
+proof.
+
+Schema: `profiles.tour_seen_version` (an int, not a bool, so versions can advance), plus
+`tour_runs` and `tour_step_events` (migration 022). Step-level rows are kept out of
+`user_events` because at 11 per user they would outnumber every other event and drown the
+Activity feed. **Reads on both new tables are admin-only** — stricter than the house
+precedent, since per-student timing and drop-off data has no reason to be cohort-readable.
+
+The demo account writes nothing anywhere: its gate falls back to `localStorage`, and its runs,
+step events and milestone events are all skipped. `user_events` has no demo-restrictive
+policy, so without that skip a faculty reviewer clicking through the tour would have landed in
+the cohort's adoption numbers.
+
 ### Fixed - Friend overlays now cover the courses the whole cohort sits
 
 Turning a friend on in My Schedule drew nothing in Block 20, which read as the overlay being

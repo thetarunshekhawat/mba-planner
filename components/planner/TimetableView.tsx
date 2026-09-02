@@ -1118,6 +1118,9 @@ function TermBlockGrid({
                 key={`${b.block}-${b.weekNum}`}
                 className={blockPrintHiddenClass}
                 data-current-block={isCurrentBlockWeek ? String(term) : undefined}
+                // The tour spotlights ONE block-week, not the whole tab: a cutout
+                // the size of the viewport dims nothing and points at nothing.
+                data-tour={i === startIdx ? 'timetable' : undefined}
               >
                 {b.banners?.map((n, ni) => (
                   supportsTerm1 && showTerm1 && n.withTerm1Gantt ? (

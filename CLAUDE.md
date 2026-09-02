@@ -54,7 +54,11 @@ data/classSessions.json
                        old code goes in that script's `CODE_ALIASES` so both land on
                        one key. The script flags two codes claiming one room at one
                        time so a rename can't duplicate a course silently again
+lib/tour/steps.ts      THE onboarding tour — TOUR_VERSION and the ordered step list
+lib/analytics/device.ts
+                       Shared device fingerprint (user_sessions.metadata + tour_runs)
 components/planner/*   The main planner UI (Plan / My Schedule / Friends / Alerts)
+components/tour/*      Mandatory first-run spotlight tour (see "Onboarding tour")
 .claude/skills/unstop-import/
                        Cohort-wide competition from an Unstop link (API-mapped)
 .claude/skills/manual-competition/
@@ -529,6 +533,8 @@ supabase db query --linked "select ..." -o table     # read-only queries
 | `alert_deliveries` | The idempotency ledger. `UNIQUE (user_id, dedupe_key)` |
 | `course_deadlines` | Extracted assignment dates. Seeded by migration only; ships empty |
 | `competition_requests` | "This link isn't on Unstop, please add it." Admin-read via service role |
+| `tour_runs` | One row per onboarding-tour run. **Reads are admin-only** — see "Onboarding tour" |
+| `tour_step_events` | One row per tour step view. Admin-read. Kept out of `user_events` on volume |
 
 **No table stores a term.** That is deliberate and it works, because `course_id` is globally
 unique across terms. `course_outlines.term` exists for analytics only — its primary key is
@@ -570,6 +576,15 @@ Adding an event: extend the `EventType` union in `hooks/useAnalytics.ts`, then g
 in `describeEvent` in `components/admin/AdminDashboard.tsx` or it renders as a raw string.
 The Alerts feature added ~30 `alert_*` types via that same path.
 
+The device fingerprint on `user_sessions.metadata` comes from **`lib/analytics/device.ts`**,
+shared with `tour_runs`. Do not re-derive `device_type` / `browser` / `os` inline — an admin
+comparing "mobile tour completion" against "mobile sessions" must be comparing figures that
+bucket devices the same way.
+
+The tour contributes six `tour_*` types, but **only run-level milestones**. Per-step views go to
+`tour_step_events`, not here: at 11 rows per user they would outnumber every other event and
+drown the Activity feed.
+
 ### PostgREST row cap — read this before adding a dashboard query
 
 **PostgREST returns at most 1000 rows per request, silently.** `user_events` has ~16k rows.
@@ -593,6 +608,110 @@ The **Metrics** sub-tab (`components/admin/MetricsPanel.tsx`) computes reach, en
 distributions (mean / median / Q1 / Q3 / IQR / p90), retention cohorts, Pareto concentration,
 the acquisition funnel, time-to-value, feature attach rates and quality signals — all from data
 already in memory, no new tables.
+
+---
+
+## Onboarding tour
+
+A **mandatory** spotlight tour, on the live UI, the first time a student opens `/planner` after
+it ships. It drives the app — switches tabs, opens the mobile drawer, opens a real course modal
+— while a dimmed SVG mask cuts out the element being explained.
+
+```
+lib/tour/steps.ts         TOUR_VERSION + the ordered step list — the single source of truth
+lib/tour/types.ts         TourStep / TourContext
+hooks/useTour.ts          Eligibility, navigation, timing, persistence, telemetry
+components/tour/*         Spotlight overlay, tooltip card, anchor tracking
+components/admin/TourAnalytics.tsx   The In-Depth analytics section
+```
+
+### There is no Skip button, so it must fail open
+
+A blocking overlay is the one thing that can lock a student out of the portal. Three layers,
+and **none of them is optional**:
+
+1. An anchor that has not resolved within `ANCHOR_TIMEOUT_MS` (1200ms) is logged as
+   `tour_anchor_missing` and the step auto-advances.
+2. If more than `ABORT_MISSING_RATIO` (half) of a run's steps miss, the tour aborts, marks the
+   version seen, and logs `tour_aborted_error`. A broken tour must never repeat forever.
+3. `?tour=off` bypasses the tour for one load **without** marking it seen. Support only.
+
+### Anchors are `data-tour` attributes, never CSS selectors
+
+Every spotlit element carries `data-tour="<step-id>"`. A class-based selector would break on the
+next restyle, silently, and the student would eat a 1.2s pause per step. **A step id is also its
+analytics key** — renaming one orphans every historical row for that step.
+
+**Anchor one element, never a whole view.** The Schedule, Friends and Alerts steps first pointed
+at the tab's root container, which is the full scroll area: the cutout covered the viewport, so
+nothing was dimmed and the spotlight pointed at nothing. They now anchor one block-week grid,
+the friend-code card, and the first competition card. Their `fallbackAnchor` is the matching
+*empty state* (`timetable-empty`, `alerts-empty`) — also a small element — so a student with no
+data still gets a real spotlight rather than a full-screen wash.
+
+Desktop and mobile are separate DOM trees (`FilterSidebar` vs `MobileDrawer`), so the profile
+step has a `desktop` and a `mobile` variant sharing one `slot`; the counter reads `n / 11` on
+both. `MobileDrawer.forceExpanded` is how the tour opens the drawer, deliberately bypassing
+`snapToState` so a tour-opened drawer never fires `mobile_drawer_toggled`.
+
+### The tour must not poison the existing analytics
+
+Its `before()` hooks call the **raw** setters (`setViewMode`, `setActiveModal`) and never
+`trackEvent`. Route a tour step through a tracked handler and every student's first session
+injects a fake engagement funnel into the dashboard on the day it ships.
+
+Same reasoning suppresses `ChatWidget` nudges (`suppressNudges`) while the tour runs, and
+`CourseDetailModal` takes `nonModal` — base-ui makes everything outside a modal popup inert,
+which would leave the tour's own Next button unclickable.
+
+### Persistence
+
+`profiles.tour_seen_version` is the gate, read for free by the existing `profiles.select('*')`.
+It is an **int, not a bool**: bump `TOUR_VERSION` and `stepsForVersion()` gives returning
+students a short "what's new" run of only the newer steps.
+
+The demo account writes nothing anywhere — its gate falls back to `localStorage`
+(`mbap.tour.demoSeenVersion`), and its runs, step events **and** milestone `tour_*` events are
+all skipped client-side. `user_events` carries no demo-restrictive policy, so without that skip
+a reviewer would land in the cohort's adoption-lift numbers.
+
+### Analytics counts in SLOTS, not in `TOUR_STEPS`
+
+`TOUR_STEPS` has 12 entries; a run has 11. The profile step ships a desktop and a mobile
+variant sharing one `slot`, and `stepsForVersion()` gives a run exactly one of them — so
+`tour_runs.furthest_step_index` indexes an 11-long list.
+
+Reading those indices against `TOUR_STEPS` is off by one for every step after the profile slot.
+It shipped that way briefly and the damage was all silent-but-wrong: a phantom 12th funnel bar
+nobody could reach, the real last step showing a 100% drop, and every completed student's
+"furthest step" reading as the second-to-last one.
+
+**`TOUR_SLOTS` is the aggregation unit** — `slot.index` *is* a run index, and the two profile
+variants collapse into one row. `slotIndexOf(stepId)` maps the other way. Never aggregate on
+`TOUR_STEPS`.
+
+### Supabase writes in the navigation path need `.then()`
+
+PostgREST query builders are **lazy thenables**: no request is issued until something calls
+`.then()`. `void supabase.from(x).insert(y)` type-checks, lints clean, and sends nothing.
+
+That is exactly how `tour_step_events` came back empty for a real student while `tour_runs`
+(which `await`s) wrote fine — the per-step half of the dashboard was silently dead. Writes that
+cannot be awaited go through `fireAndForget()` in `hooks/useTour.ts`, which calls `.then()` and
+logs the error branch. The older `.then()` call sites in `useAnalytics.ts` are the same idiom
+without the logging.
+
+### Admin analytics
+
+Admin → In-Depth → **Onboarding Tour**. Funnel (first runs only — replays would flatter every
+drop-off), per-step dwell with skim/slog/confusion flags, time-to-complete, device split,
+version cohorts, adoption lift, anchor-health, roster, replays.
+
+`active_ms` is dwell while the tab was visible; `total_ms` is wall clock. Read `active_ms` —
+wall clock folds in the student answering a phone call, which makes its p90 meaningless.
+
+The adoption-lift panel is **observational, not a randomized test**, and says so in the UI. The
+"not reached" group is largely people who have not logged in. Direction, not proof.
 
 ---
 

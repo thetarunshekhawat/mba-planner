@@ -26,6 +26,9 @@ interface Props {
   onEliminationShown?: () => void;
   onRoundLinkClick?: (round: CompetitionRound) => void;
   onToggleExpanded?: (expanded: boolean) => void;
+  /** Set on the first card only, so the tour spotlights one competition
+   *  rather than the whole tab. */
+  tourAnchor?: boolean;
 }
 
 /** How the current stage reads when the card is closed. */
@@ -40,6 +43,7 @@ export function CompetitionCard({
   item, now = new Date(), onTrack, onUntrack, onToggleNotifications,
   onOpenReminders, onOutcome, onUndoOutcome, onEliminationShown, onRoundLinkClick,
   onToggleExpanded,
+  tourAnchor,
 }: Props) {
   const [logoBroken, setLogoBroken] = useState(false);
   // Closed by default. Four tracked competitions is a normal load and the full
@@ -72,6 +76,7 @@ export function CompetitionCard({
 
   return (
     <article
+      data-tour={tourAnchor ? 'alerts' : undefined}
       className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-opacity ${
         eliminated ? 'border-slate-200 opacity-60' : 'border-gray-200'
       }`}

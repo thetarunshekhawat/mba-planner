@@ -10,6 +10,7 @@ import {
 import {
   AlertTriangle, ArrowDownRight, CheckCircle2, Clock, Monitor, RotateCcw, Smartphone, Users,
 } from 'lucide-react';
+import { CHART_TOOLTIP_STYLE, CHART_TOOLTIP_CURSOR } from './chartTooltip';
 import type { Profile } from '@/types';
 
 /** Dwell below this means the copy was not read — the step is decoration. */
@@ -20,6 +21,13 @@ const SLOG_MS = 20_000;
 const BACK_IN_RATE_FLAG = 0.15;
 /** A run whose heartbeat is older than this and still 'in_progress' is gone. */
 const STALE_MS = 10 * 60 * 1000;
+type RosterFilter = 'all' | 'completed' | 'incomplete';
+
+/** Roster sort order: whoever engaged first, "never opened it" last. */
+const STATUS_RANK: Record<string, number> = {
+  completed: 0, in_progress: 1, abandoned: 2, aborted_error: 3, 'not started': 4,
+};
+
 /** Window for the adoption comparison. */
 const ADOPTION_DAYS = 7;
 
@@ -136,7 +144,7 @@ export function TourAnalytics({ profiles }: { profiles: Profile[] }) {
   const [stepEvents, setStepEvents] = useState<StepEventRow[]>([]);
   const [adoption, setAdoption] = useState<AdoptionEventRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rosterFilter, setRosterFilter] = useState<'all' | 'incomplete'>('all');
+  const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all');
 
   useEffect(() => {
     let cancelled = false;
@@ -372,9 +380,17 @@ export function TourAnalytics({ profiles }: { profiles: Profile[] }) {
         lastSeen: latest?.last_heartbeat_at ?? null,
       };
     });
-    return rosterFilter === 'incomplete'
-      ? rows.filter(r => r.status !== 'completed')
-      : rows;
+    // Whoever actually engaged goes to the top. Left in profile order, the one
+    // student who finished sits somewhere inside 140-odd "not started" rows and
+    // the panel reads as if nobody has completed the tour at all.
+    rows.sort((a, b) =>
+      (STATUS_RANK[a.status] ?? 9) - (STATUS_RANK[b.status] ?? 9)
+      || b.activeMs - a.activeMs
+      || a.name.localeCompare(b.name));
+
+    if (rosterFilter === 'completed') return rows.filter(r => r.status === 'completed');
+    if (rosterFilter === 'incomplete') return rows.filter(r => r.status !== 'completed');
+    return rows;
   }, [profiles, perUser, rosterFilter]);
 
   const replayers = useMemo(
@@ -428,11 +444,12 @@ export function TourAnalytics({ profiles }: { profiles: Profile[] }) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={funnel} layout="vertical" margin={{ left: 8, right: 24 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
-              <XAxis type="number" stroke="#64748b" fontSize={10} />
+              <XAxis type="number" stroke="#64748b" fontSize={10} allowDecimals={false} />
               <YAxis type="category" dataKey="label" stroke="#64748b" fontSize={10} width={110} />
               <Tooltip
-                contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8, fontSize: 11 }}
-                formatter={(v) => [v as number, 'Reached']}
+                {...CHART_TOOLTIP_STYLE}
+                cursor={CHART_TOOLTIP_CURSOR}
+                formatter={(v) => [`${v} students`, 'Reached']}
               />
               <Bar dataKey="reached" radius={[0, 4, 4, 0]}>
                 {funnel.map(f => (
@@ -621,10 +638,14 @@ export function TourAnalytics({ profiles }: { profiles: Profile[] }) {
       {/* ── 9. Roster ── */}
       <Section
         title="Who has seen it"
-        hint="The tour is mandatory, so anyone not completed either has not logged in since it shipped or dropped out mid-way."
+        hint="The tour is mandatory and runs on any visit to the portal, not just a fresh login, so anyone not completed either has not opened the portal since it shipped or dropped out mid-way. Completed students sort to the top."
       >
         <div className="flex gap-1.5 mb-3">
-          {(['all', 'incomplete'] as const).map(f => (
+          {([
+            ['all', `All (${profiles.length})`],
+            ['completed', `Completed (${completedUserIds.size})`],
+            ['incomplete', `Not completed (${profiles.length - completedUserIds.size})`],
+          ] as const).map(([f, label]) => (
             <button
               key={f}
               onClick={() => setRosterFilter(f)}
@@ -632,7 +653,7 @@ export function TourAnalytics({ profiles }: { profiles: Profile[] }) {
                 rosterFilter === f ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-400 hover:text-slate-200'
               }`}
             >
-              {f === 'all' ? `All (${profiles.length})` : `Not completed (${profiles.length - completedUserIds.size})`}
+              {label}
             </button>
           ))}
         </div>

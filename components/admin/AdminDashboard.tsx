@@ -16,6 +16,7 @@ import { MetricsPanel } from './MetricsPanel';
 import { fetchAllRows } from '@/lib/alerts/paging';
 import { AlertsAdminPanel } from './AlertsAdminPanel';
 import { TourAnalytics } from './TourAnalytics';
+import { CHART_TOOLTIP_STYLE } from './chartTooltip';
 
 interface MemberSelection {
   user_id: string;
@@ -271,16 +272,6 @@ function fmtExactTime(ts: string): string {
   });
 }
 
-const CHART_TOOLTIP_STYLE = {
-  contentStyle: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #1e293b',
-    borderRadius: '8px',
-    fontSize: '12px',
-  },
-  labelStyle: { color: '#94a3b8' },
-  itemStyle: { color: '#e2e8f0' },
-};
 
 function LoginTimingChart({ byHour }: { byHour: number[] }) {
   const data = byHour.map((logins, h) => ({

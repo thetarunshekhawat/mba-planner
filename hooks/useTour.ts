@@ -110,7 +110,13 @@ export function useTour({ profile, userId, ctx, trackEvent }: Args): TourState {
   const total = steps.length;
 
   // ── Eligibility ───────────────────────────────────────────
-  useEffect(() => {
+  // Deliberately NOT tied to the login event. The gate is
+  // profiles.tour_seen_version, so the tour runs on any arrival at /planner —
+  // a student who was already signed in and lands straight on the portal from a
+  // bookmark, a push notification, or a restored session gets it exactly like
+  // someone who just typed an OTP. `startedRef` only stops it running twice
+  // within one mount.
+  const maybeStart = useCallback(() => {
     if (!profile || !userId || startedRef.current) return;
     if (typeof window === 'undefined') return;
 
@@ -133,7 +139,21 @@ export function useTour({ profile, userId, ctx, trackEvent }: Args): TourState {
     setActive(true);
     void beginRun(list, t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, userId]);
+  }, [profile, userId, isDemo]);
+
+  useEffect(() => { maybeStart(); }, [maybeStart]);
+
+  // A tab that has been sitting open since before the tour shipped never
+  // remounts this component, so the mount-time check above would miss it
+  // entirely. Re-check when the student comes back to the tab.
+  useEffect(() => {
+    if (active || startedRef.current) return;
+    function onVis() {
+      if (document.visibilityState === 'visible') maybeStart();
+    }
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [active, maybeStart]);
 
   // ── Visibility accounting ─────────────────────────────────
   // active_ms is dwell while the tab is actually visible. Wall-clock alone would

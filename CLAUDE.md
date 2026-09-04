@@ -55,6 +55,8 @@ data/classSessions.json
                        one key. The script flags two codes claiming one room at one
                        time so a rename can't duplicate a course silently again
 lib/tour/steps.ts      THE onboarding tour — TOUR_VERSION and the ordered step list
+lib/impact.ts          Harry Potter word counts + the hours→books reading comparison
+                       shown on the demo account's impact strip
 lib/analytics/device.ts
                        Shared device fingerprint (user_sessions.metadata + tour_runs)
 components/planner/*   The main planner UI (Plan / My Schedule / Friends / Alerts)
@@ -535,11 +537,20 @@ supabase db query --linked "select ..." -o table     # read-only queries
 | `competition_requests` | "This link isn't on Unstop, please add it." Admin-read via service role |
 | `tour_runs` | One row per onboarding-tour run. **Reads are admin-only** — see "Onboarding tour" |
 | `tour_step_events` | One row per tour step view. Admin-read. Kept out of `user_events` on volume |
+| `course_terms` | `(course_id, term)` mirrored from the catalogue. **Generated — see below** |
+| `impact_snapshots` | Four pre-computed rows for the demo impact strip. RLS on, **no policy**: reachable only through `get_impact_snapshot()` |
 
-**No table stores a term.** That is deliberate and it works, because `course_id` is globally
-unique across terms. `course_outlines.term` exists for analytics only — its primary key is
-still `code`, which is safe *only while no course code is reused across terms*. Check that
-before adding a term.
+**No table stores a term**, with one generated exception. That rule is deliberate and it works,
+because `course_id` is globally unique across terms. `course_outlines.term` exists for
+analytics only — its primary key is still `code`, which is safe *only while no course code is
+reused across terms*. Check that before adding a term.
+
+The exception is **`course_terms`**, added by migration 023. A SQL function has no access to
+`data/courses.ts`, so the impact snapshot cannot resolve a term the way the app does. This is a
+copy, and copies drift: regenerate it with `bun scripts/build-course-terms.mts` when you add a
+term, and `--check` in the verification table will tell you when it has gone stale. Nothing but
+the impact snapshot reads it — do not start resolving terms through this table elsewhere, or the
+rule above stops being true in the way that matters.
 
 Still true after Alerts. `course_deadlines.term` is analytics-only exactly like
 `course_outlines.term` — the real term resolves through `course_code` → `data/courses.ts`. The
@@ -608,6 +619,45 @@ The **Metrics** sub-tab (`components/admin/MetricsPanel.tsx`) computes reach, en
 distributions (mean / median / Q1 / Q3 / IQR / p90), retention cohorts, Pareto concentration,
 the acquisition funnel, time-to-value, feature attach rates and quality signals — all from data
 already in memory, no new tables.
+
+### Institution impact strip (demo account only)
+
+`components/planner/ImpactStrip.tsx`, rendered at the top of the Plan tab when
+`isDemoEmail(profile.email)`. A reviewer lands on the numbers; the catalogue is one scroll
+below. A student's Plan tab is unchanged.
+
+**Every figure comes from one pre-computed row.** Migration 023 defines
+`refresh_impact_snapshots()`, which recomputes four rows of `impact_snapshots` — one per chip
+(`all` / `term4` / `term5` / `last30`) — and `get_impact_snapshot(window)`, which returns one
+of them as jsonb. `impact_snapshots` has RLS on and **no permissive policy**, so the SECURITY
+DEFINER function is the only read path and a direct PostgREST select returns nothing. The
+browser aggregates nothing, which is also why the 1000-row cap above cannot reach these.
+
+**The term chips scope by course, the 30-day chip scopes by time.** Term 5 is planned *during*
+Term 4, so date-filtering a term window would report zero Term 5 planners for most of the
+year. `returners` (the Term 4 ∩ Term 5 overlap) exists only on the `all` window; the other
+windows return `null` for it and the component omits the tile.
+
+**Session time is clamped to 90 minutes per session.** A session ends on `visibilitychange`,
+so a focused-but-abandoned tab bills wall clock. The cap and the 250 wpm reading pace are
+printed under the strip. The number undercounts on purpose — it has to survive being
+questioned.
+
+**Full recompute, never incremental.** `returners` is a set intersection, `students` is a
+distinct count, and `median_seconds` cannot be summed. Adding to these daily drifts wrong
+silently. A full pass is milliseconds, and readers get yesterday's stored row anyway.
+
+**`course_terms` mirrors the catalogue's term column into SQL** because `course_selections`
+stores only `course_id`. Regenerate with `bun scripts/build-course-terms.mts` after adding a
+term; `--check` fails when it has drifted. Skip it and every Term N figure is quietly too low.
+
+**Two drivers, one guard**, same shape as the alerts dispatcher: pg_cron (`17 1 * * *`, guarded
+so a project without the extension still applies the migration) and `/api/impact/refresh` in
+`vercel.json` (`40 1 * * *`) behind `CRON_SECRET`, failing closed when unset. The recompute
+overwrites, so running both is the same as running one.
+
+The demo account is excluded from every figure. `impact_strip_shown` and
+`impact_window_changed` are therefore a record of reviewers, not of the cohort.
 
 ---
 
@@ -761,6 +811,7 @@ Rules:
 | `npx tsx scripts/verify-metrics.mts` | Distribution maths, and that paged fetches return all rows |
 | `npx tsx scripts/verify-alerts.mts` | Reminder scheduling, round state, dedupe keys, IST, and the Unstop mapper against a committed live fixture |
 | `npx tsx scripts/build-outline-headers.mts` | Regenerates authoritative outline headers |
+| `bun scripts/build-course-terms.mts --check` | `course_terms` in migration 023 still matches `data/courses.ts` — run it after adding a term, or the impact strip's Term N figures go quietly low |
 
 Run `verify-timings` after any catalogue edit — transcribing a timetable by hand is the step
 most likely to introduce a silent error, and it's the only check that would catch it.

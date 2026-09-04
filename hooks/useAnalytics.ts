@@ -112,7 +112,11 @@ export type EventType =
   | 'tour_abandoned'
   | 'tour_replayed'
   | 'tour_anchor_missing'
-  | 'tour_aborted_error';
+  | 'tour_aborted_error'
+  // Institution impact strip — demo account only, so these rows are a record
+  // of reviewers, not of the cohort.
+  | 'impact_strip_shown'
+  | 'impact_window_changed';
 
 export function useAnalytics(userId: string | null) {
   const supabase = createClient();

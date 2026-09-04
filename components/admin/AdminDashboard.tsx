@@ -99,6 +99,8 @@ const EVENT_LABELS: Record<string, string> = {
   rage_click: 'Rage Click',
   js_error: 'JS Error',
   calendar_accessed: 'Calendar Access',
+  impact_strip_shown: 'Impact Strip Shown',
+  impact_window_changed: 'Impact Window Changed',
   export_dialog_opened: 'Export Dialog Opened',
   calendar_panel_opened: 'Calendar Panel Opened',
   sidebar_toggled: 'Filter Sidebar Toggled',

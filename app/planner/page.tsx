@@ -16,6 +16,7 @@ import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar'
 import { MobileDrawer } from '@/components/planner/MobileDrawer';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
 import { CourseSearch, EMPTY_SEARCH, type SearchState } from '@/components/planner/CourseSearch';
+import { ImpactStrip } from '@/components/planner/ImpactStrip';
 import { matchesQuery } from '@/lib/courseSearch';
 import { isDemoEmail } from '@/lib/demo';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
@@ -790,6 +791,10 @@ export default function PlannerPage() {
                   </button>
                 </div>
               )}
+              {/* Demo reviewers land here, so the cohort numbers meet them
+                  before the catalogue does. A student never sees this, and
+                  the Plan tab is byte-identical for them. */}
+              {isDemo && <ImpactStrip trackEvent={trackEvent} />}
               <PlannerListView
                 selected={selected}
                 userSpecs={profile.specializations}

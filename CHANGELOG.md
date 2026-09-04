@@ -4,6 +4,50 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Institution impact strip on the demo account's Plan tab
+
+A reviewer opening the demo login used to land on the course catalogue with no idea whether
+anybody uses this. The demo account's Plan tab now opens with a strip of cohort numbers above
+the catalogue: how many students planned, how many planned Term 4, how many planned Term 5,
+how many came back for both, total time on the planner, and what the planner absorbed
+(deadline reminders delivered, assistant answers, elective choices). No new tab, nothing to
+navigate to, and the real product is one scroll below it. Students see none of it.
+
+Four chips scope the page: **All time** (default, and the only window where "came back"
+exists, because it is the overlap of two planner sets), **Term 4**, **Term 5**, **Last 30
+days**. The term chips scope by *course*, not by date. Term 5 is planned during Term 4, so a
+date filter would report zero Term 5 planners for most of the year — a cliff that reads as
+"the dashboard is broken" rather than "wrong question".
+
+**Time is stated in Harry Potter books** (`lib/impact.ts`), because "4,120 hours" is a number
+nobody has a feel for. Published word counts, 250 wpm stated on the card, and the shelf fills
+spine by spine rather than printing a multiplier. Sessions are clamped to 90 minutes each so
+an idle tab cannot inflate the total; the cap and the method are printed under the strip,
+unprompted, because a dean who has to ask has already started doubting the number.
+
+**Nothing is aggregated in the browser.** `refresh_impact_snapshots()` recomputes four rows
+once a day inside the database; `get_impact_snapshot(window)` returns one of them. RLS on
+`impact_snapshots` has no permissive policy at all, so the SECURITY DEFINER function is the
+only way in and a direct PostgREST read returns zero rows — verified against a throwaway
+Postgres 17 cluster. This also puts the figures out of reach of the PostgREST 1000-row cap
+that silently truncated the admin dashboard's numbers before the Metrics work.
+
+A full daily recompute, not an incremental add: "came back" is a set intersection, "students
+who planned" is a distinct count, and a median cannot be summed at all. Incrementing those
+drifts wrong slowly and silently, and a full pass costs milliseconds.
+
+Driven by pg_cron where the extension is available, with `/api/impact/refresh` in
+`vercel.json` as the safety net — the same two-driver arrangement as the alerts dispatcher,
+behind the same `CRON_SECRET` bearer guard. Both are idempotent: the recompute overwrites.
+
+`course_terms` mirrors the catalogue's term column into SQL, because `course_selections`
+stores only `course_id` and a database function has no catalogue. Regenerate it with
+`bun scripts/build-course-terms.mts` (`--check` fails if it has drifted) whenever a term is
+added, or every Term N figure is silently too low.
+
+Demo activity is excluded from every figure. Reviewers clicking around must not appear in the
+cohort's own numbers.
+
 ### Added - Mandatory onboarding tour, and the analytics to tell whether it works
 
 The portal had grown to four tabs, a sidebar, global search, friend overlays, competition

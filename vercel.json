@@ -7,6 +7,10 @@
     {
       "path": "/api/alerts/dispatch",
       "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/impact/refresh",
+      "schedule": "40 1 * * *"
     }
   ]
 }

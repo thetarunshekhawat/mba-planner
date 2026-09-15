@@ -1191,7 +1191,10 @@ export function AdminDashboard({
   const sessionsPerActiveUser = activeUserCount ? (sessions.length / activeUserCount).toFixed(1) : '0.0';
 
   const plannersCount = new Set(selections.map(s => s.user_id)).size;
-  const electiveCount = ALL_COURSES.filter(c => c.type === 'elective').length;
+  // The full planner catalogue — every course a student can put on their plan, which is the
+  // number quoted externally as "electives" (39 carry type 'elective'; the rest are WAW, free
+  // electives and exam blocks that compete for the same slots).
+  const electiveCount = ALL_COURSES.length;
 
   const chatUserMessages = chatbotMessages.filter(m => m.role === 'user').length;
   const chatDistinctUsers = new Set(chatbotMessages.map(m => m.user_id)).size;
@@ -5316,7 +5319,7 @@ export function AdminDashboard({
                         ['Sessions / active user', 'Total tracked sessions ÷ users with at least 1 session.'],
                         ['Sessions tracked', 'Rows in user_sessions — one per visit, opened and closed by the client.'],
                         ['Analytics events', 'Rows in user_events — clicks, filters, modal opens, exports, errors and logins.'],
-                        ['Plans built', 'Distinct users with at least one saved course selection.'],
+                        ['Plans built', 'Distinct users with at least one saved course selection, chosen from the 55-course elective catalogue.'],
                         ['AI chatbot messages', 'Rows in chatbot_messages (user questions + assistant answers).'],
                         ['Landing → login conversion', 'Landing sessions that ended in a successful login ÷ all landing sessions.'],
                       ].map(([term, def]) => (

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { Profile, SpecId, Course } from '@/types';
-import { Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle, MousePointerClick, Copy, Zap, BarChart2, User2, Bell } from 'lucide-react';
+import { Search, Users, BookOpen, TrendingUp, ChevronRight, ChevronDown, ArrowLeft, X, Clock, ArrowUp, ArrowDown, ChevronsUpDown, MessageSquare, Sparkles, AlertTriangle, MousePointerClick, Copy, Zap, BarChart2, User2, Bell, Award } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
@@ -79,7 +79,7 @@ interface GroupedSession {
   events: EventRow[];
 }
 
-type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot' | 'ask-ai' | 'alerts';
+type Tab = 'overview' | 'member' | 'activity' | 'insights' | 'in-depth' | 'chatbot' | 'ask-ai' | 'alerts' | 'report';
 type MemberSubTab = 'courses' | 'activity' | 'security' | 'insights';
 type InsightsSubTab = 'overview' | 'metrics';
 
@@ -542,7 +542,7 @@ export function AdminDashboard({
 
   // Reload landing funnel data every time Insights tab opens
   useEffect(() => {
-    if (tab !== 'insights') return;
+    if (tab !== 'insights' && tab !== 'report') return;
     fetchAllRows<LandingSession>(() => supabase
       .from('landing_sessions')
       .select('id, user_id, landed_at, first_ring_interaction_at, ring_interaction_ms, login_attempted, login_succeeded, abandoned, device_type, browser')
@@ -555,7 +555,7 @@ export function AdminDashboard({
 
   // Lazy-load analytics data when Activity, Insights, or In-Depth tab first opens
   useEffect(() => {
-    if ((tab !== 'activity' && tab !== 'insights' && tab !== 'in-depth' && tab !== 'chatbot') || analyticsLoadedRef.current) return;
+    if ((tab !== 'activity' && tab !== 'insights' && tab !== 'in-depth' && tab !== 'chatbot' && tab !== 'report') || analyticsLoadedRef.current) return;
     analyticsLoadedRef.current = true;
     Promise.all([
       fetchAllRows<SessionRow>(() => supabase
@@ -1175,6 +1175,36 @@ export function AdminDashboard({
   }
   const maxLoginHour = Math.max(...loginByHour, 1);
 
+  // ── Impact report (shareable cohort summary) ──────────────────────────────
+  // Deliberately ignores the dashboard term filter: these are whole-product figures meant to
+  // be screenshotted and shared as-is, so narrowing them to one term would misstate them.
+  const fmtNum = (n: number) => n.toLocaleString('en-US');
+
+  const cohortSize = Math.max(whitelistEmails.length, profiles.length);
+  const activationPct = cohortSize ? Math.round((profiles.length / cohortSize) * 100) : 0;
+
+  const sessionsPerUserMap = new Map<string, number>();
+  for (const s of sessions) sessionsPerUserMap.set(s.user_id, (sessionsPerUserMap.get(s.user_id) ?? 0) + 1);
+  const activeUserCount = sessionsPerUserMap.size;
+  const returningUserCount = Array.from(sessionsPerUserMap.values()).filter(n => n >= 2).length;
+  const retentionPct = activeUserCount ? Math.round((returningUserCount / activeUserCount) * 100) : 0;
+  const sessionsPerActiveUser = activeUserCount ? (sessions.length / activeUserCount).toFixed(1) : '0.0';
+
+  const plannersCount = new Set(selections.map(s => s.user_id)).size;
+  const electiveCount = ALL_COURSES.filter(c => c.type === 'elective').length;
+
+  const chatUserMessages = chatbotMessages.filter(m => m.role === 'user').length;
+  const chatDistinctUsers = new Set(chatbotMessages.map(m => m.user_id)).size;
+
+  const landingConverted = landingSessions.filter(l => l.login_succeeded).length;
+  const landingConvPct = landingSessions.length
+    ? Math.round((landingConverted / landingSessions.length) * 100)
+    : 0;
+
+  const reportGeneratedAt = new Date().toLocaleString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -1330,6 +1360,15 @@ export function AdminDashboard({
             >
               <Sparkles className="w-3 h-3" />
               Ask AI
+            </button>
+            <button
+              onClick={() => setTab('report')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+                tab === 'report' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Award className="w-3 h-3" />
+              Impact Report
             </button>
             <button
               onClick={() => setTab('alerts')}
@@ -5152,6 +5191,149 @@ export function AdminDashboard({
                   </>
                 );
               })()}
+            </div>
+          )}
+
+          {/* ── IMPACT REPORT TAB ──
+              A single screenshot-ready summary of the headline product metrics. Every figure is
+              computed live from the same tables the rest of the dashboard reads, and each tile
+              carries the raw numerator/denominator so the number can be checked at a glance. */}
+          {tab === 'report' && (
+            <div className="p-4">
+              <div className="bg-slate-800 rounded-2xl border border-white/10 overflow-hidden">
+                {/* Report header */}
+                <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-white/10 bg-gradient-to-r from-emerald-500/10 to-transparent">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                      <Award className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-white text-lg font-bold leading-tight">MBA Planner — Impact Report</h2>
+                      <p className="text-slate-400 text-xs mt-1">
+                        BITSoM Co&apos;27 · AI course-selection &amp; schedule-planning platform
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      Live production data
+                    </span>
+                    <p className="text-slate-500 text-[10px] mt-1.5">Generated {reportGeneratedAt} IST</p>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {/* Headline metrics */}
+                  <div>
+                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-3">Adoption &amp; Engagement</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        {
+                          label: 'Activation',
+                          value: `${activationPct}%`,
+                          sub: `${profiles.length} of ${cohortSize} cohort members created an account`,
+                          color: 'text-emerald-400',
+                          ring: 'border-emerald-500/30',
+                        },
+                        {
+                          label: 'Retention',
+                          value: `${retentionPct}%`,
+                          sub: `${returningUserCount} of ${activeUserCount} active users came back for a second session`,
+                          color: 'text-blue-400',
+                          ring: 'border-blue-500/30',
+                        },
+                        {
+                          label: 'Sessions / active user',
+                          value: sessionsPerActiveUser,
+                          sub: `${fmtNum(sessions.length)} sessions ÷ ${activeUserCount} active users`,
+                          color: 'text-orange-400',
+                          ring: 'border-orange-500/30',
+                        },
+                        {
+                          label: 'Sessions tracked',
+                          value: fmtNum(sessions.length),
+                          sub: `Across ${activeUserCount} distinct users since launch`,
+                          color: 'text-purple-400',
+                          ring: 'border-purple-500/30',
+                        },
+                      ].map(m => (
+                        <div key={m.label} className={`bg-slate-900/60 rounded-xl p-4 border ${m.ring}`}>
+                          <div className={`text-3xl font-bold ${m.color}`}>{m.value}</div>
+                          <div className="text-xs text-slate-200 font-semibold mt-1">{m.label}</div>
+                          <div className="text-[10px] text-slate-500 mt-1.5 leading-snug">{m.sub}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Product depth */}
+                  <div>
+                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-3">Product Usage &amp; AI</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        {
+                          label: 'Analytics events captured',
+                          value: events.length >= 1000 ? `${(events.length / 1000).toFixed(1)}K` : fmtNum(events.length),
+                          sub: `${fmtNum(events.length)} product events powering the funnel & engagement analysis`,
+                          color: 'text-cyan-400',
+                        },
+                        {
+                          label: 'Plans built',
+                          value: fmtNum(plannersCount),
+                          sub: `${fmtNum(selections.length)} course selections across ${electiveCount} electives in the catalogue`,
+                          color: 'text-green-400',
+                        },
+                        {
+                          label: 'AI chatbot messages',
+                          value: fmtNum(chatbotMessages.length),
+                          sub: `${fmtNum(chatUserMessages)} questions asked by ${chatDistinctUsers} distinct users`,
+                          color: 'text-indigo-400',
+                        },
+                        {
+                          label: 'Landing → login conversion',
+                          value: `${landingConvPct}%`,
+                          sub: `${fmtNum(landingConverted)} logins from ${fmtNum(landingSessions.length)} landing sessions`,
+                          color: 'text-pink-400',
+                        },
+                      ].map(m => (
+                        <div key={m.label} className="bg-slate-900/60 rounded-xl p-4 border border-white/10">
+                          <div className={`text-3xl font-bold ${m.color}`}>{m.value}</div>
+                          <div className="text-xs text-slate-200 font-semibold mt-1">{m.label}</div>
+                          <div className="text-[10px] text-slate-500 mt-1.5 leading-snug">{m.sub}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Definitions — so a reader can audit every headline number */}
+                  <div className="bg-slate-900/40 rounded-xl border border-white/5 p-4">
+                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-3">How each number is computed</h3>
+                    <div className="grid md:grid-cols-2 gap-x-6 gap-y-2">
+                      {[
+                        ['Activation', 'Cohort members who created an account ÷ total cohort members on the BITSoM whitelist.'],
+                        ['Retention', 'Users with 2 or more tracked sessions ÷ users with at least 1 session.'],
+                        ['Sessions / active user', 'Total tracked sessions ÷ users with at least 1 session.'],
+                        ['Sessions tracked', 'Rows in user_sessions — one per visit, opened and closed by the client.'],
+                        ['Analytics events', 'Rows in user_events — clicks, filters, modal opens, exports, errors and logins.'],
+                        ['Plans built', 'Distinct users with at least one saved course selection.'],
+                        ['AI chatbot messages', 'Rows in chatbot_messages (user questions + assistant answers).'],
+                        ['Landing → login conversion', 'Landing sessions that ended in a successful login ÷ all landing sessions.'],
+                      ].map(([term, def]) => (
+                        <div key={term} className="text-[11px] leading-relaxed">
+                          <span className="text-slate-300 font-semibold">{term}: </span>
+                          <span className="text-slate-500">{def}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-slate-600">
+                    All figures read live from the MBA Planner production database at the time this page was opened;
+                    they are not term-filtered and will keep rising as the cohort uses the product.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 

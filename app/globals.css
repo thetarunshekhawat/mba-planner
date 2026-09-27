@@ -281,6 +281,10 @@
   0%   { background-position:   0% 50%; }
   100% { background-position: 200% 50%; }
 }
+@keyframes exam-cell-sheen {
+  0%   { background-position:   0% 50%; }
+  100% { background-position: 200% 50%; }
+}
 @keyframes gemini-text {
   0%   { background-position: 200% 0; }
   100% { background-position: -60% 0; }
@@ -390,6 +394,13 @@
   animation: gemini-sweep 2.4s linear infinite;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 0c.5 6 5.5 11 12 12-6.5 1-11.5 6-12 12-.5-6-5.5-11-12-12C6.5 11 11.5 6 12 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 0c.5 6 5.5 11 12 12-6.5 1-11.5 6-12 12-.5-6-5.5-11-12-12C6.5 11 11.5 6 12 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+/* Animated gradient pill for end-block exams / presentations on the timetable */
+.exam-cell-pill {
+  background: linear-gradient(110deg, #ede9fe, #ddd6fe, #fbcfe8, #c4b5fd, #ede9fe);
+  background-size: 200% 100%;
+  animation: exam-cell-sheen 2.4s linear infinite;
+  color: #4c1d95;
 }
 /* Shimmering label — bright band sweeps across muted text (theme-aware) */
 .gemini-thinking-text {

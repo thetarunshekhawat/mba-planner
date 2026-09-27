@@ -114,16 +114,8 @@ const SCHEDULE_BY_TERM: Record<number, TermSchedule> = {
     blocks: [
       { block: 22, weekNum: 1, dates: 'Sep 28 – Oct 4',  start: '2026-09-28', end: '2026-10-04' },
       { block: 22, weekNum: 2, dates: 'Oct 5 – Oct 11',  start: '2026-10-05', end: '2026-10-11' },
-      { block: 23, weekNum: 1, dates: 'Oct 12 – Oct 18', start: '2026-10-12', end: '2026-10-18',
-        banners: [
-          { label: 'End Block Exam — Responsible AI & Governance · Sat Oct 10, 17:00–18:30', tone: 'exam' },
-          { label: 'End Block Exam — Operations Strategy · Sun Oct 11, 09:00–12:00', tone: 'exam' },
-          { label: 'End Block Exam — Valuation · Sun Oct 11, 13:30–16:30', tone: 'exam' },
-        ] },
-      { block: 23, weekNum: 2, dates: 'Oct 19 – Oct 25', start: '2026-10-19', end: '2026-10-25',
-        banners: [
-          { label: 'Final Group Presentation — Valuation · Sat Oct 17, 09:00–12:00', tone: 'exam' },
-        ] },
+      { block: 23, weekNum: 1, dates: 'Oct 12 – Oct 18', start: '2026-10-12', end: '2026-10-18' },
+      { block: 23, weekNum: 2, dates: 'Oct 19 – Oct 25', start: '2026-10-19', end: '2026-10-25' },
       { block: 24, weekNum: 1, dates: 'Oct 26 – Nov 1',  start: '2026-10-26', end: '2026-11-01' },
       { block: 24, weekNum: 2, dates: 'Nov 2 – Nov 8',   start: '2026-11-02', end: '2026-11-08' },
       { block: 25, weekNum: 1, dates: 'Nov 23 – Nov 29', start: '2026-11-23', end: '2026-11-29',
@@ -221,6 +213,53 @@ function getUniqueSlots(
     const tb = parseInt(b.split('–')[0].replace(':', ''), 10);
     return ta - tb;
   });
+}
+
+function sortSlots(slots: Iterable<string>): string[] {
+  return [...slots].sort((a, b) => {
+    const ta = parseInt(a.split('–')[0].replace(':', ''), 10);
+    const tb = parseInt(b.split('–')[0].replace(':', ''), 10);
+    return ta - tb;
+  });
+}
+
+const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+
+/** Day-of-week name for an ISO date relative to a Mon-start block week, or null if outside. */
+function dayNameInBlockWeek(blockStart: string, date: string): (typeof WEEKDAY_NAMES)[number] | null {
+  const offset = Math.round((parseTs(date) - parseTs(blockStart)) / 86400000);
+  if (offset < 0 || offset > 6) return null;
+  return WEEKDAY_NAMES[offset];
+}
+
+type ExamOccurrence = {
+  course: Course;
+  session: NonNullable<Course['examSessions']>[number];
+  day: (typeof WEEKDAY_NAMES)[number];
+};
+
+/**
+ * Exam sessions whose calendar date falls in this week row — even when the
+ * course's teaching `endDate` means `courseInBlock` is false (VALU presentation
+ * on Oct 17 sits in Block 23 W1 after teaching ends Oct 11).
+ * Intentionally never fed into conflict / section-advisory / friend-clash paths.
+ */
+function weekExamOccurrences(
+  courses: Course[],
+  visibleIds: Set<number>,
+  blockInfo: BlockRow,
+): ExamOccurrence[] {
+  const out: ExamOccurrence[] = [];
+  for (const c of courses) {
+    if (!visibleIds.has(c.id) || !c.examSessions) continue;
+    for (const session of c.examSessions) {
+      if (session.date < blockInfo.start || session.date > blockInfo.end) continue;
+      const day = dayNameInBlockWeek(blockInfo.start, session.date);
+      if (!day) continue;
+      out.push({ course: c, session, day });
+    }
+  }
+  return out;
 }
 
 function getCourseAccent(course: Course): string {
@@ -495,6 +534,91 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
   );
 }
 
+/** End-block exam / presentation cell — animated gradient, not a NoticeBanner. */
+function ExamPill({ course, label, slot, room, searchState, printHidden, onClick }: {
+  course: Course;
+  label?: string;
+  slot: string;
+  room?: string;
+  searchState?: SearchState;
+  printHidden?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      data-course-id={course.id}
+      data-search-hit={searchState === 'hit' ? 'true' : undefined}
+      className={`exam-cell-pill w-full text-left rounded-md hover:brightness-95 transition-all px-2 py-1.5${printHidden ? ' print:hidden' : ''}`}
+      title={[course.code ?? course.name, label, slot].filter(Boolean).join(' · ')}
+      style={{
+        borderLeft: '4px solid #7c3aed',
+        boxShadow: searchState === 'hit' ? `0 0 0 4px ${SEARCH_RING}33` : '0 1px 4px rgba(124,58,237,0.25)',
+        outline: searchState === 'hit' ? `2px solid ${SEARCH_RING}` : undefined,
+        opacity: searchState === 'miss' ? 0.25 : undefined,
+      }}
+    >
+      <div className="flex items-center gap-1">
+        <span className="font-bold text-[12px] leading-tight text-violet-900">
+          {course.code ?? course.name.slice(0, 4).toUpperCase()}
+        </span>
+      </div>
+      {label && (
+        <div className="text-[9px] font-semibold mt-0.5 text-violet-800 leading-tight">
+          {label}
+        </div>
+      )}
+      <div className="text-[10px] font-mono font-semibold mt-0.5 text-violet-700/80">
+        {slot}
+      </div>
+      {room && (
+        <div className="text-[10px] font-mono font-semibold mt-0.5 text-violet-700/70">
+          {room}
+        </div>
+      )}
+    </button>
+  );
+}
+
+/** Compact Sunday strip under a week table — exams land here because DAYS has no Sun column. */
+function SundayExamRow({ exams, highlightIds, onCourseClick }: {
+  exams: ExamOccurrence[];
+  highlightIds?: Set<number>;
+  onCourseClick: (c: Course) => void;
+}) {
+  if (exams.length === 0) return null;
+  const dateLabel = (() => {
+    const d = new Date(exams[0].session.date + 'T00:00:00Z');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  })();
+  return (
+    <tr className="border-t-2 border-violet-100 bg-violet-50/40">
+      <td className="px-4 py-2 text-[11px] font-semibold text-violet-800 border-r border-gray-200 whitespace-nowrap align-middle bg-violet-50">
+        <span className="inline-flex items-center gap-1.5">
+          Sun {dateLabel}
+        </span>
+      </td>
+      <td colSpan={DAYS.length} className="px-1.5 py-1.5 border-r-0 border-gray-100 align-top">
+        <div className="flex flex-wrap gap-1.5" style={{ maxWidth: '100%' }}>
+          {exams.map(e => (
+            <div key={`${e.course.id}-${e.session.date}-${e.session.slot}`} style={{ width: 140 }}>
+              <ExamPill
+                course={e.course}
+                label={e.session.label}
+                slot={e.session.slot}
+                room={e.session.room}
+                searchState={searchStateFor(highlightIds, e.course.id)}
+                printHidden={!!highlightIds && highlightIds.size > 0 && !highlightIds.has(e.course.id)}
+                onClick={() => onCourseClick(e.course)}
+              />
+            </div>
+          ))}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 // ── Alerts on the schedule ──────────────────────────────
 // A week row in the grid is seven consecutive days from `blockInfo.start`, so a
 // commitment lands in a column by plain date equality. Block starts are
@@ -616,7 +740,14 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
     courses: friendBlockCourses(o, blockInfo.start, blockInfo.end),
   }));
 
-  const slots = getUniqueSlots(blockCourses, advisories, assignedSections, friendBlock);
+  // Collect examSessions by calendar week independently of teaching endDate.
+  const weekExams = weekExamOccurrences(courses, visibleIds, blockInfo);
+  const weekdayExams = weekExams.filter(e => e.day !== 'Sun');
+  const sundayExams = weekExams.filter(e => e.day === 'Sun');
+
+  const slotSet = new Set(getUniqueSlots(blockCourses, advisories, assignedSections, friendBlock));
+  weekdayExams.forEach(e => slotSet.add(e.session.slot));
+  const slots = sortSlots(slotSet);
 
   const week = weekCommitments(commitmentsByDay, blockInfo);
 
@@ -636,19 +767,26 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
   );
 
   if (slots.length === 0) {
+    const hasExtras = week.total > 0 || sundayExams.length > 0;
     return (
       <div className="mb-6">
         {blockHeader}
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-green-200 bg-green-50 text-green-600 text-sm font-medium">
-          {week.total === 0
+          {!hasExtras
             ? '🟢 Free week for you — no courses this week'
-            : `🟢 No classes this week — but ${week.total} deadline${week.total === 1 ? '' : 's'} below`}
+            : `🟢 No classes this week — but ${[
+                week.total > 0 ? `${week.total} deadline${week.total === 1 ? '' : 's'}` : null,
+                sundayExams.length > 0 ? `${sundayExams.length} Sunday exam${sundayExams.length === 1 ? '' : 's'}` : null,
+              ].filter(Boolean).join(' + ')} below`}
         </div>
-        {week.total > 0 && (
+        {hasExtras && (
           <div className="mt-2 overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white print:overflow-visible">
             <table className="w-full border-collapse" style={{ minWidth: 560 }}>
               <tbody>
-                <DeadlineRow perDay={week.perDay} onCommitmentClick={onCommitmentClick} />
+                <SundayExamRow exams={sundayExams} highlightIds={highlightIds} onCourseClick={onCourseClick} />
+                {week.total > 0 && (
+                  <DeadlineRow perDay={week.perDay} onCommitmentClick={onCommitmentClick} />
+                )}
               </tbody>
             </table>
           </div>
@@ -727,6 +865,9 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                       style={{ minWidth: 90 }}
                     >
                       {(() => {
+                        const cellExams = weekdayExams.filter(
+                          e => e.day === day && e.session.slot === slot,
+                        );
                         const friendPills = friendBlock.flatMap(({ overlay, courses: fcs }) =>
                           fcs
                             .filter(c => friendMatchesSlotDay(overlay, c, slot, day, blockInfo.weekNum, blockInfo.start))
@@ -747,7 +888,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                               );
                             }),
                         );
-                        if (dayCourses.length === 0 && friendPills.length === 0) return null;
+                        if (dayCourses.length === 0 && friendPills.length === 0 && cellExams.length === 0) return null;
                         return (
                           <div className="flex flex-col gap-1">
                             {dayCourses.map(c => {
@@ -770,6 +911,18 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                                 />
                               );
                             })}
+                            {cellExams.map(e => (
+                              <ExamPill
+                                key={`exam-${e.course.id}-${e.session.date}-${e.session.slot}`}
+                                course={e.course}
+                                label={e.session.label}
+                                slot={e.session.slot}
+                                room={e.session.room}
+                                searchState={searchStateFor(highlightIds, e.course.id)}
+                                printHidden={!!highlightIds && highlightIds.size > 0 && !highlightIds.has(e.course.id)}
+                                onClick={() => onCourseClick(e.course)}
+                              />
+                            ))}
                             {friendPills}
                           </div>
                         );
@@ -779,6 +932,7 @@ function BlockTable({ blockInfo, courses, visibleIds, conflictIds, advisories, a
                 })}
               </tr>
             ))}
+            <SundayExamRow exams={sundayExams} highlightIds={highlightIds} onCourseClick={onCourseClick} />
             {week.total > 0 && (
               <DeadlineRow perDay={week.perDay} onCommitmentClick={onCommitmentClick} />
             )}
@@ -1011,7 +1165,10 @@ function TermBlockGrid({
   // something to show — dropping to "No courses selected" would hide the very
   // date the student came to check.
   const hasContent =
-    blocks.some(b => courses.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)))
+    blocks.some(b => courses.some(c => visibleIds.has(c.id) && (
+      (c.timings && courseInBlock(c, b.start, b.end))
+      || !!c.examSessions?.some(s => s.date >= b.start && s.date <= b.end)
+    )))
     || friendOverlays.some(o => blocks.some(b => friendBlockCourses(o, b.start, b.end).length > 0))
     || blocks.some(b => weekCommitments(commitmentsByDay, b).total > 0);
 
@@ -1117,7 +1274,10 @@ function TermBlockGrid({
           {blocks.map((b, i) => {
             if (i < startIdx) return null;
             const blockHasSearchHit = searchActive
-              ? courses.some(c => highlightIds!.has(c.id) && c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id))
+              ? courses.some(c => highlightIds!.has(c.id) && visibleIds.has(c.id) && (
+                  (c.timings && courseInBlock(c, b.start, b.end))
+                  || !!c.examSessions?.some(s => s.date >= b.start && s.date <= b.end)
+                ))
               : true;
             const blockPrintHiddenClass = searchActive && !blockHasSearchHit ? 'print:hidden' : '';
             const isCurrentBlockWeek = parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end);

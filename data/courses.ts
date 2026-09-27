@@ -431,6 +431,9 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'B' },
     ],
+    examSessions: [
+      { date: '2026-10-11', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/opst.pdf',
     review: {
       learningDepth: 5, workload: 'Moderate-High', careerRelevance: 5,
@@ -457,6 +460,10 @@ export const ALL_COURSES: Course[] = [
     timings: [
       { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'] },
     ],
+    examSessions: [
+      { date: '2026-10-11', slot: '13:30–16:30', label: 'End Block Exam' },
+      { date: '2026-10-17', slot: '09:00–12:00', label: 'Final Group Presentation' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/valu.docx',
     review: null,
   },
@@ -472,6 +479,9 @@ export const ALL_COURSES: Course[] = [
     timings: [
       { slot: '13:30–15:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '17:00–18:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    examSessions: [
+      { date: '2026-10-10', slot: '17:00–18:30', label: 'End Block Exam' },
     ],
     review: null,
   },

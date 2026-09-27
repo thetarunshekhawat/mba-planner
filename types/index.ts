@@ -47,6 +47,14 @@ export interface Course {
   type: CourseType;
   conflictGroup: string | null;
   timings?: SessionSlot[]; // time slot + room data from timetable (Term 4 has this)
+  /** One-off assessments (end-block exams, presentations). Kept off `timings`
+   *  so they never enter conflict detection or the section filter. */
+  examSessions?: {
+    date: string; // YYYY-MM-DD
+    slot: string; // use en-dash like existing slots "09:00–12:00"
+    room?: string;
+    label?: string; // e.g. "Final Group Presentation" / "End Block Exam"
+  }[];
   outlineUrl?: string;
   seatingCharts?: { section: string; url: string }[]; // registrar seating chart PDFs per section
   review: CourseReview | null;

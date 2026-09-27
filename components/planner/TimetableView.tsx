@@ -114,8 +114,16 @@ const SCHEDULE_BY_TERM: Record<number, TermSchedule> = {
     blocks: [
       { block: 22, weekNum: 1, dates: 'Sep 28 – Oct 4',  start: '2026-09-28', end: '2026-10-04' },
       { block: 22, weekNum: 2, dates: 'Oct 5 – Oct 11',  start: '2026-10-05', end: '2026-10-11' },
-      { block: 23, weekNum: 1, dates: 'Oct 12 – Oct 18', start: '2026-10-12', end: '2026-10-18' },
-      { block: 23, weekNum: 2, dates: 'Oct 19 – Oct 25', start: '2026-10-19', end: '2026-10-25' },
+      { block: 23, weekNum: 1, dates: 'Oct 12 – Oct 18', start: '2026-10-12', end: '2026-10-18',
+        banners: [
+          { label: 'End Block Exam — Responsible AI & Governance · Sat Oct 10, 17:00–18:30', tone: 'exam' },
+          { label: 'End Block Exam — Operations Strategy · Sun Oct 11, 09:00–12:00', tone: 'exam' },
+          { label: 'End Block Exam — Valuation · Sun Oct 11, 13:30–16:30', tone: 'exam' },
+        ] },
+      { block: 23, weekNum: 2, dates: 'Oct 19 – Oct 25', start: '2026-10-19', end: '2026-10-25',
+        banners: [
+          { label: 'Final Group Presentation — Valuation · Sat Oct 17, 09:00–12:00', tone: 'exam' },
+        ] },
       { block: 24, weekNum: 1, dates: 'Oct 26 – Nov 1',  start: '2026-10-26', end: '2026-11-01' },
       { block: 24, weekNum: 2, dates: 'Nov 2 – Nov 8',   start: '2026-11-02', end: '2026-11-08' },
       { block: 25, weekNum: 1, dates: 'Nov 23 – Nov 29', start: '2026-11-23', end: '2026-11-29',

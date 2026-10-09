@@ -415,7 +415,7 @@ export const ALL_COURSES: Course[] = [
   // "Term 5 (Tentative Time Table).xlsx" (slots, rooms, days), "Bidding Guidelines (Term 5,
   // AY 26-27).docx" (staggered CIVB + FDE session dates), and the 12 course outlines.
   // Non-teaching days already reflected in the day arrays below: Gandhi Jayanti (Fri Oct 2),
-  // 5 Year Celebration (Mon Oct 5), Dussehra (Tue Oct 13).
+  // 5 Year Celebration (Mon Oct 5), Dussehra (Tue Oct 20).
 
   // Block 22 (Sep 28 – Oct 11) — OPST + VALU (mornings, different rooms) + RAIG (WaW)
   {
@@ -486,7 +486,7 @@ export const ALL_COURSES: Course[] = [
     review: null,
   },
 
-  // Block 23 (Oct 12 – Oct 25) — TOPS (mornings) + CLAW (afternoons) + CIVB (evenings, 3 sessions)
+  // Block 23 (Oct 12 – Oct 25) — CLAW (mornings) + TOPS (afternoons) + CIVB (evenings, 4 sessions)
   {
     id: 18, term: 5, week: 16,
     startDate: '2026-10-12', endDate: '2026-10-25',
@@ -495,9 +495,14 @@ export const ALL_COURSES: Course[] = [
     code: 'TOPS',
     faculty: 'Prof. Deepanshi Bhardwaj',
     seats: 60, specs: ['ECOM', 'OPS'], type: 'elective', conflictGroup: null,
-    // Week 2 skips Tue Oct 20 (Dussehra) and Sat Oct 24 (EB exam).
+    // Week 1 is Mon–Fri; week 2 skips Tue Oct 20 (Dussehra) and Fri Oct 23.
+    // Sat Oct 24 field tour and Sun Oct 25 TOPA live in examSessions, off the teaching grid.
     timings: [
-      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], week2Days: ['Mon', 'Wed', 'Thu'] },
+    ],
+    examSessions: [
+      { date: '2026-10-24', slot: '09:00–20:30', label: 'TOPS – Field Tour' },
+      { date: '2026-10-25', slot: '09:00–12:00', room: 'S04', label: 'TOPA' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/tops.pdf',
     review: {
@@ -525,23 +530,27 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Kishu Daswani',
     seats: 60, specs: ['ENT', 'LSTR'], type: 'elective', conflictGroup: null,
     timings: [
-      { slot: '13:30–16:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+      { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+    ],
+    // End-block exam sits in Block 24 week 1 (Sat Oct 31).
+    examSessions: [
+      { date: '2026-10-31', slot: '09:00–12:00', label: 'End Block Exam' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/claw.pdf',
     review: null,
   },
-  // CIVB is staggered across Term 5 and Term 6. Sessions 1–3 sit here in Block 23;
-  // sessions 4–6 are the Block 25 row below; sessions 7–10 run in Term 6 (Jan 2027).
+  // CIVB is staggered across Term 5 and Term 6. Sessions 1–4 sit here in Block 23;
+  // sessions 5–7 are the Block 25 row below; the remaining sessions run in Term 6 (Jan 2027).
   {
     id: 20, term: 5, week: 16,
-    startDate: '2026-10-12', endDate: '2026-10-14',
-    dates: 'Oct 12–14', block: 23,
+    startDate: '2026-10-12', endDate: '2026-10-16',
+    dates: 'Oct 12–16', block: 23,
     name: 'Corporate Innovation & Venture Building (Staggered)',
     code: 'CIVB',
     faculty: 'Srikant Sastri',
     seats: 60, specs: ['ENT', 'LSTR'], mandatoryFor: ['ENT'], type: 'elective', conflictGroup: null,
     timings: [
-      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed'] },
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Fri'] },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/civb.pdf',
     review: {
@@ -574,6 +583,9 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
+    examSessions: [
+      { date: '2026-11-07', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/amst.pdf',
     review: {
       learningDepth: 3, workload: 'Moderate', careerRelevance: 3,
@@ -592,15 +604,15 @@ export const ALL_COURSES: Course[] = [
   // WaW — Block 24
   {
     id: 110, term: 5, week: 18,
-    startDate: '2026-10-26', endDate: '2026-11-05',
-    dates: 'Oct 26–Nov 5', block: 24,
+    startDate: '2026-10-26', endDate: '2026-11-06',
+    dates: 'Oct 27–Nov 6', block: 24,
     name: 'Design Thinking',
     code: 'DGTK',
-    faculty: 'Ashish Bansal',
+    faculty: 'Ashish Bansal / Kabir David',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
-      { slot: '09:00–10:30', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
-      { slot: '13:30–15:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+      { slot: '09:00–11:00', room: 'S02', days: ['Tue', 'Wed', 'Fri'], part: 'A' },
+      { slot: '13:30–15:30', room: 'S02', days: ['Tue', 'Wed', 'Fri'], part: 'B' },
     ],
     review: null,
   },
@@ -608,12 +620,15 @@ export const ALL_COURSES: Course[] = [
     id: 48, term: 5, week: 18,
     startDate: '2026-10-26', endDate: '2026-11-06',
     dates: 'Oct 26–Nov 6', block: 24,
-    name: 'Forward Deployed Expert (FDE) Management I',
+    name: 'Forward Deployed Engineer (FDE) Management I',
     code: 'FDEM',
     faculty: 'Srinivas Atreya & Sirisha Peyyeti',
     seats: 45, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null,
     timings: [
       { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2026-11-07', slot: '13:30–16:30', label: 'End Block Exam' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/fdem.docx',
     review: null,

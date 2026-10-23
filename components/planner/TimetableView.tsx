@@ -250,10 +250,12 @@ function weekExamOccurrences(
   blockInfo: BlockRow,
 ): ExamOccurrence[] {
   const out: ExamOccurrence[] = [];
+  const myCodes = new Set(ALL_COURSES.filter(c => visibleIds.has(c.id) && c.code).map(c => c.code!));
   for (const c of courses) {
     if (!visibleIds.has(c.id) || !c.examSessions) continue;
     for (const session of c.examSessions) {
       if (session.date < blockInfo.start || session.date > blockInfo.end) continue;
+      if (session.exemptCodes?.some(code => myCodes.has(code))) continue;
       const day = dayNameInBlockWeek(blockInfo.start, session.date);
       if (!day) continue;
       out.push({ course: c, session, day });

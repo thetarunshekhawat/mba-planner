@@ -54,6 +54,9 @@ export interface Course {
     slot: string; // use en-dash like existing slots "09:00–12:00"
     room?: string;
     label?: string; // e.g. "Final Group Presentation" / "End Block Exam"
+    /** Course codes whose students are exempt — the entry is hidden for anyone who
+     *  also has one of these selected (e.g. AMST guest sessions vs FDEM evenings). */
+    exemptCodes?: string[];
   }[];
   outlineUrl?: string;
   seatingCharts?: { section: string; url: string }[]; // registrar seating chart PDFs per section

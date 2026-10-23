@@ -45,6 +45,7 @@ const COURSE_AIB = 101; // AITM / "Winning at Workplace" (WaW, Block 17) — hol
 const COURSE_SADT = 5;  // Sales & Distribution (elective)
 const COURSE_ABMA = 10;  // AI in Business: From Models to Agents (mandatory, Block 20)
 const COURSE_PWMC = 102; // Persuasive Writing for Managers (WaW, Block 20)
+const COURSE_DGTK = 110; // Design Thinking (WaW, Block 24)
 
 // ── Rosters (hand-transcribed from Subject Sections /*.pdf) ────────────────
 
@@ -219,6 +220,50 @@ const ROSTERS = [
       'Arunima Ghosh', 'Nichiketa Anand', 'Priyanshu Reddy Adama', 'Shivani Maheshwari', 'Shreya Maheshwari',
       'Jess Walter Rumao', 'Shantanu Singh Parihar', 'Sarthak Raghuvanshi', 'Preksha Mangla', 'Shubha Patil',
       'Manasvi Shirish Shah', 'Diksha', 'Sanket Surendra Rathi', 'Vaishnavi Dhake', 'Dhruv Jitendra Krishnani',
+    ],
+  },
+  // DGTK rosters transcribed from the "DGTK_A" / "DGTK_B" seating-chart screenshots (Oct 2026).
+  {
+    courseId: COURSE_DGTK, section: 'A',
+    names: [
+      'Khushi Garg', 'Pranjal Dubey', 'Vinamra Pattapu', 'Yash Kiran Kolhe', 'Abhibyakti Singh',
+      'Aakarsh Ranjan', 'Priya Singh', 'Dev Dalmia', 'Shreya Maheshwari', 'Shreshta Ramanand Bhat',
+      'Karen Pinto', 'Anoushka Lakshman Krishnan', 'Samarth Masih', 'Mihira Navva', 'Mayank Agrawal',
+      'Preksha Mangla', 'Akshat Agarwal', 'Mahati R', 'Aayush Chugh', 'Nisthula Suresh',
+      'Naitik Shailesh Trivedi', 'Prajakta Dhananjay Bapat', 'Kasula Sumanasa Sharma', 'Stuti Vikas Sinha', 'Sivasankaran Br',
+      'Pratik Singh', 'Prachi Garg', 'Prathamesh Sadanand Satam', 'Hemasri Vemulapalli', 'Tushar Gupta',
+      'Sofia Soni', 'Deep Atul Parikh', 'Lakshmi Sarma S', 'Vipin Syam', 'Vanshika Gupta',
+      'Dhruv Jitendra Krishnani', 'Lovy Garg', 'Pratham Gupta', 'Tanya Chitloor', 'Mansi Jain',
+      'Prabhudatta Panda', 'Supraja Manivannan', 'Shikhar Chaturvedi', 'Aliya Rajpal', 'Aagam Shah',
+      'Diksha', 'Anish Banerjee', 'Arunima Ghosh', 'Aaditya Laxman Mali', 'Malavika Venu Menon',
+      'Saurabh Goyal', 'Padma Sai Sisira Laasya Pallerla', 'Prithvi Nagrath', 'Anshul Padamchand Pokharna', 'Vibhuti Chichra',
+      'Naga Venkata Sridhara Sai Jishnu', 'Vedika Vyas', 'Jess Walter Rumao', 'Krisha Rohit Gohil', 'Yash Agarwal',
+      'Shivani R Neelakandan', 'M Sai Srikar', 'B Shruti Chandra', 'Akhilesh Nalla', 'Kanchan',
+      'Yada Nagesh', 'Devanshi Khurana', 'Devyanshi Bhardwaj', 'Sharma Apoorv', 'Dhriti Dhruva Mall',
+      'Samanvay Mereddy', 'Dharalee Kesharia', 'Arpan Mukherjee', 'Nilanjana Mazumdar', 'Aromal A',
+      'Agrima Jaiswal', 'Anurag Saihari Rachamalla', 'Nikita Jayant Gandhi', 'Shravanth V G', 'Kopal Tyagi',
+      'Akarsh Katiyar',
+    ],
+  },
+  {
+    courseId: COURSE_DGTK, section: 'B',
+    names: [
+      'Muskan Setia', 'Manan Mitul Mehta', 'Rithi Varsha V', 'Sanchit Mathur', 'Pritima Prithvi Singh',
+      'Uma Madhuri Bandaru', 'Saurabh Jayram Shetty', 'Mudita Agarwal', 'Harsh Singh', 'Khushi Amitkumar Singh',
+      'Sarthak Raghuvanshi', 'Muskan Patodia', 'K P Aakash', 'B Srihitha', 'Shourya Bardia',
+      'Bhumika Kukreja', 'Vasudev Jayachandran Nair', 'Khushi Baheti', 'Debarshi Dutta', 'Archana Salendra',
+      'Adithya Bontha', 'Deeksha Chugh', 'Nischal Ramesh', 'Mahak Rajesh Kalani', 'Kirti Ajit Bhandari',
+      'Priyanshu Reddy Adama', 'Manasvi Shirish Shah', 'Arkaprava Ray', 'Sanskriti Rathore', 'Veer Mundhara',
+      'Riya Elizabeth George', 'Aditya Menon', 'Swathi Shivadasan', 'Ruturaj Dhairyadhar Bhosale', 'Tweesha Agrawal',
+      'Sandeepan Das', 'Reeva Shirish Bahalkar', 'Vedant Rathi', 'Anshul Sharma', 'Urmila Maganaram Choudhary',
+      'Rahul Vishal Mishra', 'Anushka Bhasin', 'Dushyant Bhardwaj', 'Shubha Patil', 'Nichiketa Anand',
+      'Nidhi Rajendra', 'Rithwik Awasthi', 'Akshitha Reddy Annapureddy', 'Shashank Jayant Pimpale', 'Siddhi Kabra',
+      'S Vigneshwaran Naidu', 'Anukruti Keshav Valase', 'Vaishnavi Dhake', 'Paurush Tiwari', 'Lavanya Nandwani',
+      'Rohan Aby P', 'Aditi Abrol', 'Pavan Kumar Reddy Gangarapu', 'Ritika Sharma', 'Mukund Sharma',
+      'Upasana Rao K', 'Piyush Kaushik', 'Shivani Maheshwari', 'Harshvardhan Singh Shekhawat', 'Sanya Bindlish',
+      'Naveen Puchakayala', 'Sainithin Ambati Venkata', 'Koyena Das', 'Harshit Nagpal', 'Vidisha Rayaprolu',
+      'Shantanu Singh Parihar', 'Diya Maini', 'Varad Nitin Dharap', 'Arshiya Sehgal', 'Sanket Surendra Rathi',
+      'Trisha Thatipamula', 'Yash Grover', 'Muskan Abrol', 'Tarun Raj Singh Shekhawat', 'Ishu Singhal',
     ],
   },
 ];

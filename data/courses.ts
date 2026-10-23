@@ -431,8 +431,9 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], part: 'B' },
     ],
+    // End-block exam rescheduled from Sun Oct 11 to Sun Nov 1 (Block 24 W1 Sunday strip).
     examSessions: [
-      { date: '2026-10-11', slot: '09:00–12:00', label: 'End Block Exam' },
+      { date: '2026-11-01', slot: '09:00–12:00', label: 'End Block Exam' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/opst.pdf',
     review: {
@@ -460,9 +461,10 @@ export const ALL_COURSES: Course[] = [
     timings: [
       { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Sat'], week2Days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'] },
     ],
+    // End-block exam rescheduled from Sun Oct 11 to Sat Oct 31 (Block 24 W1).
     examSessions: [
-      { date: '2026-10-11', slot: '13:30–16:30', label: 'End Block Exam' },
       { date: '2026-10-17', slot: '09:00–12:00', label: 'Final Group Presentation' },
+      { date: '2026-10-31', slot: '13:30–16:30', label: 'End Block Exam' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/valu.docx',
     review: null,
@@ -583,7 +585,13 @@ export const ALL_COURSES: Course[] = [
       { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
       { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
     ],
+    // Guest speaker sessions (sections A & B combined, MPH) ride the dated examSessions
+    // channel so they stay out of conflict / section logic. FDEM students are exempt
+    // (FDEM runs 17:30–20:30 those days), so these are hidden for anyone taking FDEM.
     examSessions: [
+      { date: '2026-11-03', slot: '19:00–20:00', room: 'MPH', label: 'AMST Guest Speaker (MPH)', exemptCodes: ['FDEM'] },
+      { date: '2026-11-04', slot: '19:00–20:00', room: 'MPH', label: 'AMST Guest Speaker (MPH)', exemptCodes: ['FDEM'] },
+      { date: '2026-11-05', slot: '19:00–20:00', room: 'MPH', label: 'AMST Guest Speaker (MPH)', exemptCodes: ['FDEM'] },
       { date: '2026-11-07', slot: '09:00–12:00', label: 'End Block Exam' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/amst.pdf',
@@ -611,8 +619,8 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Ashish Bansal / Kabir David',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
-      { slot: '09:00–11:00', room: 'S02', days: ['Tue', 'Wed', 'Fri'], part: 'A' },
-      { slot: '13:30–15:30', room: 'S02', days: ['Tue', 'Wed', 'Fri'], part: 'B' },
+      { slot: '09:00–11:00', room: 'S01', days: ['Tue', 'Wed', 'Fri'], part: 'B' },
+      { slot: '13:30–15:30', room: 'S01', days: ['Tue', 'Wed', 'Fri'], part: 'A' },
     ],
     review: null,
   },

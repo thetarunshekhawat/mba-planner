@@ -13,6 +13,7 @@ import {
 import { campusToday } from '@/lib/terms';
 import { BasisToggle } from './BasisToggle';
 import { SpecializationsDialog } from './SpecializationsDialog';
+import { AppliedAiOption } from './AppliedAiOption';
 import type { EventType } from '@/hooks/useAnalytics';
 import type { SpecId, WorkloadLevel } from '@/types';
 
@@ -40,6 +41,9 @@ interface Props {
   onSignOut: () => void;
   /** Replays the onboarding tour. Omitted where there is no tour to replay. */
   onReplayTour?: () => void;
+  /** Applied AI exemption: ABMA is not counted toward the 16 electives. */
+  appliedAiExempt?: boolean;
+  onAppliedAiExemptChange?: (next: boolean) => void;
   mobile?: boolean;
   trackEvent?: (eventType: EventType, payload?: Record<string, unknown>) => void;
 }
@@ -79,6 +83,8 @@ export function FilterSidebar({
   userAvatarUrl,
   onSignOut,
   onReplayTour,
+  appliedAiExempt = false,
+  onAppliedAiExemptChange,
   mobile = false,
   trackEvent,
 }: Props) {
@@ -89,8 +95,8 @@ export function FilterSidebar({
 
   const today = campusToday();
   const summary = useMemo(
-    () => computeProgress(selected, userSpecs, { basis, today }),
-    [selected, userSpecs, basis, today],
+    () => computeProgress(selected, userSpecs, { basis, today, appliedAiExempt }),
+    [selected, userSpecs, basis, today, appliedAiExempt],
   );
 
   // Specializations completed purely as a side effect of the declared ones —
@@ -259,6 +265,14 @@ export function FilterSidebar({
             );
           })}
         </div>
+
+        {onAppliedAiExemptChange && (
+          <AppliedAiOption
+            checked={appliedAiExempt}
+            onChange={onAppliedAiExemptChange}
+            idPrefix={mobile ? 'drawer-applied-ai' : 'applied-ai'}
+          />
+        )}
 
         {/* Every spec, including the ones earned without declaring them */}
         <button

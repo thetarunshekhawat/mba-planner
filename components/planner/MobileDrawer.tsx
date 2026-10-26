@@ -6,6 +6,7 @@ import { SPECS, ALL_COURSES } from '@/data/courses';
 import type { SpecId } from '@/types';
 import { FilterSidebar, type Filters } from './FilterSidebar';
 import type { EventType } from '@/hooks/useAnalytics';
+import { computeProgress } from '@/lib/progress';
 
 interface Props {
   filters: Filters;
@@ -18,6 +19,8 @@ interface Props {
   userAvatarUrl?: string;
   onSignOut: () => void;
   onReplayTour?: () => void;
+  appliedAiExempt?: boolean;
+  onAppliedAiExemptChange?: (next: boolean) => void;
   /**
    * Forces the drawer open past its own internal state, for the onboarding tour:
    * the profile, specializations and progress steps all live inside here, and on
@@ -27,7 +30,6 @@ interface Props {
   trackEvent: (type: EventType, payload?: Record<string, unknown>) => void;
 }
 
-const TOTAL_ELECTIVE_CREDITS = 16;
 const SPEC_REQUIRED_CREDITS = 6;
 // Must match h-20 (5rem at 16px base = 80px)
 const HANDLE_H = 80;
@@ -45,6 +47,8 @@ export function MobileDrawer({
   userAvatarUrl,
   onSignOut,
   onReplayTour,
+  appliedAiExempt = false,
+  onAppliedAiExemptChange,
   forceExpanded,
   trackEvent,
 }: Props) {
@@ -62,7 +66,9 @@ export function MobileDrawer({
   });
 
   const electives = ALL_COURSES.filter(c => c.type === 'elective');
-  const selectedElectiveCount = electives.filter(c => selected.has(c.id)).length;
+  // Same shared count as the sidebar bar (includes ABMA unless exempt).
+  const { earned: selectedElectiveCount, total: totalElectiveCredits } =
+    computeProgress(selected, userSpecs, { appliedAiExempt }).electives;
   const activeSpecs = SPECS.filter(s => userSpecs.includes(s.id));
   const hasSpecs = activeSpecs.length > 0;
 
@@ -228,7 +234,7 @@ export function MobileDrawer({
                   })}
                 </div>
                 <span className="flex-shrink-0 text-xs text-slate-400">
-                  {selectedElectiveCount}/{TOTAL_ELECTIVE_CREDITS} cr
+                  {selectedElectiveCount}/{totalElectiveCredits} cr
                 </span>
               </>
             ) : (
@@ -254,6 +260,8 @@ export function MobileDrawer({
             userAvatarUrl={userAvatarUrl}
             onSignOut={onSignOut}
             onReplayTour={onReplayTour}
+            appliedAiExempt={appliedAiExempt}
+            onAppliedAiExemptChange={onAppliedAiExemptChange}
             mobile
             trackEvent={trackEvent}
           />

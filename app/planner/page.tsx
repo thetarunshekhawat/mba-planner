@@ -33,6 +33,7 @@ import { isAdminEmail } from '@/lib/admin';
 import { useAlerts } from '@/hooks/useAlerts';
 import { AlertsView } from '@/components/planner/AlertsView';
 import { useTour } from '@/hooks/useTour';
+import { useAppliedAiExempt } from '@/hooks/useAppliedAiExempt';
 import { TourOverlay } from '@/components/tour/TourOverlay';
 import type { TourContext } from '@/lib/tour/types';
 import type { Course, SpecId, Profile, Friend, FriendOverlay } from '@/types';
@@ -78,6 +79,7 @@ export default function PlannerPage() {
   // The shared demo login used by faculty reviewing the project. Everything
   // renders and responds as usual, but no change is persisted.
   const isDemo = isDemoEmail(profile?.email);
+  const [appliedAiExempt, setAppliedAiExempt] = useAppliedAiExempt(profile);
   const { selected, loading, toggle, selectBatch, deselectBatch } = useSelections(
     userId,
     (type, courseId) => trackEvent(type, { course_id: courseId }),
@@ -751,6 +753,8 @@ export default function PlannerPage() {
             userAvatarUrl={profile.avatar_url ?? undefined}
             onSignOut={handleSignOut}
             onReplayTour={tour.active ? undefined : tour.restart}
+            appliedAiExempt={appliedAiExempt}
+            onAppliedAiExemptChange={setAppliedAiExempt}
             trackEvent={trackEvent}
           />
         </div>
@@ -885,6 +889,8 @@ export default function PlannerPage() {
           userAvatarUrl={profile.avatar_url ?? undefined}
           onSignOut={handleSignOut}
           onReplayTour={tour.active ? undefined : tour.restart}
+          appliedAiExempt={appliedAiExempt}
+          onAppliedAiExemptChange={setAppliedAiExempt}
           forceExpanded={tour.active ? tourDrawerOpen : undefined}
           trackEvent={trackEvent}
         />

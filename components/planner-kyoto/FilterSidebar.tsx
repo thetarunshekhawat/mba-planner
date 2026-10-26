@@ -5,10 +5,11 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GraduationCap, LogOut, BookOpen, ShieldAlert } from 'lucide-react';
 import { SPECS, ALL_COURSES } from '@/data/courses';
+import { computeProgress, TOTAL_ELECTIVE_CREDITS } from '@/lib/progress';
+import { AppliedAiOption } from '@/components/planner/AppliedAiOption';
 import type { SpecId, WorkloadLevel } from '@/types';
 
 const WORKLOAD_OPTIONS: WorkloadLevel[] = ['Low', 'Low-Moderate', 'Moderate', 'Moderate-High', 'High'];
-const TOTAL_ELECTIVE_CREDITS = 16;
 const SPEC_REQUIRED_CREDITS = 6;
 const TOTAL_WAW = ALL_COURSES.filter(c => c.type === 'waw').length;
 
@@ -31,6 +32,9 @@ interface Props {
   userName: string;
   userEmail: string;
   onSignOut: () => void;
+  /** Applied AI exemption: ABMA is not counted toward the 16 electives. */
+  appliedAiExempt?: boolean;
+  onAppliedAiExemptChange?: (next: boolean) => void;
 }
 
 function KyotoProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
@@ -100,10 +104,12 @@ export function FilterSidebar({
   userName,
   userEmail,
   onSignOut,
+  appliedAiExempt = false,
+  onAppliedAiExemptChange,
 }: Props) {
   const electives = ALL_COURSES.filter(c => c.type === 'elective');
-  const selectedElectives = electives.filter(c => selected.has(c.id));
-  const selectedElectiveCount = selectedElectives.length;
+  // Shared count (includes ABMA unless exempt) — same as the standard planner.
+  const selectedElectiveCount = computeProgress(selected, userSpecs, { appliedAiExempt }).electives.earned;
   const wawCount = ALL_COURSES.filter(c => c.type === 'waw' && selected.has(c.id)).length;
 
   const specProgress = SPECS.map(spec => {
@@ -268,6 +274,15 @@ export function FilterSidebar({
             );
           })}
         </div>
+        {onAppliedAiExemptChange && (
+          <AppliedAiOption
+            checked={appliedAiExempt}
+            onChange={onAppliedAiExemptChange}
+            idPrefix="kyoto-applied-ai"
+            color="var(--ash)"
+            hintColor="var(--ash)"
+          />
+        )}
       </div>
 
       {/* 4 — Mandatory courses quick-filter */}

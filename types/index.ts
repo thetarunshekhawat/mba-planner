@@ -79,6 +79,8 @@ export interface Profile {
   avatar_url?: string;
   /** Highest TOUR_VERSION this student has completed. 0 = never seen the tour. */
   tour_seen_version?: number;
+  /** Took the Applied AI course last year, so ABMA is not counted toward the 16 electives. Absent until migration 024 is applied. */
+  took_applied_ai?: boolean;
 }
 
 // A friend the current user can see (their viewer→friend edge exists).

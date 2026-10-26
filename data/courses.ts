@@ -1163,7 +1163,7 @@ export const ALL_COURSES: Course[] = [
         'The cases were boring, and the lectures were stale. The professor really didn\'t teach much',
         'Daily cases & in-class activities (Best of 5 considered for grading)',
       ],
-      summary: 'Would not recommend if the same professor is teaching this course.',
+      summary: 'Now taught by Prof. Lil Mohan — earlier reviews were for Prof. Srinivas Pingali and may not apply.',
     },
   },
   {

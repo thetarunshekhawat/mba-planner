@@ -23,13 +23,25 @@ export function AppliedAiOption({
 }) {
   return (
     <div className="mt-3">
+      <p
+        style={{
+          color,
+          fontSize: 11,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: 6,
+        }}
+      >
+        Took this?
+      </p>
       <label className="flex items-center gap-2 cursor-pointer">
         <Checkbox
           id={`${idPrefix}-exempt`}
           checked={checked}
           onCheckedChange={v => onChange(!!v)}
         />
-        <span style={{ color, fontSize: 12 }}>I took the Applied AI course last year</span>
+        <span style={{ color, fontSize: 12 }}>Applied AI course (last year)</span>
       </label>
       <p style={{ color: hintColor, fontSize: 11, marginTop: 4 }}>
         {checked

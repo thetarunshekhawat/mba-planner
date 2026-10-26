@@ -291,7 +291,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Operations Strategy',
     initials: 'SK',
     color: '#2e7d32',
-    imagePath: '',
+    imagePath: '/professors/santiago-kraiselburd.jpg',
     facts: [
       'Teaches Operations Strategy in Emerging Markets — operating challenges well beyond the core ops curriculum',
       'Faculty at Tec de Monterrey (skraiselburd@tec.mx)',
@@ -310,7 +310,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Valuation',
     initials: 'SM',
     color: '#1565c0',
-    imagePath: '',
+    imagePath: '/professors/sughosh-moharikar.jpg',
     facts: [
       'Advisor at MAPE Advisory Group — brings live transaction experience into the classroom',
       'Teaches Valuation: standalone valuation, synergies, control premia, LBOs and option valuation',
@@ -329,7 +329,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Technology in Operations',
     initials: 'DB',
     color: '#2e7d32',
-    imagePath: '',
+    imagePath: '/professors/deepanshi-bhardwaj.jpg',
     facts: [
       'Takes over Technology in Operations for Co\'27 — a new instructor for this course',
       'Course examines how technology removes operating constraints and reshapes business models',
@@ -348,7 +348,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Corporate Law',
     initials: 'KD',
     color: '#00695c',
-    imagePath: '',
+    imagePath: '/professors/kishu-daswani.jpg',
     facts: [
       'Faculty at the National Law School of India University (NLSIU), Bengaluru',
       'Teaches "Corporate Laws — A Business Perspective", built for MBAs with no prior legal exposure',
@@ -367,7 +367,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Corporate Innovation & Venture Building',
     initials: 'SS',
     color: '#6a1b9a',
-    imagePath: '',
+    imagePath: '/professors/srikant-sastri.jpg',
     facts: [
       'Runs CIVB (formerly "New Venture Creation") as a hands-on bootcamp intertwining theory and practice',
       'Course is staggered across Term 5 and Term 6 — ten sessions from October through January',
@@ -386,7 +386,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Advanced Marketing Strategy',
     initials: 'WA',
     color: '#ad1457',
-    imagePath: '',
+    imagePath: '/professors/wilfred-amaldoss.jpg',
     facts: [
       'Faculty at Duke University\'s Fuqua School of Business (wilfred.amaldoss@duke.edu)',
       'Teaches marketing from the CEO\'s perspective — strategic, cross-functional and bottom-line oriented',
@@ -405,7 +405,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Forward Deployed Expert (FDE) Management I',
     initials: 'SA',
     color: '#e65100',
-    imagePath: '',
+    imagePath: '/professors/srinivas-atreya.jpg',
     facts: [
       'Co-leads the first FDE Management course built specifically for MBA students',
       'The Forward Deployed Engineer role was pioneered at Palantir and adopted by Anthropic, Scale AI and Cohere',
@@ -424,7 +424,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Forward Deployed Expert (FDE) Management I',
     initials: 'SP',
     color: '#e65100',
-    imagePath: '',
+    imagePath: '/professors/sirisha-peyyeti.jpg',
     facts: [
       'Co-leads FDE Management alongside Srinivas Atreya, Srinivas Pingali, Shankar Prakash and Jyothi Korem',
       'Course teaches translating vague business objectives into scoped, executable AI projects',
@@ -443,7 +443,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Entrepreneurial Finance & Fundraising',
     initials: 'AB',
     color: '#1565c0',
-    imagePath: '',
+    imagePath: '/professors/amit-bubna.jpg',
     facts: [
       'Teaches why the standard corporate finance model breaks down for entrepreneurial ventures',
       'Core premise: founders stake personal wealth and career, so standard valuation models do not apply',
@@ -462,7 +462,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Strategic Brand Management',
     initials: 'SJ',
     color: '#ad1457',
-    imagePath: '',
+    imagePath: '/professors/shailendra-jain.jpg',
     facts: [
       'Faculty at the University of Washington\'s Foster School of Business (spjain@uw.edu)',
       'Teaches brands as strategic assets and a major share of a firm\'s intangible value',
@@ -481,7 +481,7 @@ export const PROFESSORS: Professor[] = [
     course: 'International Marketing',
     initials: 'VS',
     color: '#ad1457',
-    imagePath: '',
+    imagePath: '/professors/venky-shankar.jpg',
     facts: [
       'Teaches how marketers build and implement strategy across international contexts',
       'Course targets students heading into MNCs or helping smaller firms expand abroad',
@@ -500,7 +500,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Mergers & Acquisitions',
     initials: 'MF',
     color: '#1565c0',
-    imagePath: '',
+    imagePath: '/professors/mark-finn.jpg',
     facts: [
       'Faculty at Northwestern University\'s Kellogg School of Management',
       'Takes over M&A for Co\'27, replacing Sughosh Moharikar',
@@ -519,7 +519,7 @@ export const PROFESSORS: Professor[] = [
     course: 'Service Operations',
     initials: 'VA',
     color: '#2e7d32',
-    imagePath: '',
+    imagePath: '/professors/vishal-ahuja.jpg',
     facts: [
       'Faculty at SMU\'s Cox School of Business',
       'Teaches the design and delivery of services — achieving and sustaining service excellence',
@@ -538,7 +538,7 @@ export const PROFESSORS: Professor[] = [
     course: 'AI Incubation Project',
     initials: 'AR',
     color: '#6a1b9a',
-    imagePath: '',
+    imagePath: '/professors/arvind-ravishankar.jpg',
     facts: [
       'Leads the AI Incubation Project, which runs October through December alongside the regular blocks',
       'Worth 6 credits on successful completion of the project',

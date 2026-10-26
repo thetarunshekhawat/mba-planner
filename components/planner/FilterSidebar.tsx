@@ -41,9 +41,9 @@ interface Props {
   onSignOut: () => void;
   /** Replays the onboarding tour. Omitted where there is no tour to replay. */
   onReplayTour?: () => void;
-  /** Applied AI exemption: ABMA is not counted toward the 16 electives. */
-  appliedAiExempt?: boolean;
-  onAppliedAiExemptChange?: (next: boolean) => void;
+  /** Applied AI course taken last year: adds 1 more elective credit (ABMA always counts). */
+  appliedAiCredit?: boolean;
+  onAppliedAiCreditChange?: (next: boolean) => void;
   mobile?: boolean;
   trackEvent?: (eventType: EventType, payload?: Record<string, unknown>) => void;
 }
@@ -83,8 +83,8 @@ export function FilterSidebar({
   userAvatarUrl,
   onSignOut,
   onReplayTour,
-  appliedAiExempt = false,
-  onAppliedAiExemptChange,
+  appliedAiCredit = false,
+  onAppliedAiCreditChange,
   mobile = false,
   trackEvent,
 }: Props) {
@@ -95,8 +95,8 @@ export function FilterSidebar({
 
   const today = campusToday();
   const summary = useMemo(
-    () => computeProgress(selected, userSpecs, { basis, today, appliedAiExempt }),
-    [selected, userSpecs, basis, today, appliedAiExempt],
+    () => computeProgress(selected, userSpecs, { basis, today, appliedAiCredit }),
+    [selected, userSpecs, basis, today, appliedAiCredit],
   );
 
   // Specializations completed purely as a side effect of the declared ones —
@@ -266,10 +266,10 @@ export function FilterSidebar({
           })}
         </div>
 
-        {onAppliedAiExemptChange && (
+        {onAppliedAiCreditChange && (
           <AppliedAiOption
-            checked={appliedAiExempt}
-            onChange={onAppliedAiExemptChange}
+            checked={appliedAiCredit}
+            onChange={onAppliedAiCreditChange}
             idPrefix={mobile ? 'drawer-applied-ai' : 'applied-ai'}
           />
         )}

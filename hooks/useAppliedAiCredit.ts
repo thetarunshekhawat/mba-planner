@@ -6,8 +6,9 @@ import { isDemoEmail } from '@/lib/demo';
 import type { Profile } from '@/types';
 
 /**
- * "I took the Applied AI course last year" — when true, Ringel's ABMA is not
- * counted toward the 16 electives (see `appliedAiExempt` in lib/progress.ts).
+ * "I took the Applied AI course last year" — when true, that course is added as
+ * one more credit on the Electives bar, on top of ABMA, which always counts
+ * (see `appliedAiCredit` in lib/progress.ts).
  *
  * Stored as `profiles.took_applied_ai` (migration 024) AND in localStorage:
  *
@@ -30,8 +31,8 @@ function writeLocal(v: boolean): void {
   try { localStorage.setItem(LS_KEY, v ? '1' : '0'); } catch { /* private mode — falls back to session state */ }
 }
 
-export function useAppliedAiExempt(profile: Profile | null) {
-  const [exempt, setExempt] = useState(false);
+export function useAppliedAiCredit(profile: Profile | null) {
+  const [credit, setCredit] = useState(false);
   const profileId = profile?.id;
   const dbValue = profile?.took_applied_ai;
   const email = profile?.email;
@@ -46,15 +47,15 @@ export function useAppliedAiExempt(profile: Profile | null) {
   useEffect(() => {
     if (!profileId) return;
     const local = readLocal();
-    setExempt(dbValue === true || local);
+    setCredit(dbValue === true || local);
     if (dbValue === false && local) void persist(profileId, true);
   }, [profileId, dbValue, persist]);
 
   const change = useCallback((next: boolean) => {
-    setExempt(next);
+    setCredit(next);
     writeLocal(next);
     if (profileId) void persist(profileId, next);
   }, [profileId, persist]);
 
-  return [exempt, change] as const;
+  return [credit, change] as const;
 }

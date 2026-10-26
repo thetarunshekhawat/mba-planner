@@ -5,7 +5,8 @@ import { CREDIT_COUNTING_MANDATORY_CODE } from '@/lib/progress';
 
 /**
  * Profile option shared by both planner sidebars (and, through the standard
- * FilterSidebar, the mobile drawer). Default off: ABMA counts toward the 16.
+ * FilterSidebar, the mobile drawer). Default off. When on, last year's Applied AI course is added as 1 more credit
+ * (ABMA always counts either way).
  * `color` / `hintColor` let the Kyoto theme restyle it without a second component.
  */
 export function AppliedAiOption({
@@ -37,7 +38,7 @@ export function AppliedAiOption({
       </p>
       <label className="flex items-center gap-2 cursor-pointer">
         <Checkbox
-          id={`${idPrefix}-exempt`}
+          id={`${idPrefix}-credit`}
           checked={checked}
           onCheckedChange={v => onChange(!!v)}
         />
@@ -45,8 +46,8 @@ export function AppliedAiOption({
       </label>
       <p style={{ color: hintColor, fontSize: 11, marginTop: 4 }}>
         {checked
-          ? `${CREDIT_COUNTING_MANDATORY_CODE} is not counted toward your 16 electives.`
-          : `${CREDIT_COUNTING_MANDATORY_CODE} (Ringel) counts as 1 of your 16 electives.`}
+          ? "Last year's Applied AI course is added as 1 more credit."
+          : `${CREDIT_COUNTING_MANDATORY_CODE} (Ringel) already counts as 1 of your 16 electives.`}
       </p>
     </div>
   );

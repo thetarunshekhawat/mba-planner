@@ -24,8 +24,9 @@ export const SPEC_REQUIRED_CREDITS = 6;
  * WaW figure — but batchmates confirmed it is credit-bearing, so the Electives
  * bar adds exactly 1 for it.
  *
- * Because it is mandatory, the credit is automatic: it counts whether or not the
- * student has "selected" it. The single exception is `appliedAiExempt` (below).
+ * Because it is mandatory, the credit is automatic and always applies: it counts
+ * whether or not the student has "selected" it, and nothing switches it off.
+ * (`appliedAiCredit`, below, only ever adds one more credit on top.)
  */
 export const CREDIT_COUNTING_MANDATORY_CODE = 'ABMA';
 
@@ -126,11 +127,12 @@ export function computeProgress(
     basis?: ProgressBasis;
     today?: string;
     /**
-     * The student took the Applied AI course last year and is exempt from
-     * Ringel's ABMA, so ABMA does NOT count toward their 16 electives. Default
-     * false: ABMA counts.
+     * The student took the Applied AI course last year: that course is added as
+     * one more credit on the Electives bar, on top of ABMA (which always counts).
+     * It was earned last year, so it counts on both bases. Default false. It
+     * never subtracts anything and never touches the specs or WaW figures.
      */
-    appliedAiExempt?: boolean;
+    appliedAiCredit?: boolean;
   } = {},
 ): ProgressSummary {
   const basis = opts.basis ?? 'full-year';
@@ -142,15 +144,18 @@ export function computeProgress(
   );
   const banked = electives.filter(counts);
 
-  // ABMA: +1 on the Electives bar only. Looked up from the catalogue (not from
-  // `selected`), so it is counted once whether or not id 10 is in `selected`,
+  // ABMA: always +1 on the Electives bar only. Looked up from the catalogue (not
+  // from `selected`), so it is counted once whether or not id 10 is in `selected`,
   // and never touches `banked` — which feeds the spec counts and doubleCounted.
   // On the to-date basis it counts once its first class has happened, like any
   // other course.
   const abma = ALL_COURSES.find(
     (c) => c.type === 'mandatory' && c.code === CREDIT_COUNTING_MANDATORY_CODE,
   );
-  const abmaCredit = abma && !opts.appliedAiExempt && counts(abma) ? 1 : 0;
+  const abmaCredit = abma && counts(abma) ? 1 : 0;
+  // Applied AI course taken last year: one extra credit, already earned, so it
+  // counts on both bases (no `hasStarted` check). Electives bar only.
+  const appliedAiBonus = opts.appliedAiCredit ? 1 : 0;
 
   const waw = distinct(ALL_COURSES.filter((c) => c.type === 'waw'));
 
@@ -190,7 +195,7 @@ export function computeProgress(
   return {
     basis,
     today,
-    electives: { earned: banked.length + abmaCredit, total: TOTAL_ELECTIVE_CREDITS },
+    electives: { earned: banked.length + abmaCredit + appliedAiBonus, total: TOTAL_ELECTIVE_CREDITS },
     waw: { earned: waw.filter(counts).length, total: waw.length },
     specs,
     doubleCounted: banked.filter((c) => c.specs.length > 1).length,

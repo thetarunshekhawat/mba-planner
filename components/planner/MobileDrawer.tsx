@@ -19,8 +19,8 @@ interface Props {
   userAvatarUrl?: string;
   onSignOut: () => void;
   onReplayTour?: () => void;
-  appliedAiExempt?: boolean;
-  onAppliedAiExemptChange?: (next: boolean) => void;
+  appliedAiCredit?: boolean;
+  onAppliedAiCreditChange?: (next: boolean) => void;
   /**
    * Forces the drawer open past its own internal state, for the onboarding tour:
    * the profile, specializations and progress steps all live inside here, and on
@@ -47,8 +47,8 @@ export function MobileDrawer({
   userAvatarUrl,
   onSignOut,
   onReplayTour,
-  appliedAiExempt = false,
-  onAppliedAiExemptChange,
+  appliedAiCredit = false,
+  onAppliedAiCreditChange,
   forceExpanded,
   trackEvent,
 }: Props) {
@@ -66,9 +66,9 @@ export function MobileDrawer({
   });
 
   const electives = ALL_COURSES.filter(c => c.type === 'elective');
-  // Same shared count as the sidebar bar (includes ABMA unless exempt).
+  // Same shared count as the sidebar bar (ABMA always included, +1 if the Applied AI option is on).
   const { earned: selectedElectiveCount, total: totalElectiveCredits } =
-    computeProgress(selected, userSpecs, { appliedAiExempt }).electives;
+    computeProgress(selected, userSpecs, { appliedAiCredit }).electives;
   const activeSpecs = SPECS.filter(s => userSpecs.includes(s.id));
   const hasSpecs = activeSpecs.length > 0;
 
@@ -260,8 +260,8 @@ export function MobileDrawer({
             userAvatarUrl={userAvatarUrl}
             onSignOut={onSignOut}
             onReplayTour={onReplayTour}
-            appliedAiExempt={appliedAiExempt}
-            onAppliedAiExemptChange={onAppliedAiExemptChange}
+            appliedAiCredit={appliedAiCredit}
+            onAppliedAiCreditChange={onAppliedAiCreditChange}
             mobile
             trackEvent={trackEvent}
           />

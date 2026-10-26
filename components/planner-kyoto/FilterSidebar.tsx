@@ -32,9 +32,9 @@ interface Props {
   userName: string;
   userEmail: string;
   onSignOut: () => void;
-  /** Applied AI exemption: ABMA is not counted toward the 16 electives. */
-  appliedAiExempt?: boolean;
-  onAppliedAiExemptChange?: (next: boolean) => void;
+  /** Applied AI course taken last year: adds 1 more elective credit (ABMA always counts). */
+  appliedAiCredit?: boolean;
+  onAppliedAiCreditChange?: (next: boolean) => void;
 }
 
 function KyotoProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
@@ -104,12 +104,12 @@ export function FilterSidebar({
   userName,
   userEmail,
   onSignOut,
-  appliedAiExempt = false,
-  onAppliedAiExemptChange,
+  appliedAiCredit = false,
+  onAppliedAiCreditChange,
 }: Props) {
   const electives = ALL_COURSES.filter(c => c.type === 'elective');
-  // Shared count (includes ABMA unless exempt) — same as the standard planner.
-  const selectedElectiveCount = computeProgress(selected, userSpecs, { appliedAiExempt }).electives.earned;
+  // Shared count (ABMA always included, +1 if the Applied AI option is on) — same as the standard planner.
+  const selectedElectiveCount = computeProgress(selected, userSpecs, { appliedAiCredit }).electives.earned;
   const wawCount = ALL_COURSES.filter(c => c.type === 'waw' && selected.has(c.id)).length;
 
   const specProgress = SPECS.map(spec => {
@@ -274,10 +274,10 @@ export function FilterSidebar({
             );
           })}
         </div>
-        {onAppliedAiExemptChange && (
+        {onAppliedAiCreditChange && (
           <AppliedAiOption
-            checked={appliedAiExempt}
-            onChange={onAppliedAiExemptChange}
+            checked={appliedAiCredit}
+            onChange={onAppliedAiCreditChange}
             idPrefix="kyoto-applied-ai"
             color="var(--ash)"
             hintColor="var(--ash)"

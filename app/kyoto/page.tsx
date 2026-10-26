@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useAppliedAiExempt } from '@/hooks/useAppliedAiExempt';
+import { useAppliedAiCredit } from '@/hooks/useAppliedAiCredit';
 import { createClient } from '@/lib/supabase/client';
 import { useSelections } from '@/hooks/useSelections';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -49,7 +49,7 @@ export default function KyotoPage() {
   const router = useRouter();
 
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [appliedAiExempt, setAppliedAiExempt] = useAppliedAiExempt(profile);
+  const [appliedAiCredit, setAppliedAiCredit] = useAppliedAiCredit(profile);
   const [userId, setUserId] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [activeModal, setActiveModal] = useState<Course | null>(null);
@@ -518,8 +518,8 @@ export default function KyotoPage() {
             userName={profile.name}
             userEmail={profile.email}
             onSignOut={handleSignOut}
-            appliedAiExempt={appliedAiExempt}
-            onAppliedAiExemptChange={setAppliedAiExempt}
+            appliedAiCredit={appliedAiCredit}
+            onAppliedAiCreditChange={setAppliedAiCredit}
           />
         </div>
 

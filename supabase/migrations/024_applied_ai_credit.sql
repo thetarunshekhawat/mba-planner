@@ -1,9 +1,10 @@
 -- ============================================================
--- Applied AI exemption — "I took the Applied AI course last year"
+-- Applied AI credit — "I took the Applied AI course last year"
 -- ============================================================
--- Ringel's ABMA (AI in Business) is mandatory and counts as 1 of the 16 elective
--- credits (lib/progress.ts). Students who took the Applied AI course last year are
--- exempt from it, so for them ABMA is NOT counted. This is the per-student flag.
+-- Ringel's ABMA (AI in Business) is mandatory and always counts as 1 of the 16
+-- elective credits (lib/progress.ts). Students who took the Applied AI course last
+-- year get that course added as 1 more elective credit on top. This is the
+-- per-student flag; it never subtracts anything.
 --
 -- Picked up for free by the existing profiles.select('*') in app/planner/page.tsx
 -- and app/kyoto/page.tsx. No RLS change: the existing profiles policies already

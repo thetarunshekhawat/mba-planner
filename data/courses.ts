@@ -885,7 +885,7 @@ export const ALL_COURSES: Course[] = [
     dates: 'Jan 4–8', block: 27,
     name: 'Corp Innovation & Venture Building (Staggered)',
     faculty: 'Srikant Sastri',
-    seats: null, specs: ['ENT'], type: 'elective', conflictGroup: null,
+    seats: null, specs: ['ENT'], mandatoryFor: ['ENT'], type: 'elective', conflictGroup: null,
     review: {
       learningDepth: 4, workload: 'Heavy', careerRelevance: 4,
       whatYouLearn: ['MVP Building', 'User feedback and market research', 'Different pitches to investors/customers'],
@@ -906,7 +906,7 @@ export const ALL_COURSES: Course[] = [
     startDate: '2027-01-04', endDate: '2027-01-08',
     dates: 'Jan 4–8', block: 27,
     name: 'Geopolitics and Business',
-    faculty: 'TBD',
+    faculty: 'Shankar Aiyar',
     seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
   },
 
@@ -917,7 +917,7 @@ export const ALL_COURSES: Course[] = [
     dates: 'Jan 11–15', block: 27,
     name: 'Advanced Corporate Finance',
     faculty: 'N Prabhala',
-    seats: null, specs: ['FIN'], type: 'elective', conflictGroup: 'T6W29',
+    seats: null, specs: ['FIN'], mandatoryFor: ['FIN'], type: 'elective', conflictGroup: 'T6W29',
     review: null,
   },
   {
@@ -926,7 +926,7 @@ export const ALL_COURSES: Course[] = [
     dates: 'Jan 11–15', block: 27,
     name: 'Pricing & Revenue Optimisation',
     faculty: 'Prof. Andrew Gershoff',
-    seats: null, specs: ['ECOM', 'MKT'], type: 'elective', conflictGroup: 'T6W29',
+    seats: null, specs: ['ECOM', 'MKT'], mandatoryFor: ['ECOM'], type: 'elective', conflictGroup: 'T6W29',
     review: {
       learningDepth: 5, workload: 'High', careerRelevance: 4,
       whatYouLearn: ['Pricing Strategies/TEV', 'Willingness to Pay', 'Competitor Response'],
@@ -944,25 +944,12 @@ export const ALL_COURSES: Course[] = [
 
   // Block 28 Week 1 — Jan 18
   {
-    id: 36, term: 6, week: 30,
+    id: 111, term: 6, week: 30,
     startDate: '2027-01-18', endDate: '2027-01-22',
     dates: 'Jan 18–22', block: 28,
-    name: 'Crafting & Delivering Services',
-    faculty: 'Prof. Kapil Tuli',
-    seats: null, specs: ['ENT', 'ECOM', 'MKT'], mandatoryFor: ['ENT', 'ECOM'], type: 'elective', conflictGroup: null,
-    review: {
-      learningDepth: 1, workload: 'High', careerRelevance: 1,
-      whatYouLearn: ['CLV (but other profs do it better)'],
-      highlights: [
-        'Class discussions outside of cases were fine',
-      ],
-      lowlights: [
-        'Case submissions every day. Cases were also average.',
-        '40% individual assignment — irrelevant case',
-        'Not a "fun" prof at all',
-      ],
-      summary: 'Don\'t take it. But since it is a compulsory course for ENT & ECOM, there is no option.',
-    },
+    name: 'Forward Deployed Engineer (FDE) Management - Staggered',
+    faculty: 'Shankar Prakash, Jyothi Korem',
+    seats: null, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null, review: null,
   },
 
   // Block 28 Week 2 — Jan 25
@@ -999,25 +986,25 @@ export const ALL_COURSES: Course[] = [
 
   // Block 29 Week 1 — Feb 1
   {
-    id: 39, term: 6, week: 32,
+    id: 43, term: 6, week: 32,
     startDate: '2027-02-01', endDate: '2027-02-05',
     dates: 'Feb 1–5', block: 29,
-    name: 'Game Theory for Strategic Decision Making',
-    faculty: 'Prof. Pallavi Vyas',
+    name: 'Economics of Strategy',
+    faculty: 'Prof. Parasuram Balasubramanian',
     seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null,
     review: {
-      learningDepth: 3, workload: 'Low-Moderate', careerRelevance: 3,
-      whatYouLearn: ['Nash Equilibrium', 'Sequential Games, Auctions', 'Behavioural Economics & Bayesian Games'],
+      learningDepth: 4, workload: 'Moderate', careerRelevance: 4,
+      whatYouLearn: ['Horizontal & Vertical Boundaries of firms', 'Forward & Backward Integration, Make or Buy', 'Entry & Exit, MOAT & Competitive Dynamics', 'Market & Org Structure'],
       highlights: [
-        'The course is not very heavy',
-        'Game Theory as a subject is very interesting',
-        'Grading: CP (40%) + 2 Quizzes (30%) + Group Presentation (30%)',
+        'Prof teaches EOS very well',
+        'Deepens understanding of microeconomics, industrial org & strategy',
+        'Grading: CP (20%) + 2 Take Home Assignment (30%) + 1 In Class PPT (10%) + Final PPT & Report (40%)',
       ],
       lowlights: [
-        'The prof did confuse the class at times',
-        'You can learn most of the concepts on your own',
+        'Can become boring at times',
+        'Cases are generic. Workload can become hectic if it clashes with placements or double blocks',
       ],
-      summary: 'Can take this if you are looking for a low-stress course mapped to both FIN & LSTR.',
+      summary: 'Would recommend. Useful for people going into consulting or strategy roles.',
     },
   },
   // WaW — Block 29
@@ -1026,7 +1013,7 @@ export const ALL_COURSES: Course[] = [
     startDate: '2027-02-01', endDate: '2027-02-05',
     dates: 'Feb 1–5', block: 29,
     name: 'Non Market Strategy',
-    faculty: 'TBD',
+    faculty: 'Anuradha Das Mathur',
     seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
   },
 
@@ -1064,12 +1051,34 @@ export const ALL_COURSES: Course[] = [
 
   // Block 30 Week 1 — Feb 22
   {
+    id: 39, term: 6, week: 35,
+    startDate: '2027-02-22', endDate: '2027-02-26',
+    dates: 'Feb 22–26', block: 30,
+    name: 'Game Theory for Strategic Decision Making',
+    faculty: 'Prof. Pallavi Vyas',
+    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W35',
+    review: {
+      learningDepth: 3, workload: 'Low-Moderate', careerRelevance: 3,
+      whatYouLearn: ['Nash Equilibrium', 'Sequential Games, Auctions', 'Behavioural Economics & Bayesian Games'],
+      highlights: [
+        'The course is not very heavy',
+        'Game Theory as a subject is very interesting',
+        'Grading: CP (40%) + 2 Quizzes (30%) + Group Presentation (30%)',
+      ],
+      lowlights: [
+        'The prof did confuse the class at times',
+        'You can learn most of the concepts on your own',
+      ],
+      summary: 'Can take this if you are looking for a low-stress course mapped to both FIN & LSTR.',
+    },
+  },
+  {
     id: 42, term: 6, week: 35,
     startDate: '2027-02-22', endDate: '2027-02-26',
     dates: 'Feb 22–26', block: 30,
     name: 'Fintech and Future of Finance',
     faculty: 'Prof. Pulak Ghosh',
-    seats: null, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    seats: null, specs: ['FIN'], type: 'elective', conflictGroup: 'T6W35',
     review: {
       learningDepth: 4, workload: 'Moderate-High', careerRelevance: 3,
       whatYouLearn: ['AI & ML in Finance', 'Blockchain & Crypto', 'Digital Lending', 'Payment Systems'],
@@ -1087,36 +1096,30 @@ export const ALL_COURSES: Course[] = [
 
   // Block 30 Week 2 — Mar 1
   {
-    id: 43, term: 6, week: 36,
+    id: 112, term: 6, week: 36,
     startDate: '2027-03-01', endDate: '2027-03-05',
     dates: 'Mar 1–5', block: 30,
-    name: 'Economics of Strategy',
-    faculty: 'Prof. Parasuram Balasubramanian',
-    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null,
-    review: {
-      learningDepth: 4, workload: 'Moderate', careerRelevance: 4,
-      whatYouLearn: ['Horizontal & Vertical Boundaries of firms', 'Forward & Backward Integration, Make or Buy', 'Entry & Exit, MOAT & Competitive Dynamics', 'Market & Org Structure'],
-      highlights: [
-        'Prof teaches EOS very well',
-        'Deepens understanding of microeconomics, industrial org & strategy',
-        'Grading: CP (20%) + 2 Take Home Assignment (30%) + 1 In Class PPT (10%) + Final PPT & Report (40%)',
-      ],
-      lowlights: [
-        'Can become boring at times',
-        'Cases are generic. Workload can become hectic if it clashes with placements or double blocks',
-      ],
-      summary: 'Would recommend. Useful for people going into consulting or strategy roles.',
-    },
+    name: 'Digital Transformation in the Age of Agentic AI',
+    faculty: 'Balaji Rajgopalan',
+    seats: null, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null, review: null,
   },
 
   // Block 31 Week 1 — Mar 8
+  {
+    id: 113, term: 6, week: 37,
+    startDate: '2027-03-08', endDate: '2027-03-12',
+    dates: 'Mar 8–12', block: 31,
+    name: 'Routes to Market Strategies',
+    faculty: 'Tarun Kushwaha',
+    seats: null, specs: ['MKT'], type: 'elective', conflictGroup: 'T6W37', review: null,
+  },
   {
     id: 44, term: 6, week: 37,
     startDate: '2027-03-08', endDate: '2027-03-12',
     dates: 'Mar 8–12', block: 31,
     name: 'Project Management',
     faculty: 'Prof. Luigi Laporte',
-    seats: null, specs: ['OPS'], type: 'elective', conflictGroup: null,
+    seats: null, specs: ['OPS'], type: 'elective', conflictGroup: 'T6W37',
     review: {
       learningDepth: 5, workload: 'Moderate-High', careerRelevance: 4,
       whatYouLearn: ['Project Management Fundamentals', 'WBS, PERT, GERT, CPM', 'Planning, Scheduling, Forecasting'],
@@ -1132,13 +1135,14 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
-  // Block 31 Week 2 — Mar 15  (free week)
+  // Block 31 Week 2 — Mar 15
   {
-    id: 45, term: 6, week: 38,
+    id: 114, term: 6, week: 38,
     startDate: '2027-03-15', endDate: '2027-03-19',
-    dates: 'Mar 15–19', block: null,
-    name: 'Free Week',
-    faculty: '', seats: null, specs: [], type: 'free', conflictGroup: null, review: null,
+    dates: 'Mar 15–19', block: 31,
+    name: 'First Principles of Consulting',
+    faculty: 'Pallavi Malani',
+    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null, review: null,
   },
 
   // Block 32 Week 1 — Mar 22
@@ -1147,7 +1151,7 @@ export const ALL_COURSES: Course[] = [
     startDate: '2027-03-22', endDate: '2027-03-26',
     dates: 'Mar 22–26', block: 32,
     name: 'Digital Strategy & Marketing',
-    faculty: 'Prof. Srinivas Pingali',
+    faculty: 'Prof. Lil Mohan',
     seats: null, specs: ['ENT', 'ECOM', 'MKT'], type: 'elective', conflictGroup: null,
     review: {
       learningDepth: 1, workload: 'Moderate-High', careerRelevance: 2,
@@ -1161,6 +1165,14 @@ export const ALL_COURSES: Course[] = [
       ],
       summary: 'Would not recommend if the same professor is teaching this course.',
     },
+  },
+  {
+    id: 115, term: 6, week: 39,
+    startDate: '2027-03-22', endDate: '2027-03-26',
+    dates: 'Mar 22–26', block: 32,
+    name: 'AI Incubator Program (Experiential, Jan–Mar)',
+    faculty: 'Arvind Ravishankar',
+    seats: null, specs: [], type: 'elective', conflictGroup: null, review: null,
   },
 
   // Block 32 Week 2 — Mar 29

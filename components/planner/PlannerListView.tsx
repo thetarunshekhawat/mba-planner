@@ -9,6 +9,8 @@ import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 import { fileHref } from '@/lib/storageLinks';
 import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
 import { Term1GanttPanel } from './Term1GanttPanel';
+import { ReqBadges } from './ReqBadges';
+import { mandatoryReq } from '@/lib/mandatory';
 
 // Maps Plan-tab Term 4 week numbers → TERM1_WEEKS array indices
 const TERM4_PLAN_WEEK_TO_TERM1: Record<number, number[]> = {
@@ -84,10 +86,7 @@ function CourseCard({
   else if (primarySpec) accentColor = primarySpec.color;
 
   // Mandatory-for-spec: show crimson treatment when course is required for user's selected spec
-  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
-    s => userSpecs.length === 0 || userSpecs.includes(s)
-  );
-  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+  const { isMandatoryForUserSpec } = mandatoryReq(course, userSpecs);
 
   const resolvedBorderColor = hasConflict
     ? '#f87171'
@@ -162,13 +161,8 @@ function CourseCard({
             <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
               style={{ backgroundColor: '#2563eb22', color: '#2563eb' }}>Required</span>
           )}
-          {/* Mandatory-for-spec badges */}
-          {relevantMandatorySpecs.map(specId => (
-            <span key={`mand-${specId}`} className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: '#dc262615', color: '#dc2626' }}>
-              Req. {specId}
-            </span>
-          ))}
+          {/* Mandatory-for-spec badges: red for declared specs, muted for the rest */}
+          <ReqBadges course={course} userSpecs={userSpecs} />
           {course.specs.map(specId => {
             const s = SPECS.find(sp => sp.id === specId);
             if (!s) return null;

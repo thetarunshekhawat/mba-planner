@@ -4,6 +4,18 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed - Every mandatory course says which specialization it is mandatory for
+
+A course with a `mandatoryFor` used to show its `Req. <SPEC>` badge (and red card) only when that
+spec was one of the student's declared specializations, so Pricing & Revenue Optimisation (ECOM)
+looked like a plain elective to anyone not on E-Commerce. Every `mandatoryFor` spec now always gets
+a badge. Declared specs stay exactly as before (red badge, red card). Specs the student has *not*
+declared get a muted dashed-outline badge in that spec's colour with the tooltip "Required for
+<spec> (not one of your specializations)", and do not turn the card red. With no declared specs at
+all, everything is still red as before. Applies to both planners' list, timetable, week-list and
+course-detail views plus the calendar `CourseBar`. Shared logic: `lib/mandatory.ts`,
+`components/planner/ReqBadges.tsx`. The timetable legends gain a "Req. for other spec" entry.
+
 ### Added - Institution impact strip on the demo account's Plan tab
 
 A reviewer opening the demo login used to land on the course catalogue with no idea whether

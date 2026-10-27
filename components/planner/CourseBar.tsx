@@ -3,6 +3,8 @@
 import { CheckCircle2, Star } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
+import { mandatoryReq } from '@/lib/mandatory';
+import { ReqBadges } from './ReqBadges';
 
 interface Props {
   course: Course;
@@ -42,10 +44,7 @@ export function CourseBar({ course, isSelected, showReviews, userSpecs = [], onC
   else if (primarySpec) accentColor = primarySpec.color;
 
   // Mandatory-for-spec treatment
-  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
-    s => userSpecs.length === 0 || userSpecs.includes(s)
-  );
-  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+  const { isMandatoryForUserSpec } = mandatoryReq(course, userSpecs);
 
   const borderColor = isMandatoryForUserSpec ? '#dc2626' : accentColor;
 
@@ -82,13 +81,8 @@ export function CourseBar({ course, isSelected, showReviews, userSpecs = [], onC
             Req
           </span>
         )}
-        {/* Mandatory-for-spec badge */}
-        {isMandatoryForUserSpec && (
-          <span className="flex-shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-            style={{ backgroundColor: '#dc262615', color: '#dc2626' }}>
-            Req. {relevantMandatorySpecs.join('/')}
-          </span>
-        )}
+        {/* Mandatory-for-spec badges (red = declared spec, muted = not declared) */}
+        <ReqBadges course={course} userSpecs={userSpecs} grouping="joined" className="flex-shrink-0" />
 
         {/* Selected checkmark */}
         {isSelected && !isRequired && (

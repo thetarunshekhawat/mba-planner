@@ -8,12 +8,15 @@ import { CheckCircle2, PlusCircle, Star, BookOpen, Users } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 import { fileHref } from '@/lib/storageLinks';
+import { ReqBadges } from './ReqBadges';
 
 interface Props {
   course: Course | null;
   isSelected: boolean;
   onToggle: (id: number) => void;
   onClose: () => void;
+  /** The user's declared specializations — decides red vs muted 'Req. <SPEC>' badges. */
+  userSpecs?: string[];
   /**
    * Drops the modal focus trap. Set while the onboarding tour is open: base-ui
    * makes everything outside a modal popup inert, which would leave the tour's
@@ -37,7 +40,7 @@ function Stars({ value, max = 5 }: { value: number; max?: number }) {
   );
 }
 
-export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, nonModal }: Props) {
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [], nonModal }: Props) {
   // Snapshot the course + its selected state so the content stays rendered while the
   // sheet slides out (the parent zeroes these props the instant `course` goes null).
   const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
@@ -71,6 +74,9 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs">
                 Mandatory
               </Badge>
+            )}
+            {course.mandatoryFor && course.mandatoryFor.length > 0 && (
+              <ReqBadges course={course} userSpecs={userSpecs} />
             )}
             {specObjects.map(s => (
               <Badge

@@ -594,6 +594,7 @@ export default function KyotoPage() {
         isSelected={activeModal ? selected.has(activeModal.id) : false}
         onToggle={toggle}
         onClose={() => setActiveModal(null)}
+        userSpecs={profile.specializations}
       />
     </div>
   );

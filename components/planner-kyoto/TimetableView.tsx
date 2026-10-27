@@ -4,6 +4,8 @@ import { AlertTriangle } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import { groupBlockRows, weekLabel } from '@/lib/blockRows';
+import { mandatoryReq } from '@/lib/mandatory';
+import { ReqBadges } from '@/components/planner/ReqBadges';
 
 interface Props {
   selected: Set<number>;
@@ -136,10 +138,7 @@ function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
   userSpecs: SpecId[];
   onClick: () => void;
 }) {
-  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
-    s => userSpecs.length === 0 || userSpecs.includes(s),
-  );
-  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+  const { isMandatoryForUserSpec } = mandatoryReq(course, userSpecs);
 
   const accent = hasConflict ? '#ef4444' : isMandatoryForUserSpec ? '#dc2626' : getCourseAccent(course);
   const isWaw = course.type === 'waw';
@@ -165,11 +164,7 @@ function CoursePill({ course, room, hasConflict, userSpecs, onClick }: {
           {course.code ?? course.name.slice(0, 4).toUpperCase()}
         </span>
       </div>
-      {isMandatoryForUserSpec && (
-        <div style={{ fontSize: 9, fontWeight: 700, marginTop: 2, color: '#dc2626' }}>
-          Req. {relevantMandatorySpecs.join('/')}
-        </div>
-      )}
+      <ReqBadges course={course} userSpecs={userSpecs} variant="text" grouping="joined" kyoto />
       {room && (
         <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 600, marginTop: 2, color: accent + 'bb' }}>
           {room}
@@ -366,6 +361,7 @@ function SpecLegend() {
     { label: 'WaW', color: '#d97706' },
     { label: 'Required', color: '#2563eb' },
     { label: 'Req. for Spec', color: '#dc2626' },
+    { label: 'Req. for other spec', color: '#94a3b8' },
   ];
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 18px', padding: '4px 2px 10px', fontSize: 11, color: 'var(--ash)', fontFamily: 'var(--font-body)' }}>
@@ -413,10 +409,7 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flex: 1 }}>
               {wkCourses.map(c => {
-                const relevantMandatorySpecs = (c.mandatoryFor ?? []).filter(
-                  s => userSpecs.length === 0 || userSpecs.includes(s),
-                );
-                const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+                const { isMandatoryForUserSpec } = mandatoryReq(c, userSpecs);
                 const accent = isMandatoryForUserSpec ? '#dc2626' : getCourseAccent(c);
                 return (
                   <button
@@ -442,11 +435,7 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
                       {c.type === 'mandatory' && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: '#2563eb', fontFamily: 'var(--font-body)' }}>Required</span>
                       )}
-                      {isMandatoryForUserSpec && (
-                        <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 2, backgroundColor: '#dc262615', color: '#dc2626', fontFamily: 'var(--font-body)' }}>
-                          Req. {relevantMandatorySpecs.join('/')}
-                        </span>
-                      )}
+                      <ReqBadges course={c} userSpecs={userSpecs} variant="chip-plain" grouping="joined" kyoto />
                       {!isMandatoryForUserSpec && c.type === 'elective' && c.code && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: accent, fontFamily: 'var(--font-mono)' }}>{c.code}</span>
                       )}

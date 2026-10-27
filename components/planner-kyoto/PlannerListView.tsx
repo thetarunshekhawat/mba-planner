@@ -4,6 +4,8 @@ import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap } from 'lucide-react
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
+import { mandatoryReq } from '@/lib/mandatory';
+import { ReqBadges } from '@/components/planner/ReqBadges';
 
 interface Props {
   selected: Set<number>;
@@ -58,10 +60,7 @@ function CourseCard({
   else if (isMandatory) accentColor = '#2563eb';
   else if (primarySpec) accentColor = primarySpec.color;
 
-  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
-    s => userSpecs.length === 0 || userSpecs.includes(s),
-  );
-  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+  const { isMandatoryForUserSpec } = mandatoryReq(course, userSpecs);
 
   const borderColor = hasConflict
     ? '#f87171'
@@ -144,11 +143,7 @@ function CourseCard({
                 Required
               </span>
             )}
-            {relevantMandatorySpecs.map(specId => (
-              <span key={`mand-${specId}`} style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em', padding: '2px 5px', borderRadius: 2, backgroundColor: '#dc262615', color: '#dc2626' }}>
-                Req. {specId}
-              </span>
-            ))}
+            <ReqBadges course={course} userSpecs={userSpecs} kyoto />
             {course.specs.map(specId => {
               const s = SPECS.find(sp => sp.id === specId);
               if (!s) return null;

@@ -901,6 +901,7 @@ export default function PlannerPage() {
         isSelected={activeModal ? selected.has(activeModal.id) : false}
         onToggle={toggle}
         onClose={() => setActiveModal(null)}
+        userSpecs={profile.specializations}
         nonModal={tour.active}
       />
 

@@ -5,12 +5,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { CheckCircle2, PlusCircle, Star } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
+import { ReqBadges } from '@/components/planner/ReqBadges';
 
 interface Props {
   course: Course | null;
   isSelected: boolean;
   onToggle: (id: number) => void;
   onClose: () => void;
+  /** The user's declared specializations — decides red vs muted 'Req. <SPEC>' badges. */
+  userSpecs?: string[];
 }
 
 function Stars({ value, max = 5 }: { value: number; max?: number }) {
@@ -89,7 +92,7 @@ function RippleBtn({ onClick, isSelected }: { onClick: () => void; isSelected: b
   );
 }
 
-export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose }: Props) {
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [] }: Props) {
   // Snapshot the course + its selected state so the content stays rendered while the
   // sheet slides out (the parent zeroes these props the instant `course` goes null).
   const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
@@ -140,6 +143,9 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               <span style={{ ...badgeBase, backgroundColor: '#dbeafe', borderColor: '#93c5fd', color: '#1d4ed8' }}>
                 Mandatory
               </span>
+            )}
+            {course.mandatoryFor && course.mandatoryFor.length > 0 && (
+              <ReqBadges course={course} userSpecs={userSpecs} kyoto />
             )}
             {specObjects.map(s => (
               <span

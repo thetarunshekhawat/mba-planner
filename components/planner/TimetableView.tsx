@@ -12,6 +12,8 @@ import type { EventType } from '@/hooks/useAnalytics';
 import { Term1GanttPanel } from './Term1GanttPanel';
 import { getSectionAdvisories, isTimingVisible, type SectionAdvisory } from '@/lib/conflicts';
 import { groupBlockRows, weekLabel } from '@/lib/blockRows';
+import { mandatoryReq } from '@/lib/mandatory';
+import { ReqBadges } from './ReqBadges';
 
 interface Props {
   selected: Set<number>;
@@ -467,10 +469,7 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
   printHidden?: boolean;
   onClick: () => void;
 }) {
-  const relevantMandatorySpecs = (course.mandatoryFor ?? []).filter(
-    s => userSpecs.length === 0 || userSpecs.includes(s)
-  );
-  const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+  const { isMandatoryForUserSpec } = mandatoryReq(course, userSpecs);
 
   const accent = hasConflict
     ? '#ef4444'
@@ -523,11 +522,7 @@ function CoursePill({ course, room, hasConflict, sectionAdvisory, confirmedSecti
           Sec B likely
         </div>
       )}
-      {isMandatoryForUserSpec && (
-        <div className="text-[9px] font-bold mt-0.5" style={{ color: '#dc2626' }}>
-          Req. {relevantMandatorySpecs.join('/')}
-        </div>
-      )}
+      <ReqBadges course={course} userSpecs={userSpecs} variant="text" grouping="joined" />
       {room && (
         <div className="text-[10px] font-mono font-semibold mt-0.5" style={{ color: accent + 'bb' }}>
           {room}
@@ -967,6 +962,7 @@ function SpecLegend() {
     { label: 'WaW', color: '#d97706' },
     { label: 'Required', color: '#2563eb' },
     { label: 'Req. for Spec', color: '#dc2626' },
+    { label: 'Req. for other spec', color: '#94a3b8' },
   ];
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px', padding: '6px 4px 12px', fontSize: 11, color: '#6b7280' }}>
@@ -1028,10 +1024,7 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
             </div>
             <div className="flex flex-wrap gap-2 flex-1">
               {wkCourses.map(c => {
-                const relevantMandatorySpecs = (c.mandatoryFor ?? []).filter(
-                  s => userSpecs.length === 0 || userSpecs.includes(s)
-                );
-                const isMandatoryForUserSpec = relevantMandatorySpecs.length > 0;
+                const { isMandatoryForUserSpec } = mandatoryReq(c, userSpecs);
                 const accent = isMandatoryForUserSpec ? '#dc2626' : getCourseAccent(c);
                 const searchState = searchStateFor(highlightIds, c.id);
                 return (
@@ -1063,12 +1056,7 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
                       {c.type === 'mandatory' && (
                         <span className="text-xs font-bold" style={{ color: '#2563eb' }}>Required</span>
                       )}
-                      {isMandatoryForUserSpec && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                          style={{ backgroundColor: '#dc262615', color: '#dc2626' }}>
-                          Req. {relevantMandatorySpecs.join('/')}
-                        </span>
-                      )}
+                      <ReqBadges course={c} userSpecs={userSpecs} variant="chip-plain" grouping="joined" />
                       {!isMandatoryForUserSpec && c.type === 'elective' && c.code && (
                         <span className="text-xs font-bold" style={{ color: accent }}>{c.code}</span>
                       )}

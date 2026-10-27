@@ -3,6 +3,7 @@
 import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
+import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
 
 interface Props {
   selected: Set<number>;
@@ -225,30 +226,28 @@ function CourseCard({
 }
 
 function WeekGroup({
-  week,
-  courses,
+  row,
   selected,
   userSpecs,
   visibleIds,
   onToggle,
   onClick,
 }: {
-  term: 4 | 5 | 6;
-  week: number;
-  courses: Course[];
+  row: BlockRow;
   selected: Set<number>;
   userSpecs: SpecId[];
   visibleIds: Set<number>;
   onToggle: (id: number) => void;
   onClick: (c: Course) => void;
 }) {
+  const { courses } = row;
   const special = courses.find(c => c.type === 'exam' || c.type === 'free');
   if (special) {
     return (
       <div className="flex items-center gap-3 py-2">
         <div className="flex items-center gap-2 text-xs min-w-[80px]" style={{ color: 'var(--ash)' }}>
-          <span style={{ fontWeight: 600 }}>Wk {week}</span>
-          <span>{courses[0].dates}</span>
+          <span style={{ fontWeight: 600 }}>{weekLabel(row)}</span>
+          <span>{row.dates}</span>
         </div>
         <div style={{
           flex: 1, borderRadius: 'var(--radius)', padding: '6px 12px', fontSize: 12, fontWeight: 500,
@@ -282,10 +281,9 @@ function WeekGroup({
     if (ids.filter(id => selected.has(id)).length > 1) conflictGroups.add(grp);
   });
 
-  const blockLabel = courses.find(c => c.block)?.block;
-  const selectedElectivesCount = weekElectives.filter(
-    c => c.type === 'elective' && selected.has(c.id),
-  ).length;
+  const blockLabel = row.block;
+  // Per teaching week, not per merged row: back-to-back weeks of one block are not a double block.
+  const selectedElectivesCount = maxPerWeek(row, c => c.type === 'elective' && selected.has(c.id));
 
   const visible = [...weekElectives, ...wawCourses].filter(c => visibleIds.has(c.id));
   if (visible.length === 0) return null;
@@ -294,8 +292,8 @@ function WeekGroup({
     <div style={{ display: 'flex', gap: 16, padding: '28px 0', borderBottom: '1px solid var(--dim)' }} className="last:border-b-0">
       {/* Week meta column */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 88, paddingTop: 2, flexShrink: 0 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>Wk {week}</span>
-        <span style={{ fontSize: 10, color: 'var(--ash)', lineHeight: 1.3, marginTop: 2 }}>{courses[0].dates}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{weekLabel(row)}</span>
+        <span style={{ fontSize: 10, color: 'var(--ash)', lineHeight: 1.3, marginTop: 2 }}>{row.dates}</span>
         {blockLabel && (
           <span style={{
             marginTop: 6, fontSize: 9, fontWeight: 600, textTransform: 'uppercase' as const,
@@ -366,8 +364,7 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
       className="lg:px-6"
     >
       {terms.map((term, ti) => {
-        const termCourses = ALL_COURSES.filter(c => c.term === term);
-        const weeks = [...new Set(termCourses.map(c => c.week))].sort((a, b) => a - b);
+        const rows = groupBlockRows(ALL_COURSES.filter(c => c.term === term));
 
         return (
           <div key={term} style={{ marginBottom: 36 }}>
@@ -402,22 +399,17 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
               boxShadow: '0 1px 4px rgba(26,16,8,0.06)',
               padding: '0 20px',
             }}>
-              {weeks.map(week => {
-                const weekCourses = termCourses.filter(c => c.week === week);
-                return (
-                  <WeekGroup
-                    key={week}
-                    term={term}
-                    week={week}
-                    courses={weekCourses}
-                    selected={selected}
-                    userSpecs={userSpecs}
-                    visibleIds={visibleIds}
-                    onToggle={onToggle}
-                    onClick={onCourseClick}
-                  />
-                );
-              })}
+              {rows.map(row => (
+                <WeekGroup
+                  key={row.key}
+                  row={row}
+                  selected={selected}
+                  userSpecs={userSpecs}
+                  visibleIds={visibleIds}
+                  onToggle={onToggle}
+                  onClick={onCourseClick}
+                />
+              ))}
             </div>
           </div>
         );

@@ -7,6 +7,7 @@ import type { EventType } from '@/hooks/useAnalytics';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 import { fileHref } from '@/lib/storageLinks';
+import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
 import { Term1GanttPanel } from './Term1GanttPanel';
 
 // Maps Plan-tab Term 4 week numbers → TERM1_WEEKS array indices
@@ -20,6 +21,16 @@ const TERM4_PLAN_WEEK_TO_TERM1: Record<number, number[]> = {
   11: [10],     // Sep 7–11 Free  → T1 Wk 11
   12: [11, 12], // Sep 14–Sep 27  → T1 Wk 12–13
 };
+
+/** Term 1 Gantt columns for a Term 4 row: the union over every plan week the row spans
+ *  (a merged block row such as Wk 5–6 covers weeks the map may only key on its first). */
+function term1IndicesFor(row: BlockRow): number[] | undefined {
+  const idx = new Set<number>();
+  for (let w = row.weekStart; w <= row.weekEnd; w++) {
+    TERM4_PLAN_WEEK_TO_TERM1[w]?.forEach(i => idx.add(i));
+  }
+  return idx.size ? [...idx].sort((a, b) => a - b) : undefined;
+}
 
 
 interface Props {
@@ -251,9 +262,7 @@ function CourseCard({
 
 
 function WeekGroup({
-  term,
-  week,
-  courses,
+  row,
   selected,
   userSpecs,
   visibleIds,
@@ -261,9 +270,7 @@ function WeekGroup({
   onToggle,
   onClick,
 }: {
-  term: 4 | 5 | 6;
-  week: number;
-  courses: Course[];
+  row: BlockRow;
   selected: Set<number>;
   userSpecs: SpecId[];
   visibleIds: Set<number>;
@@ -271,13 +278,14 @@ function WeekGroup({
   onToggle: (id: number) => void;
   onClick: (c: Course) => void;
 }) {
+  const { courses, term } = row;
   const special = courses.find(c => c.type === 'exam' || c.type === 'free');
   if (special) {
     return (
       <div className="flex items-center gap-3 py-2">
         <div className="flex items-center gap-2 text-xs text-gray-400 min-w-[80px]">
-          <span className="font-semibold">Wk {week}</span>
-          <span>{courses[0].dates}</span>
+          <span className="font-semibold">{weekLabel(row)}</span>
+          <span>{row.dates}</span>
         </div>
         <div className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium border border-dashed ${special.type === 'exam'
             ? 'bg-red-50 text-red-400 border-red-200'
@@ -312,11 +320,11 @@ function WeekGroup({
   // Section advisory detection (section-resolvable overlaps)
   const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
 
-  const blockLabel = courses.find(c => c.block)?.block;
+  const blockLabel = row.block;
 
-  const selectedElectivesCount = weekElectives.filter(
-    c => c.type === 'elective' && selected.has(c.id)
-  ).length;
+  // Per teaching week, not per merged row: back-to-back weeks of one block are not a double block.
+  const selectedElectivesCount = maxPerWeek(row, c => c.type === 'elective' && selected.has(c.id));
+  const term1Indices = term === 4 ? term1IndicesFor(row) : undefined;
 
   const visible = [...weekElectives, ...wawCourses].filter(c => visibleIds.has(c.id));
   if (visible.length === 0) return null;
@@ -367,8 +375,8 @@ function WeekGroup({
     <div className="flex gap-4 py-10 border-b border-gray-400 last:border-0">
       {/* Week meta column */}
       <div className="flex flex-col items-start min-w-[92px] pt-0.5 flex-shrink-0">
-        <span className="text-sm font-bold text-gray-700">Wk {week}</span>
-        <span className="text-[11px] text-gray-400 leading-tight mt-0.5">{courses[0].dates}</span>
+        <span className="text-sm font-bold text-gray-700">{weekLabel(row)}</span>
+        <span className="text-[11px] text-gray-400 leading-tight mt-0.5">{row.dates}</span>
         {blockLabel && (
           <span className="mt-1.5 text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
             Block {blockLabel}
@@ -376,7 +384,7 @@ function WeekGroup({
         )}
       </div>
 
-      {term === 4 && showTerm1 && TERM4_PLAN_WEEK_TO_TERM1[week] ? (
+      {showTerm1 && term1Indices ? (
         /* Split layout: Term 4 cards left | divider | Term 1 Gantt right (stacks on mobile) */
         <div className="flex flex-col lg:flex-row flex-1 min-w-0 rounded-lg overflow-hidden border border-gray-200">
           <div style={{ flex: '1 1 auto', minWidth: 0, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -385,7 +393,7 @@ function WeekGroup({
           <div className="lg:hidden h-px flex-shrink-0" style={{ backgroundColor: '#c7d2fe' }} />
           <div className="hidden lg:block flex-shrink-0" style={{ width: 2, backgroundColor: '#c7d2fe' }} />
           <div className="w-full lg:w-[300px] lg:flex-shrink-0">
-            <Term1GanttPanel activeWeekIndices={TERM4_PLAN_WEEK_TO_TERM1[week]} compact />
+            <Term1GanttPanel activeWeekIndices={term1Indices} compact />
           </div>
         </div>
       ) : (
@@ -413,8 +421,7 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
   return (
     <div className="p-4 lg:p-6 min-h-screen" style={{ backgroundColor: '#f8fafc' }}>
       {terms.map(term => {
-        const termCourses = ALL_COURSES.filter(c => c.term === term);
-        const weeks = [...new Set(termCourses.map(c => c.week))].sort((a, b) => a - b);
+        const rows = groupBlockRows(ALL_COURSES.filter(c => c.term === term));
 
         return (
           <div key={term} className="mb-10">
@@ -466,25 +473,20 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
               </div>
             )}
 
-            {/* Week groups */}
+            {/* Block rows (one per block; weeks of a block merged) */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6">
-              {weeks.map(week => {
-                const weekCourses = termCourses.filter(c => c.week === week);
-                return (
-                  <WeekGroup
-                    key={week}
-                    term={term}
-                    week={week}
-                    courses={weekCourses}
-                    selected={selected}
-                    userSpecs={userSpecs}
-                    visibleIds={visibleIds}
-                    showTerm1={showTerm1}
-                    onToggle={onToggle}
-                    onClick={onCourseClick}
-                  />
-                );
-              })}
+              {rows.map(row => (
+                <WeekGroup
+                  key={row.key}
+                  row={row}
+                  selected={selected}
+                  userSpecs={userSpecs}
+                  visibleIds={visibleIds}
+                  showTerm1={showTerm1}
+                  onToggle={onToggle}
+                  onClick={onCourseClick}
+                />
+              ))}
             </div>
           </div>
         );

@@ -11,6 +11,7 @@ import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { EventType } from '@/hooks/useAnalytics';
 import { Term1GanttPanel } from './Term1GanttPanel';
 import { getSectionAdvisories, isTimingVisible, type SectionAdvisory } from '@/lib/conflicts';
+import { groupBlockRows, weekLabel } from '@/lib/blockRows';
 
 interface Props {
   selected: Set<number>;
@@ -980,7 +981,7 @@ function SpecLegend() {
   );
 }
 
-// Simple week-based list for terms without timing data
+// Simple block-based list for terms without timing data (one row per block, weeks merged)
 function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, highlightIds, onCourseClick }: {
   courses: Course[];
   visibleIds: Set<number>;
@@ -1006,22 +1007,23 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
     );
   }
 
-  const weekNums = [...new Set([
-    ...visible.map(c => c.week),
-    ...friendTermCourses.map(fc => fc.course.week),
-  ])].sort((a, b) => a - b);
+  // Rows are built from the term's full course list so a row's week range and date span
+  // describe the whole block; rows with nothing visible (mine or a friend's) are skipped.
+  const rows = groupBlockRows(courses).filter(row =>
+    row.courses.some(c => visibleIds.has(c.id) || friendTermCourses.some(fc => fc.course.id === c.id)),
+  );
 
   return (
     <div className="mb-8 space-y-3">
-      {weekNums.map(wk => {
-        const wkCourses = visible.filter(c => c.week === wk);
-        const wkFriends = friendTermCourses.filter(fc => fc.course.week === wk);
+      {rows.map(row => {
+        const wkCourses = row.courses.filter(c => visibleIds.has(c.id));
+        const wkFriends = friendTermCourses.filter(fc => row.courses.some(c => c.id === fc.course.id));
         return (
-          <div key={wk} className="flex gap-3">
+          <div key={row.key} className="flex gap-3">
             <div className="flex flex-col items-start min-w-[72px] pt-1 flex-shrink-0">
-              <span className="text-xs font-bold text-gray-600">Wk {wk}</span>
+              <span className="text-xs font-bold text-gray-600">{weekLabel(row)}</span>
               <span className="text-[10px] text-gray-400 leading-tight mt-0.5">
-                {wkCourses[0]?.dates ?? wkFriends[0]?.course.dates}
+                {row.dates}
               </span>
             </div>
             <div className="flex flex-wrap gap-2 flex-1">

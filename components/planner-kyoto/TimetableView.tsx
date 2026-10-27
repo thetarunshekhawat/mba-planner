@@ -3,6 +3,7 @@
 import { AlertTriangle } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
+import { groupBlockRows, weekLabel } from '@/lib/blockRows';
 
 interface Props {
   selected: Set<number>;
@@ -394,18 +395,20 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
     );
   }
 
-  const weekNums = [...new Set(visible.map(c => c.week))].sort((a, b) => a - b);
+  // Rows are built from the term's full course list so a row's week range and date span
+  // describe the whole block; rows with nothing visible are skipped.
+  const rows = groupBlockRows(courses).filter(row => row.courses.some(c => visibleIds.has(c.id)));
 
   return (
     <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {weekNums.map(wk => {
-        const wkCourses = visible.filter(c => c.week === wk);
+      {rows.map(row => {
+        const wkCourses = row.courses.filter(c => visibleIds.has(c.id));
         return (
-          <div key={wk} style={{ display: 'flex', gap: 12 }}>
+          <div key={row.key} style={{ display: 'flex', gap: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 68, paddingTop: 4, flexShrink: 0 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--sand)', fontFamily: 'var(--font-body)' }}>Wk {wk}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--sand)', fontFamily: 'var(--font-body)' }}>{weekLabel(row)}</span>
               <span style={{ fontSize: 10, color: 'var(--ash)', lineHeight: 1.3, marginTop: 2, fontFamily: 'var(--font-body)' }}>
-                {wkCourses[0]?.dates}
+                {row.dates}
               </span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flex: 1 }}>

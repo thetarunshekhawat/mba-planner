@@ -15,11 +15,12 @@ are grouped as one course in `SAME_COURSE_IDS`, so a legacy plan holding both st
 never 4. ABMA and the Applied AI option are unchanged.
 
 The runs are mutually exclusive. Both rows share `conflictGroup: 'VERTEX'`, listed as a
-take-once group in the new `lib/takeOnce.ts`: once one run is selected, the other run's add
-button (Plan cards and course detail, both planners) is disabled and says "You already picked
-Vertex in Term 5. Remove that one first to take this run." Unselected-and-free Vertex cards show
-"Take once: this run or the Term 6 run, not both. Counts as 2 electives." `useSelections.toggle`
-refuses the second run as a backstop, and the Schedule tab's existing conflict banner flags the
+take-once group in the new `lib/takeOnce.ts`: once one run is selected, the other run simply
+cannot be selected. Its add button (Plan cards and course detail, both planners) is disabled and
+greyed, with a muted grey hint, not a warning: "Vertex is already picked in Term 5. Untick it to
+choose this run instead." Unticking the first re-enables the second. While neither is blocked,
+Vertex cards show "Take once: this run or the Term 6 run, not both. Counts as 2 electives."
+`useSelections` (`toggle` and `selectBatch`) refuses the second run for every caller, and the Schedule tab's existing conflict banner flags the
 pair if both are ever present. `scripts/verify-conflicts.mts` allows take-once groups on Term 5.
 Professor ring labels (`data/professors.ts`) follow the new name.
 

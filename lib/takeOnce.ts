@@ -44,5 +44,5 @@ export function takeOnceNote(course: Course): string | null {
 }
 
 export function blockedMessage(blocker: Course): string {
-  return `You already picked ${blocker.name} in ${runLabel(blocker)}. Remove that one first to take this run.`;
+  return `${blocker.name} is already picked in ${runLabel(blocker)}. Untick it to choose this run instead.`;
 }

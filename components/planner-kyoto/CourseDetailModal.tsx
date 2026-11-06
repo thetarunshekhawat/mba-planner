@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { CheckCircle2, PlusCircle, Star, Info, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, PlusCircle, Star, Info } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 import { ReqBadges } from '@/components/planner/ReqBadges';
@@ -283,8 +283,8 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               style={{ animationDelay: '200ms', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--dim)' }}
             >
               {blockedBy && !isSelected ? (
-                <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', marginBottom: 10 }}>
-                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
+                <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
+                  <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
                   {blockedMessage(blockedBy)}
                 </p>
               ) : takeOnceNote(course) && (

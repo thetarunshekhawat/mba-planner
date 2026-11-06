@@ -76,7 +76,13 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
 
   const selectBatch = useCallback(async (courseIds: number[]) => {
     if (!userId || courseIds.length === 0) return;
-    const toAdd = courseIds.filter(id => !selected.has(id));
+    // Same take-once rule as toggle; also stops one batch from adding both Vertex runs.
+    const toAdd: number[] = [];
+    for (const id of courseIds) {
+      if (selected.has(id) || toAdd.includes(id)) continue;
+      if (takeOnceBlockerById(id, new Set([...selected, ...toAdd]))) continue;
+      toAdd.push(id);
+    }
     if (toAdd.length === 0) return;
     const next = new Set(selected);
     toAdd.forEach(id => next.add(id));

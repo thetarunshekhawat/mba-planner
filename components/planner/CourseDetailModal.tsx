@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, PlusCircle, Star, BookOpen, Users, Info, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, PlusCircle, Star, BookOpen, Users, Info } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 import { fileHref } from '@/lib/storageLinks';
@@ -222,8 +222,8 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
         {!isWaw && !isMandatory && !isExamOrFree && (
           <div className="mt-8 pt-6 border-t border-white/10">
             {blockedBy && !isSelected ? (
-              <p className="flex items-start gap-1.5 text-xs font-semibold text-red-400 mb-3">
-                <AlertTriangle className="w-3.5 h-3.5 mt-px flex-shrink-0" />
+              <p className="flex items-start gap-1.5 text-xs font-semibold text-slate-400 mb-3">
+                <Info className="w-3.5 h-3.5 mt-px flex-shrink-0" />
                 {blockedMessage(blockedBy)}
               </p>
             ) : takeOnceNote(course) && (

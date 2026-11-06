@@ -155,8 +155,8 @@ function CourseCard({
         </div>
       )}
       {blockedBy ? (
-        <div className="flex items-start gap-1 text-red-500 text-xs font-semibold mb-2">
-          <AlertTriangle className="w-3 h-3 mt-px flex-shrink-0" />
+        <div className="flex items-start gap-1 text-slate-400 text-xs font-semibold mb-2">
+          <Info className="w-3 h-3 mt-px flex-shrink-0" />
           <span>{blockedMessage(blockedBy)}</span>
         </div>
       ) : onceNote && (

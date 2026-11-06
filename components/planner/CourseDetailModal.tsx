@@ -221,7 +221,12 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
         {/* CTA */}
         {!isWaw && !isMandatory && !isExamOrFree && (
           <div className="mt-8 pt-6 border-t border-white/10">
-            {takeOnceNote(course) && (
+            {blockedBy && !isSelected ? (
+              <p className="flex items-start gap-1.5 text-xs font-semibold text-slate-400 mb-3">
+                <Info className="w-3.5 h-3.5 mt-px flex-shrink-0" />
+                {blockedMessage(blockedBy)}
+              </p>
+            ) : takeOnceNote(course) && (
               <p className="flex items-start gap-1.5 text-xs font-semibold text-slate-400 mb-3">
                 <Info className="w-3.5 h-3.5 mt-px flex-shrink-0" />
                 {takeOnceNote(course)}

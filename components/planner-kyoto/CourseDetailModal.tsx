@@ -283,7 +283,12 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               className="animate-modal-block-in"
               style={{ animationDelay: '200ms', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--dim)' }}
             >
-              {takeOnceNote(course) && (
+              {blockedBy && !isSelected ? (
+                <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
+                  <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
+                  {blockedMessage(blockedBy)}
+                </p>
+              ) : takeOnceNote(course) && (
                 <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
                   <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
                   {takeOnceNote(course)}

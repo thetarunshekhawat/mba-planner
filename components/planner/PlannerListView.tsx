@@ -369,7 +369,7 @@ function WeekGroup({
   );
 
   return (
-    <div className="flex gap-4 py-10 border-b border-gray-400 last:border-0">
+    <div className="flex gap-4 py-10 border-b border-gray-400 last:border-0" data-plan-row={row.key}>
       {/* Week meta column */}
       <div className="flex flex-col items-start min-w-[92px] pt-0.5 flex-shrink-0">
         <span className="text-sm font-bold text-gray-700">{weekLabel(row)}</span>
@@ -509,7 +509,7 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
                 <Fragment key={row.key}>
                   {/* Zero-height anchor, so Today still lands here when filters hide every
                       course of the row, and the rows' last:border-0 is left alone. */}
-                  {row.key === todayKey && <div data-plan-today="true" aria-hidden className="scroll-mt-16" />}
+                  {row.key === todayKey && <div data-plan-today="true" data-row-key={row.key} aria-hidden className="scroll-mt-16" />}
                   <WeekGroup
                     row={row}
                     selected={selected}

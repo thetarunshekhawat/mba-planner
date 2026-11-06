@@ -25,13 +25,24 @@ export function currentSpanIndex(spans: DateSpan[], today: string = campusToday(
   return next ?? order[order.length - 1];
 }
 
-/** Plan tab: the block row Today scrolls to (`data-plan-today="true"`). */
+/**
+ * The one place that decides where "today" sits on screen: the ongoing block lands in the
+ * middle of the viewport, both when a tab opens (`'auto'`, instant) and on Today (`'smooth'`).
+ */
+function scrollTodayIntoView(el: Element | null, behavior: ScrollBehavior): boolean {
+  el?.scrollIntoView({ behavior, block: 'center' });
+  return !!el;
+}
+
+/** Plan tab: the zero-height anchor placed before today's block row. */
 export const PLAN_TODAY_SELECTOR = '[data-plan-today="true"]';
 
+/** Centres today's block row itself; falls back to its anchor when filters hide the row. */
 export function scrollToPlanToday(behavior: ScrollBehavior = 'smooth'): boolean {
-  const el = document.querySelector(PLAN_TODAY_SELECTOR);
-  el?.scrollIntoView({ behavior, block: 'start' });
-  return !!el;
+  const anchor = document.querySelector<HTMLElement>(PLAN_TODAY_SELECTOR);
+  const key = anchor?.dataset.rowKey;
+  const row = key ? document.querySelector(`[data-plan-row="${key}"]`) : null;
+  return scrollTodayIntoView(row ?? anchor, behavior);
 }
 
 /**
@@ -47,6 +58,5 @@ export function scrollToScheduleToday(currentTerm: number, behavior: ScrollBehav
     ?? document.querySelector('[data-today="true"]')
     ?? document.querySelector(`[data-schedule-anchor="${currentTerm}"]`)
     ?? document.querySelector(`[data-schedule-term="${currentTerm}"]`);
-  el?.scrollIntoView({ behavior, block: 'start' });
-  return !!el;
+  return scrollTodayIntoView(el, behavior);
 }

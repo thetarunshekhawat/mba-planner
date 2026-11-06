@@ -1363,6 +1363,15 @@ export function TimetableView({
 }: Props) {
   const searchActive = !!highlightIds && highlightIds.size > 0;
 
+  // The tab mounts each time the student switches into Schedule: open with today's block
+  // centred. A search hit takes precedence (the effect below scrolls to it instead).
+  useEffect(() => {
+    if (highlightIds && highlightIds.size > 0) return;
+    const id = requestAnimationFrame(() => scrollToScheduleToday(getCurrentTerm(), 'auto'));
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Bring the first search hit into view once the grid has rendered with it.
   const highlightSig = highlightIds ? [...highlightIds].sort((a, b) => a - b).join(',') : '';
   useEffect(() => {

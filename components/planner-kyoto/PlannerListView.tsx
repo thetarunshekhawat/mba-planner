@@ -286,7 +286,7 @@ function WeekGroup({
   if (visible.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', gap: 16, padding: '28px 0', borderBottom: '1px solid var(--dim)' }} className="last:border-b-0">
+    <div style={{ display: 'flex', gap: 16, padding: '28px 0', borderBottom: '1px solid var(--dim)' }} className="last:border-b-0" data-plan-row={row.key}>
       {/* Week meta column */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 88, paddingTop: 2, flexShrink: 0 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{weekLabel(row)}</span>
@@ -429,7 +429,7 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
               {rows.map(row => (
                 <Fragment key={row.key}>
                   {/* Zero-height anchor, so Today still lands here when filters hide the row. */}
-                  {row.key === todayKey && <div data-plan-today="true" aria-hidden className="scroll-mt-16" />}
+                  {row.key === todayKey && <div data-plan-today="true" data-row-key={row.key} aria-hidden className="scroll-mt-16" />}
                   <WeekGroup
                     row={row}
                     selected={selected}

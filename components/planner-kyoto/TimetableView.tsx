@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { AlertTriangle, CalendarCheck } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
@@ -478,6 +479,12 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
 }
 
 export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }: Props) {
+  // The tab mounts each time the student switches into Schedule: open with today's block centred.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => scrollToScheduleToday(getCurrentTerm(), 'auto'));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const term4 = ALL_COURSES.filter(c => c.term === 4 && c.type !== 'exam' && c.type !== 'free');
   const term5 = ALL_COURSES.filter(c => c.term === 5 && c.type !== 'exam' && c.type !== 'free');
   const term6 = ALL_COURSES.filter(c => c.term === 6 && c.type !== 'exam' && c.type !== 'free');

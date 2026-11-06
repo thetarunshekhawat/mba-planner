@@ -34,7 +34,7 @@ function Stars({ value, max = 5 }: { value: number; max?: number }) {
   );
 }
 
-function RippleBtn({ onClick, isSelected, disabled }: { onClick: () => void; isSelected: boolean; disabled?: boolean }) {
+function RippleBtn({ onClick, isSelected, disabled, title }: { onClick: () => void; isSelected: boolean; disabled?: boolean; title?: string }) {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
   function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
@@ -51,6 +51,7 @@ function RippleBtn({ onClick, isSelected, disabled }: { onClick: () => void; isS
     <button
       onClick={handleClick}
       disabled={disabled}
+      title={title}
       style={{
         opacity: disabled ? 0.45 : 1,
         position: 'relative',
@@ -282,18 +283,13 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               className="animate-modal-block-in"
               style={{ animationDelay: '200ms', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--dim)' }}
             >
-              {blockedBy && !isSelected ? (
-                <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
-                  <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
-                  {blockedMessage(blockedBy)}
-                </p>
-              ) : takeOnceNote(course) && (
+              {takeOnceNote(course) && (
                 <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
                   <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
                   {takeOnceNote(course)}
                 </p>
               )}
-              <RippleBtn onClick={() => onToggle(course.id)} isSelected={isSelected} disabled={!!blockedBy && !isSelected} />
+              <RippleBtn onClick={() => onToggle(course.id)} isSelected={isSelected} disabled={!!blockedBy && !isSelected} title={blockedBy && !isSelected ? blockedMessage(blockedBy) : undefined} />
             </div>
           )}
         </div>

@@ -134,12 +134,7 @@ function CourseCard({
             <AlertTriangle className="w-3 h-3" /> Conflict
           </div>
         )}
-        {blockedBy ? (
-          <div className="flex items-start gap-1 text-xs font-semibold mb-2" style={{ color: 'var(--ash)' }}>
-            <Info className="w-3 h-3 mt-px flex-shrink-0" />
-            <span>{blockedMessage(blockedBy)}</span>
-          </div>
-        ) : onceNote && (
+        {onceNote && (
           <div className="flex items-start gap-1 text-xs font-semibold mb-2" style={{ color: 'var(--ash)' }}>
             <Info className="w-3 h-3 mt-px flex-shrink-0" />
             <span>{onceNote}</span>

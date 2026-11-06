@@ -221,12 +221,7 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
         {/* CTA */}
         {!isWaw && !isMandatory && !isExamOrFree && (
           <div className="mt-8 pt-6 border-t border-white/10">
-            {blockedBy && !isSelected ? (
-              <p className="flex items-start gap-1.5 text-xs font-semibold text-slate-400 mb-3">
-                <Info className="w-3.5 h-3.5 mt-px flex-shrink-0" />
-                {blockedMessage(blockedBy)}
-              </p>
-            ) : takeOnceNote(course) && (
+            {takeOnceNote(course) && (
               <p className="flex items-start gap-1.5 text-xs font-semibold text-slate-400 mb-3">
                 <Info className="w-3.5 h-3.5 mt-px flex-shrink-0" />
                 {takeOnceNote(course)}
@@ -235,6 +230,7 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
             <Button
               onClick={() => onToggle(course.id)}
               disabled={!!blockedBy && !isSelected}
+              title={blockedBy && !isSelected ? blockedMessage(blockedBy) : undefined}
               className={`w-full font-semibold ${
                 isSelected
                   ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'

@@ -1,13 +1,14 @@
 'use client';
 
 import { Fragment, useEffect } from 'react';
-import { CalendarCheck, Star, AlertTriangle, CheckCircle2, PlusCircle, Zap } from 'lucide-react';
+import { CalendarCheck, Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
 import { mandatoryReq } from '@/lib/mandatory';
 import { currentSpanIndex, scrollToPlanToday } from '@/lib/today';
 import { ReqBadges } from '@/components/planner/ReqBadges';
+import { takeOnceBlocker, takeOnceNote, blockedMessage } from '@/lib/takeOnce';
 
 interface Props {
   selected: Set<number>;
@@ -39,6 +40,7 @@ function CourseCard({
   isDimmed,
   hasConflict,
   animDelay,
+  blockedBy,
   userSpecs,
   onToggle,
   onClick,
@@ -48,6 +50,8 @@ function CourseCard({
   isDimmed: boolean;
   hasConflict: boolean;
   animDelay: number;
+  /** Take-once program (Vertex) already selected in its other run. */
+  blockedBy?: Course;
   userSpecs: SpecId[];
   onToggle: () => void;
   onClick: () => void;
@@ -55,6 +59,7 @@ function CourseCard({
   const isWaw = course.type === 'waw';
   const isMandatory = course.type === 'mandatory';
   const isFixed = isWaw || isMandatory;
+  const onceNote = takeOnceNote(course);
 
   const primarySpec = SPECS.find(s => course.specs.includes(s.id));
   let accentColor = '#9a8a78';
@@ -131,6 +136,17 @@ function CourseCard({
             <AlertTriangle className="w-3 h-3" /> Conflict
           </div>
         )}
+        {blockedBy ? (
+          <div className="flex items-start gap-1 text-xs font-semibold mb-2" style={{ color: 'var(--ash)' }}>
+            <Info className="w-3 h-3 mt-px flex-shrink-0" />
+            <span>{blockedMessage(blockedBy)}</span>
+          </div>
+        ) : onceNote && (
+          <div className="flex items-start gap-1 text-xs font-semibold mb-2" style={{ color: 'var(--ash)' }}>
+            <Info className="w-3 h-3 mt-px flex-shrink-0" />
+            <span>{onceNote}</span>
+          </div>
+        )}
 
         {/* Top row: badges + select button */}
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -160,7 +176,9 @@ function CourseCard({
           {!isFixed && (
             <button
               onClick={e => { e.stopPropagation(); onToggle(); }}
-              style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: isSelected ? accentColor : 'var(--mid)', transition: 'color 150ms' }}
+              disabled={!!blockedBy}
+              title={blockedBy ? blockedMessage(blockedBy) : undefined}
+              style={{ flexShrink: 0, background: 'none', border: 'none', cursor: blockedBy ? 'not-allowed' : 'pointer', opacity: blockedBy ? 0.4 : 1, color: isSelected ? accentColor : 'var(--mid)', transition: 'color 150ms' }}
             >
               {isSelected ? <CheckCircle2 className="w-5 h-5" /> : <PlusCircle className="w-5 h-5" />}
             </button>
@@ -318,6 +336,7 @@ function WeekGroup({
                 isDimmed={isDimmed}
                 hasConflict={hasConflict}
                 animDelay={Math.min(i, 7) * 40}
+                blockedBy={takeOnceBlocker(c, selected)}
                 userSpecs={userSpecs}
                 onToggle={() => onToggle(c.id)}
                 onClick={() => onClick(c)}

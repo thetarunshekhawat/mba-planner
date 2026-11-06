@@ -2,6 +2,7 @@
 // hard conflicts. Run: npx tsx scripts/verify-conflicts.mts
 import { ALL_COURSES } from '../data/courses';
 import { getSectionAdvisories } from '../lib/conflicts';
+import { TAKE_ONCE_GROUPS } from '../lib/takeOnce';
 
 function idsFor(codes: string[]) {
   return new Set(ALL_COURSES.filter(c => c.code && codes.includes(c.code)).map(c => c.id));
@@ -35,8 +36,9 @@ for (const { label, codes, expectAdvisoryOn } of CASES) {
 }
 
 // No Term 5 row may carry a conflictGroup — real overlaps are handled by advisories, and a
-// stray group would raise a false "cannot be taken together" banner.
-const stray = ALL_COURSES.filter(c => c.term === 5 && c.conflictGroup);
+// stray group would raise a false "cannot be taken together" banner. Take-once groups
+// (lib/takeOnce.ts, e.g. Vertex Oct vs Jan) are the exception: that banner is true for them.
+const stray = ALL_COURSES.filter(c => c.term === 5 && c.conflictGroup && !TAKE_ONCE_GROUPS.has(c.conflictGroup));
 if (stray.length) {
   failures++;
   console.log(`\nFAIL stray conflictGroup on: ${stray.map(c => `${c.code}=${c.conflictGroup}`).join(', ')}`);

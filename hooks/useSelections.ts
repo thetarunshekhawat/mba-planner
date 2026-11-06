@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { takeOnceBlockerById } from '@/lib/takeOnce';
 
 type OnEvent = (type: 'course_selected' | 'course_removed', courseId: number) => void;
 
@@ -34,6 +35,9 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
 
   const toggle = useCallback(async (courseId: number) => {
     if (!userId) return;
+    // Take-once programs (Vertex): never add a second run. The cards and the course
+    // detail show why; this is the backstop for every caller.
+    if (!selected.has(courseId) && takeOnceBlockerById(courseId, selected)) return;
 
     if (readOnly) {
       const next = new Set(selected);
@@ -72,7 +76,13 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
 
   const selectBatch = useCallback(async (courseIds: number[]) => {
     if (!userId || courseIds.length === 0) return;
-    const toAdd = courseIds.filter(id => !selected.has(id));
+    // Same take-once rule as toggle; also stops one batch from adding both Vertex runs.
+    const toAdd: number[] = [];
+    for (const id of courseIds) {
+      if (selected.has(id) || toAdd.includes(id)) continue;
+      if (takeOnceBlockerById(id, new Set([...selected, ...toAdd]))) continue;
+      toAdd.push(id);
+    }
     if (toAdd.length === 0) return;
     const next = new Set(selected);
     toAdd.forEach(id => next.add(id));

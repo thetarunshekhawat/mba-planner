@@ -46,6 +46,8 @@ export interface Course {
   mandatoryFor?: SpecId[];   // specializations this course is required for
   type: CourseType;
   conflictGroup: string | null;
+  /** Electives this course is worth on the Electives bar. Default 1 (Vertex is 2). */
+  credits?: number;
   timings?: SessionSlot[]; // time slot + room data from timetable (Term 4 has this)
   /** One-off assessments (end-block exams, presentations). Kept off `timings`
    *  so they never enter conflict detection or the section filter. */

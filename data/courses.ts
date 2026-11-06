@@ -845,16 +845,18 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
-  // AI Incubation Project — runs Oct–Dec alongside the blocks, no fixed class slot.
-  // 6 credits on successful completion (Bidding Guidelines, Term 5).
+  // Vertex (was "AI Incubation Project") — runs Oct–Dec alongside the blocks, no fixed
+  // class slot. 6 credits on successful completion (Bidding Guidelines, Term 5), i.e. 2
+  // electives. The same program runs again Jan–Mar in Term 6 (id 115): a student takes
+  // one run only — the shared 'VERTEX' group is take-once (lib/takeOnce.ts).
   {
     id: 49, term: 5, week: 14,
     startDate: '2026-10-01', endDate: '2026-12-20',
     dates: 'Oct–Dec', block: null,
-    name: 'AI Incubation Project',
+    name: 'Vertex',
     code: 'AIIP',
     faculty: 'Arvind Ravishunkar',
-    seats: null, specs: [], type: 'elective', conflictGroup: null,
+    seats: null, specs: [], type: 'elective', conflictGroup: 'VERTEX', credits: 2,
     review: null,
   },
 
@@ -1170,9 +1172,11 @@ export const ALL_COURSES: Course[] = [
     id: 115, term: 6, week: 39,
     startDate: '2027-03-22', endDate: '2027-03-26',
     dates: 'Mar 22–26', block: 32,
-    name: 'AI Incubator Program (Experiential, Jan–Mar)',
+    // Vertex, Jan–Mar run (was "AI Incubator Program (Experiential, Jan–Mar)"). Same
+    // program as id 49: 2 electives, take-once with it.
+    name: 'Vertex',
     faculty: 'Arvind Ravishankar',
-    seats: null, specs: [], type: 'elective', conflictGroup: null, review: null,
+    seats: null, specs: [], type: 'elective', conflictGroup: 'VERTEX', credits: 2, review: null,
   },
 
   // Block 32 Week 2 — Mar 29

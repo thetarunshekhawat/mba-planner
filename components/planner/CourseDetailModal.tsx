@@ -4,11 +4,12 @@ import { useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, PlusCircle, Star, BookOpen, Users } from 'lucide-react';
+import { CheckCircle2, PlusCircle, Star, BookOpen, Users, Info } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 import { fileHref } from '@/lib/storageLinks';
 import { ReqBadges } from './ReqBadges';
+import { takeOnceNote, blockedMessage } from '@/lib/takeOnce';
 
 interface Props {
   course: Course | null;
@@ -17,6 +18,8 @@ interface Props {
   onClose: () => void;
   /** The user's declared specializations — decides red vs muted 'Req. <SPEC>' badges. */
   userSpecs?: string[];
+  /** Take-once program (Vertex) already selected in its other run: Add is disabled. */
+  blockedBy?: Course;
   /**
    * Drops the modal focus trap. Set while the onboarding tour is open: base-ui
    * makes everything outside a modal popup inert, which would leave the tour's
@@ -40,7 +43,7 @@ function Stars({ value, max = 5 }: { value: number; max?: number }) {
   );
 }
 
-export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [], nonModal }: Props) {
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [], nonModal, blockedBy }: Props) {
   // Snapshot the course + its selected state so the content stays rendered while the
   // sheet slides out (the parent zeroes these props the instant `course` goes null).
   const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
@@ -218,8 +221,21 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
         {/* CTA */}
         {!isWaw && !isMandatory && !isExamOrFree && (
           <div className="mt-8 pt-6 border-t border-white/10">
+            {blockedBy && !isSelected ? (
+              <p className="flex items-start gap-1.5 text-xs font-semibold text-slate-400 mb-3">
+                <Info className="w-3.5 h-3.5 mt-px flex-shrink-0" />
+                {blockedMessage(blockedBy)}
+              </p>
+            ) : takeOnceNote(course) && (
+              <p className="flex items-start gap-1.5 text-xs font-semibold text-slate-400 mb-3">
+                <Info className="w-3.5 h-3.5 mt-px flex-shrink-0" />
+                {takeOnceNote(course)}
+              </p>
+            )}
             <Button
               onClick={() => onToggle(course.id)}
+              disabled={!!blockedBy && !isSelected}
+              title={blockedBy && !isSelected ? blockedMessage(blockedBy) : undefined}
               className={`w-full font-semibold ${
                 isSelected
                   ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'

@@ -12,6 +12,7 @@ import { currentSpanIndex, scrollToPlanToday } from '@/lib/today';
 import { Term1GanttPanel } from './Term1GanttPanel';
 import { ReqBadges } from './ReqBadges';
 import { mandatoryReq } from '@/lib/mandatory';
+import { takeOnceBlocker, takeOnceNote, blockedMessage } from '@/lib/takeOnce';
 
 // Maps Plan-tab Term 4 week numbers → TERM1_WEEKS array indices
 const TERM4_PLAN_WEEK_TO_TERM1: Record<number, number[]> = {
@@ -65,6 +66,7 @@ function CourseCard({
   isDimmed,
   hasConflict,
   sectionAdvisory,
+  blockedBy,
   userSpecs,
   onToggle,
   onClick,
@@ -74,6 +76,8 @@ function CourseCard({
   isDimmed: boolean;
   hasConflict: boolean;
   sectionAdvisory: SectionAdvisory | undefined;
+  /** Take-once program (Vertex) already selected in its other run. */
+  blockedBy?: Course;
   userSpecs: SpecId[];
   onToggle: () => void;
   onClick: () => void;
@@ -81,6 +85,7 @@ function CourseCard({
   const isWaw = course.type === 'waw';
   const isMandatory = course.type === 'mandatory';
   const isFixed = isWaw || isMandatory;
+  const onceNote = takeOnceNote(course);
 
   const primarySpec = SPECS.find(s => course.specs.includes(s.id));
   let accentColor = '#64748b';
@@ -152,6 +157,17 @@ function CourseCard({
           <span>Section B likely ({sectionAdvisory.sectionBSlot})</span>
         </div>
       )}
+      {blockedBy ? (
+        <div className="flex items-start gap-1 text-slate-400 text-xs font-semibold mb-2">
+          <Info className="w-3 h-3 mt-px flex-shrink-0" />
+          <span>{blockedMessage(blockedBy)}</span>
+        </div>
+      ) : onceNote && (
+        <div className="flex items-start gap-1 text-slate-500 text-xs font-semibold mb-2">
+          <Info className="w-3 h-3 mt-px flex-shrink-0" />
+          <span>{onceNote}</span>
+        </div>
+      )}
 
       {/* Top row: type badge + select button */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -181,7 +197,9 @@ function CourseCard({
         {!isFixed && (
           <button
             onClick={e => { e.stopPropagation(); onToggle(); }}
-            className="flex-shrink-0 transition-colors"
+            disabled={!!blockedBy}
+            title={blockedBy ? blockedMessage(blockedBy) : undefined}
+            className="flex-shrink-0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ color: isSelected ? accentColor : '#9ca3af' }}
           >
             {isSelected
@@ -341,6 +359,7 @@ function WeekGroup({
               isDimmed={isDimmed}
               hasConflict={hasConflict}
               sectionAdvisory={selected.has(c.id) ? advisories.get(c.id) : undefined}
+              blockedBy={takeOnceBlocker(c, selected)}
               userSpecs={userSpecs}
               onToggle={() => onToggle(c.id)}
               onClick={() => onClick(c)}

@@ -92,7 +92,7 @@ Id bands, so new courses don't collide:
 | 1–15 | Term 4 electives + exam/free sentinels |
 | 16–32 | Term 5 electives + sentinels (22 retired) |
 | 33–47 | Term 6 electives + sentinels |
-| 48+ | Later additions (48 = FDEM, 49 = AI Incubation Project) |
+| 48+ | Later additions (48 = FDEM, 49 = Vertex, formerly AI Incubation Project) |
 | 101–108 | WaW courses (110 = DGTK) |
 | 109 | One-off makeup row (SADT, Aug 5) |
 

@@ -4,6 +4,14 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed - Schedule's Today is one floating pill, like Plan
+
+The standard planner's Schedule tab had a Today button inline in each term's control row (one per
+term), which scrolled out of view. It now has one sticky floating Today pill at the top-right,
+the same pill as the Plan tab: always visible while scrolling, it centres today's block in the
+current term (`scrollToScheduleToday(getCurrentTerm())`, unchanged). The three per-term inline
+buttons are gone. The Kyoto Schedule already had the floating pill and is unchanged.
+
 ### Added - Today on the Plan tab, and Schedule's Today works from every term
 
 The Plan tab always opened at the top of Term 4, so a student mid-Term 5 had to scroll past a

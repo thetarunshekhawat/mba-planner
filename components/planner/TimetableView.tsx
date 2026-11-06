@@ -1183,8 +1183,6 @@ function TermBlockGrid({
     || blocks.some(b => weekCommitments(commitmentsByDay, b).total > 0);
 
   const todayTs = todayUtc().getTime();
-  const todayInTerm = blocks.some(b => parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end));
-  const currentTerm = getCurrentTerm();
   // Where Today lands in this term when no week contains today (exam gap, before term):
   // week 1 of the next upcoming block, same as the default "hide past blocks" start.
   const anchorIdx = currentBlockStartIndex(blocks);
@@ -1255,26 +1253,6 @@ function TermBlockGrid({
             Including past blocks
           </span>
         )}
-        {/* Always clickable: every term renders on this tab, so a Term 4 button can
-            jump down to today's Term 5 block. */}
-        <button
-          onClick={() => { scrollToScheduleToday(currentTerm); }}
-          title={todayInTerm ? 'Scroll to today' : `Jump to today (Term ${currentTerm})`}
-          className="print:hidden"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '5px 14px', borderRadius: 20,
-            cursor: 'pointer',
-            border: '1.5px solid #f97316',
-            backgroundColor: '#fff7ed',
-            color: '#c2410c',
-            fontSize: 12, fontWeight: 600,
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-          }}
-        >
-          <CalendarCheck size={13} />
-          Today
-        </button>
       </div>
 
       {!hasContent ? (
@@ -1418,6 +1396,27 @@ export function TimetableView({
 
   return (
     <div className="p-4 lg:p-6 min-h-screen print:min-h-0 print:p-0 print:bg-white" style={{ backgroundColor: '#f8fafc' }}>
+      {/* Today: floats at the top-right while scrolling, takes no layout space (same pill as Plan).
+          Every term renders on this tab, so it always jumps to today's block in the current term. */}
+      <div className="sticky top-3 z-10 h-0 flex justify-end pointer-events-none print:hidden">
+        <button
+          onClick={() => { scrollToScheduleToday(getCurrentTerm()); }}
+          title="Scroll to today"
+          className="pointer-events-auto"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+            border: '1.5px solid #f97316',
+            backgroundColor: '#fff7ed',
+            color: '#c2410c',
+            fontSize: 12, fontWeight: 600,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          <CalendarCheck size={13} />
+          Today
+        </button>
+      </div>
       <SpecLegend />
 
       {/* Friend overlay toggles */}

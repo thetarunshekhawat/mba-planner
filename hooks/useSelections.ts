@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { takeOnceBlockerById } from '@/lib/takeOnce';
 
 type OnEvent = (type: 'course_selected' | 'course_removed', courseId: number) => void;
 
@@ -34,6 +35,9 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
 
   const toggle = useCallback(async (courseId: number) => {
     if (!userId) return;
+    // Take-once programs (Vertex): never add a second run. The cards and the course
+    // detail show why; this is the backstop for every caller.
+    if (!selected.has(courseId) && takeOnceBlockerById(courseId, selected)) return;
 
     if (readOnly) {
       const next = new Set(selected);

@@ -44,6 +44,7 @@ export type ProgressBasis = 'to-date' | 'full-year';
  */
 const SAME_COURSE_IDS: number[][] = [
   [20, 27, 33], // CIVB — Block 23 (Oct), Block 25 (Nov), Term 6 sessions 7–10
+  [49, 115], // Vertex — Term 5 Oct–Dec run, Term 6 Jan–Mar run (take one; never counted twice)
 ];
 
 const GROUP_KEY_BY_ID = new Map<number, string>(
@@ -156,6 +157,8 @@ export function computeProgress(
   // Applied AI course taken last year: one extra credit, already earned, so it
   // counts on both bases (no `hasStarted` check). Electives bar only.
   const appliedAiBonus = opts.appliedAiCredit ? 1 : 0;
+  // A course's elective weight: 1 unless the catalogue says otherwise (Vertex = 2).
+  const electiveCredits = banked.reduce((sum, c) => sum + (c.credits ?? 1), 0);
 
   const waw = distinct(ALL_COURSES.filter((c) => c.type === 'waw'));
 
@@ -195,7 +198,7 @@ export function computeProgress(
   return {
     basis,
     today,
-    electives: { earned: banked.length + abmaCredit + appliedAiBonus, total: TOTAL_ELECTIVE_CREDITS },
+    electives: { earned: electiveCredits + abmaCredit + appliedAiBonus, total: TOTAL_ELECTIVE_CREDITS },
     waw: { earned: waw.filter(counts).length, total: waw.length },
     specs,
     doubleCounted: banked.filter((c) => c.specs.length > 1).length,

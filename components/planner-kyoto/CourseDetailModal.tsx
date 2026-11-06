@@ -2,10 +2,11 @@
 
 import { useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { CheckCircle2, PlusCircle, Star } from 'lucide-react';
+import { CheckCircle2, PlusCircle, Star, Info, AlertTriangle } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 import { ReqBadges } from '@/components/planner/ReqBadges';
+import { takeOnceNote, blockedMessage } from '@/lib/takeOnce';
 
 interface Props {
   course: Course | null;
@@ -14,6 +15,8 @@ interface Props {
   onClose: () => void;
   /** The user's declared specializations — decides red vs muted 'Req. <SPEC>' badges. */
   userSpecs?: string[];
+  /** Take-once program (Vertex) already selected in its other run: Add is disabled. */
+  blockedBy?: Course;
 }
 
 function Stars({ value, max = 5 }: { value: number; max?: number }) {
@@ -31,7 +34,7 @@ function Stars({ value, max = 5 }: { value: number; max?: number }) {
   );
 }
 
-function RippleBtn({ onClick, isSelected }: { onClick: () => void; isSelected: boolean }) {
+function RippleBtn({ onClick, isSelected, disabled }: { onClick: () => void; isSelected: boolean; disabled?: boolean }) {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
   function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
@@ -47,7 +50,9 @@ function RippleBtn({ onClick, isSelected }: { onClick: () => void; isSelected: b
   return (
     <button
       onClick={handleClick}
+      disabled={disabled}
       style={{
+        opacity: disabled ? 0.45 : 1,
         position: 'relative',
         overflow: 'hidden',
         width: '100%',
@@ -92,7 +97,7 @@ function RippleBtn({ onClick, isSelected }: { onClick: () => void; isSelected: b
   );
 }
 
-export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [] }: Props) {
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [], blockedBy }: Props) {
   // Snapshot the course + its selected state so the content stays rendered while the
   // sheet slides out (the parent zeroes these props the instant `course` goes null).
   const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
@@ -277,7 +282,18 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               className="animate-modal-block-in"
               style={{ animationDelay: '200ms', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--dim)' }}
             >
-              <RippleBtn onClick={() => onToggle(course.id)} isSelected={isSelected} />
+              {blockedBy && !isSelected ? (
+                <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', marginBottom: 10 }}>
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
+                  {blockedMessage(blockedBy)}
+                </p>
+              ) : takeOnceNote(course) && (
+                <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
+                  <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
+                  {takeOnceNote(course)}
+                </p>
+              )}
+              <RippleBtn onClick={() => onToggle(course.id)} isSelected={isSelected} disabled={!!blockedBy && !isSelected} />
             </div>
           )}
         </div>

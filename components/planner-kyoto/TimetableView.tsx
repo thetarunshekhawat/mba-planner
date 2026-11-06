@@ -1,11 +1,13 @@
 'use client';
 
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CalendarCheck } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import { groupBlockRows, weekLabel } from '@/lib/blockRows';
 import { mandatoryReq } from '@/lib/mandatory';
 import { ReqBadges } from '@/components/planner/ReqBadges';
+import { campusToday, getCurrentTerm } from '@/lib/terms';
+import { currentSpanIndex, scrollToScheduleToday } from '@/lib/today';
 
 interface Props {
   selected: Set<number>;
@@ -376,6 +378,15 @@ function SpecLegend() {
   );
 }
 
+/** The week-list row Today lands on: the ongoing block, else the next upcoming one. */
+function todayRow(allRows: ReturnType<typeof groupBlockRows>): { todayKey?: string; todayInside: boolean } {
+  const blockRows = allRows.filter(r => r.block !== null);
+  const row = blockRows[currentSpanIndex(blockRows.map(r => ({ start: r.startDate, end: r.endDate })))];
+  if (!row) return { todayInside: false };
+  const today = campusToday();
+  return { todayKey: row.key, todayInside: row.startDate <= today && today <= row.endDate };
+}
+
 function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
   courses: Course[];
   visibleIds: Set<number>;
@@ -393,14 +404,21 @@ function CourseWeekList({ courses, visibleIds, userSpecs, onCourseClick }: {
 
   // Rows are built from the term's full course list so a row's week range and date span
   // describe the whole block; rows with nothing visible are skipped.
-  const rows = groupBlockRows(courses).filter(row => row.courses.some(c => visibleIds.has(c.id)));
+  const allRows = groupBlockRows(courses);
+  const rows = allRows.filter(row => row.courses.some(c => visibleIds.has(c.id)));
+  const { todayKey, todayInside } = todayRow(allRows);
 
   return (
     <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
       {rows.map(row => {
         const wkCourses = row.courses.filter(c => visibleIds.has(c.id));
         return (
-          <div key={row.key} style={{ display: 'flex', gap: 12 }}>
+          <div
+            key={row.key}
+            style={{ display: 'flex', gap: 12 }}
+            data-current-block={row.key === todayKey && todayInside ? String(row.term) : undefined}
+            data-schedule-anchor={row.key === todayKey ? String(row.term) : undefined}
+          >
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 68, paddingTop: 4, flexShrink: 0 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--sand)', fontFamily: 'var(--font-body)' }}>{weekLabel(row)}</span>
               <span style={{ fontSize: 10, color: 'var(--ash)', lineHeight: 1.3, marginTop: 2, fontFamily: 'var(--font-body)' }}>
@@ -478,17 +496,23 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
     const hasContent = blocks.some(b =>
       courses.some(c => c.timings && courseInBlock(c, b.start, b.end) && visibleIds.has(c.id)),
     );
+    const today = campusToday();
+    const anchorIdx = currentSpanIndex(blocks);
 
     return (
-      <div key={term}>
+      <div key={term} data-schedule-term={term}>
         <TermDivider label={meta.label} dateRange={meta.dateRange} />
         {!hasContent ? (
           <p style={{ fontSize: 13, color: 'var(--ash)', fontStyle: 'italic', paddingLeft: 2, marginBottom: 24 }}>
             No {meta.label} courses selected.
           </p>
         ) : (
-          blocks.map(b => (
-            <div key={b.block}>
+          blocks.map((b, i) => (
+            <div
+              key={b.block}
+              data-current-block={b.start <= today && today <= b.end ? String(term) : undefined}
+              data-schedule-anchor={i === anchorIdx ? String(term) : undefined}
+            >
               {b.banners?.map((n, ni) => <NoticeStrip key={ni} {...n} />)}
               <BlockTable
                 blockInfo={b}
@@ -511,6 +535,27 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
       style={{ padding: '16px 20px', minHeight: '100vh', backgroundColor: 'var(--bg)', fontFamily: 'var(--font-body)' }}
       className="lg:px-6 print:min-h-0 print:p-0"
     >
+      {/* Today: floats at the top-right while scrolling; jumps to today's block in whichever term it is. */}
+      <div className="sticky top-3 z-10 h-0 flex justify-end pointer-events-none print:hidden">
+        <button
+          onClick={() => { scrollToScheduleToday(getCurrentTerm()); }}
+          title={`Jump to today (Term ${getCurrentTerm()})`}
+          className="pointer-events-auto"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 14px', borderRadius: 9999, cursor: 'pointer',
+            border: '1px solid var(--accent)',
+            backgroundColor: 'var(--accent-dim)',
+            color: 'var(--accent)',
+            fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)',
+            boxShadow: '0 1px 4px rgba(26,16,8,0.06)',
+          }}
+        >
+          <CalendarCheck size={13} />
+          Today
+        </button>
+      </div>
+
       <SpecLegend />
 
       {conflictCourses.length > 0 && (
@@ -526,8 +571,10 @@ export function TimetableView({ selected, visibleIds, userSpecs, onCourseClick }
       {renderTerm(4)}
       {renderTerm(5)}
 
-      <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
-      <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+      <div data-schedule-term="6">
+        <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
+        <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} onCourseClick={onCourseClick} />
+      </div>
     </div>
   );
 }

@@ -4,6 +4,20 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - Today on the Plan tab, and Schedule's Today works from every term
+
+The Plan tab always opened at the top of Term 4, so a student mid-Term 5 had to scroll past a
+finished term to find this week. It now opens scrolled to the ongoing block (or, in an exam break,
+placements week or between terms, the next upcoming block; after the last block, the last one),
+and a floating orange **Today** pill at its top-right jumps back there. The demo account still
+opens at the top so the impact strip is seen first. Both planners.
+
+On the Schedule tab every term renders, but each term's Today button was greyed out unless today
+fell inside that term, so the Term 4 button at the top of the page was dead during Term 5. Every
+Today button is now clickable and jumps to today wherever it is on the page (the week containing
+today, else the current term's next block, else the current term's section). The Kyoto schedule,
+which had no Today button, gets the same floating pill. Shared logic: `lib/today.ts`.
+
 ### Changed - Every mandatory course says which specialization it is mandatory for
 
 A course with a `mandatoryFor` used to show its `Req. <SPEC>` badge (and red card) only when that

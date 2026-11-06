@@ -806,6 +806,7 @@ export default function PlannerPage() {
                 onToggle={toggle}
                 onCourseClick={course => { setActiveModal(course); trackEvent('course_viewed', { course_id: course.id, course_name: course.name }); }}
                 trackEvent={trackEvent}
+                autoScrollToToday={!isDemo}
               />
             </>
           ) : viewMode === 'friends' ? (

@@ -1,13 +1,14 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info, BookOpen } from 'lucide-react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info, BookOpen, CalendarCheck } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 import { fileHref } from '@/lib/storageLinks';
 import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
+import { currentSpanIndex, scrollToPlanToday } from '@/lib/today';
 import { Term1GanttPanel } from './Term1GanttPanel';
 import { ReqBadges } from './ReqBadges';
 import { mandatoryReq } from '@/lib/mandatory';
@@ -42,6 +43,8 @@ interface Props {
   onToggle: (id: number) => void;
   onCourseClick: (course: Course) => void;
   trackEvent: (eventType: EventType, payload?: Record<string, unknown>) => void;
+  /** Open scrolled to today's block (default). The demo account keeps the top of the page. */
+  autoScrollToToday?: boolean;
 }
 
 function MiniStars({ value, max = 5 }: { value: number; max?: number }) {
@@ -400,11 +403,24 @@ function WeekGroup({
   );
 }
 
-export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onCourseClick, trackEvent }: Props) {
+export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onCourseClick, trackEvent, autoScrollToToday = true }: Props) {
   const [showTerm1, setShowTerm1] = useState(false);
   const term1OpenTimeRef = useRef<number | null>(null);
 
   const terms: (4 | 5 | 6)[] = [4, 5, 6];
+  const rowsByTerm = new Map(terms.map(t => [t, groupBlockRows(ALL_COURSES.filter(c => c.term === t))]));
+  // Today's block row (ongoing, else the next upcoming one); exam/free/break rows never are.
+  const blockRows = [...rowsByTerm.values()].flat().filter(r => r.block !== null);
+  const todayKey = blockRows[currentSpanIndex(blockRows.map(r => ({ start: r.startDate, end: r.endDate })))]?.key;
+
+  // The tab mounts each time the student switches into Plan: open on today's block, not Term 4.
+  useEffect(() => {
+    if (!autoScrollToToday) return;
+    const id = requestAnimationFrame(() => scrollToPlanToday('auto'));
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const termLabels = { 4: 'Term 4', 5: 'Term 5', 6: 'Term 6' };
   const termDates = {
     4: 'Jun 29 – Sep 27, 2026',
@@ -414,8 +430,28 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
 
   return (
     <div className="p-4 lg:p-6 min-h-screen" style={{ backgroundColor: '#f8fafc' }}>
+      {/* Today: floats at the top-right while scrolling, takes no layout space. */}
+      <div className="sticky top-3 z-10 h-0 flex justify-end pointer-events-none print:hidden">
+        <button
+          onClick={() => scrollToPlanToday('smooth')}
+          title="Scroll to the ongoing block"
+          className="pointer-events-auto"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+            border: '1.5px solid #f97316',
+            backgroundColor: '#fff7ed',
+            color: '#c2410c',
+            fontSize: 12, fontWeight: 600,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          <CalendarCheck size={13} />
+          Today
+        </button>
+      </div>
       {terms.map(term => {
-        const rows = groupBlockRows(ALL_COURSES.filter(c => c.term === term));
+        const rows = rowsByTerm.get(term)!;
 
         return (
           <div key={term} className="mb-10">
@@ -470,16 +506,20 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
             {/* Block rows (one per block; weeks of a block merged) */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6">
               {rows.map(row => (
-                <WeekGroup
-                  key={row.key}
-                  row={row}
-                  selected={selected}
-                  userSpecs={userSpecs}
-                  visibleIds={visibleIds}
-                  showTerm1={showTerm1}
-                  onToggle={onToggle}
-                  onClick={onCourseClick}
-                />
+                <Fragment key={row.key}>
+                  {/* Zero-height anchor, so Today still lands here when filters hide every
+                      course of the row, and the rows' last:border-0 is left alone. */}
+                  {row.key === todayKey && <div data-plan-today="true" aria-hidden className="scroll-mt-16" />}
+                  <WeekGroup
+                    row={row}
+                    selected={selected}
+                    userSpecs={userSpecs}
+                    visibleIds={visibleIds}
+                    showTerm1={showTerm1}
+                    onToggle={onToggle}
+                    onClick={onCourseClick}
+                  />
+                </Fragment>
               ))}
             </div>
           </div>

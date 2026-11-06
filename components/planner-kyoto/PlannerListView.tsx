@@ -1,10 +1,12 @@
 'use client';
 
-import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap } from 'lucide-react';
+import { Fragment, useEffect } from 'react';
+import { CalendarCheck, Star, AlertTriangle, CheckCircle2, PlusCircle, Zap } from 'lucide-react';
 import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
 import { mandatoryReq } from '@/lib/mandatory';
+import { currentSpanIndex, scrollToPlanToday } from '@/lib/today';
 import { ReqBadges } from '@/components/planner/ReqBadges';
 
 interface Props {
@@ -352,14 +354,44 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
     5: 'Sep 28 – Dec 27, 2026',
     6: 'Jan – Apr, 2027',
   };
+  const rowsByTerm = new Map(terms.map(t => [t, groupBlockRows(ALL_COURSES.filter(c => c.term === t))]));
+  // Today's block row (ongoing, else the next upcoming one); exam/free/break rows never are.
+  const blockRows = [...rowsByTerm.values()].flat().filter(r => r.block !== null);
+  const todayKey = blockRows[currentSpanIndex(blockRows.map(r => ({ start: r.startDate, end: r.endDate })))]?.key;
+
+  // The tab mounts each time the student switches into Plan: open on today's block, not Term 4.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => scrollToPlanToday('auto'));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   return (
     <div
       style={{ padding: '24px 20px', minHeight: '100vh', backgroundColor: 'var(--bg)', fontFamily: 'var(--font-body)' }}
       className="lg:px-6"
     >
+      {/* Today: floats at the top-right while scrolling, takes no layout space. */}
+      <div className="sticky top-3 z-10 h-0 flex justify-end pointer-events-none print:hidden">
+        <button
+          onClick={() => scrollToPlanToday('smooth')}
+          title="Scroll to the ongoing block"
+          className="pointer-events-auto"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 14px', borderRadius: 9999, cursor: 'pointer',
+            border: '1px solid var(--accent)',
+            backgroundColor: 'var(--accent-dim)',
+            color: 'var(--accent)',
+            fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)',
+            boxShadow: '0 1px 4px rgba(26,16,8,0.06)',
+          }}
+        >
+          <CalendarCheck size={13} />
+          Today
+        </button>
+      </div>
       {terms.map((term, ti) => {
-        const rows = groupBlockRows(ALL_COURSES.filter(c => c.term === term));
+        const rows = rowsByTerm.get(term)!;
 
         return (
           <div key={term} style={{ marginBottom: 36 }}>
@@ -395,15 +427,18 @@ export function PlannerListView({ selected, userSpecs, visibleIds, onToggle, onC
               padding: '0 20px',
             }}>
               {rows.map(row => (
-                <WeekGroup
-                  key={row.key}
-                  row={row}
-                  selected={selected}
-                  userSpecs={userSpecs}
-                  visibleIds={visibleIds}
-                  onToggle={onToggle}
-                  onClick={onCourseClick}
-                />
+                <Fragment key={row.key}>
+                  {/* Zero-height anchor, so Today still lands here when filters hide the row. */}
+                  {row.key === todayKey && <div data-plan-today="true" aria-hidden className="scroll-mt-16" />}
+                  <WeekGroup
+                    row={row}
+                    selected={selected}
+                    userSpecs={userSpecs}
+                    visibleIds={visibleIds}
+                    onToggle={onToggle}
+                    onClick={onCourseClick}
+                  />
+                </Fragment>
               ))}
             </div>
           </div>

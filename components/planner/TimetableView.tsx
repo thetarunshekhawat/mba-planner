@@ -14,6 +14,8 @@ import { getSectionAdvisories, isTimingVisible, type SectionAdvisory } from '@/l
 import { groupBlockRows, weekLabel } from '@/lib/blockRows';
 import { mandatoryReq } from '@/lib/mandatory';
 import { ReqBadges } from './ReqBadges';
+import { campusToday, getCurrentTerm } from '@/lib/terms';
+import { currentSpanIndex, scrollToScheduleToday } from '@/lib/today';
 
 interface Props {
   selected: Set<number>;
@@ -978,6 +980,15 @@ function SpecLegend() {
 }
 
 // Simple block-based list for terms without timing data (one row per block, weeks merged)
+/** The week-list row Today lands on: the ongoing block, else the next upcoming one. */
+function todayRow(allRows: ReturnType<typeof groupBlockRows>): { todayKey?: string; todayInside: boolean } {
+  const blockRows = allRows.filter(r => r.block !== null);
+  const row = blockRows[currentSpanIndex(blockRows.map(r => ({ start: r.startDate, end: r.endDate })))];
+  if (!row) return { todayInside: false };
+  const today = campusToday();
+  return { todayKey: row.key, todayInside: row.startDate <= today && today <= row.endDate };
+}
+
 function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, highlightIds, onCourseClick }: {
   courses: Course[];
   visibleIds: Set<number>;
@@ -1005,9 +1016,11 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
 
   // Rows are built from the term's full course list so a row's week range and date span
   // describe the whole block; rows with nothing visible (mine or a friend's) are skipped.
-  const rows = groupBlockRows(courses).filter(row =>
+  const allRows = groupBlockRows(courses);
+  const rows = allRows.filter(row =>
     row.courses.some(c => visibleIds.has(c.id) || friendTermCourses.some(fc => fc.course.id === c.id)),
   );
+  const { todayKey, todayInside } = todayRow(allRows);
 
   return (
     <div className="mb-8 space-y-3">
@@ -1015,7 +1028,12 @@ function CourseWeekList({ courses, visibleIds, userSpecs, friendOverlays, term, 
         const wkCourses = row.courses.filter(c => visibleIds.has(c.id));
         const wkFriends = friendTermCourses.filter(fc => row.courses.some(c => c.id === fc.course.id));
         return (
-          <div key={row.key} className="flex gap-3">
+          <div
+            key={row.key}
+            className="flex gap-3"
+            data-current-block={row.key === todayKey && todayInside ? String(row.term) : undefined}
+            data-schedule-anchor={row.key === todayKey ? String(row.term) : undefined}
+          >
             <div className="flex flex-col items-start min-w-[72px] pt-1 flex-shrink-0">
               <span className="text-xs font-bold text-gray-600">{weekLabel(row)}</span>
               <span className="text-[10px] text-gray-400 leading-tight mt-0.5">
@@ -1166,6 +1184,10 @@ function TermBlockGrid({
 
   const todayTs = todayUtc().getTime();
   const todayInTerm = blocks.some(b => parseTs(b.start) <= todayTs && todayTs <= parseTs(b.end));
+  const currentTerm = getCurrentTerm();
+  // Where Today lands in this term when no week contains today (exam gap, before term):
+  // week 1 of the next upcoming block, same as the default "hide past blocks" start.
+  const anchorIdx = currentBlockStartIndex(blocks);
 
   const table = (b: BlockRow) => (
     <BlockTable
@@ -1233,25 +1255,21 @@ function TermBlockGrid({
             Including past blocks
           </span>
         )}
+        {/* Always clickable: every term renders on this tab, so a Term 4 button can
+            jump down to today's Term 5 block. */}
         <button
-          onClick={() => {
-            const el = document.querySelector(`[data-current-block="${term}"]`)
-              ?? document.querySelector('[data-today="true"]');
-            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}
-          disabled={!todayInTerm}
-          title={todayInTerm ? 'Scroll to today' : `Today isn't inside ${schedule.label}`}
+          onClick={() => { scrollToScheduleToday(currentTerm); }}
+          title={todayInTerm ? 'Scroll to today' : `Jump to today (Term ${currentTerm})`}
           className="print:hidden"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '5px 14px', borderRadius: 20,
-            cursor: todayInTerm ? 'pointer' : 'not-allowed',
+            cursor: 'pointer',
             border: '1.5px solid #f97316',
-            backgroundColor: todayInTerm ? '#fff7ed' : '#f9fafb',
-            color: todayInTerm ? '#c2410c' : '#9ca3af',
+            backgroundColor: '#fff7ed',
+            color: '#c2410c',
             fontSize: 12, fontWeight: 600,
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            opacity: todayInTerm ? 1 : 0.6,
           }}
         >
           <CalendarCheck size={13} />
@@ -1278,6 +1296,7 @@ function TermBlockGrid({
                 key={`${b.block}-${b.weekNum}`}
                 className={blockPrintHiddenClass}
                 data-current-block={isCurrentBlockWeek ? String(term) : undefined}
+                data-schedule-anchor={i === anchorIdx ? String(term) : undefined}
                 // The tour spotlights ONE block-week, not the whole tab: a cutout
                 // the size of the viewport dims nothing and points at nothing.
                 data-tour={i === startIdx ? 'timetable' : undefined}
@@ -1482,7 +1501,7 @@ export function TimetableView({
         </div>
       )}
 
-      <div className={selectedTerms.has(4) ? '' : 'print:hidden'}>
+      <div data-schedule-term="4" className={selectedTerms.has(4) ? '' : 'print:hidden'}>
         <TermBlockGrid
           term={4}
           courses={term4}
@@ -1500,7 +1519,7 @@ export function TimetableView({
         />
       </div>
 
-      <div className={selectedTerms.has(5) ? '' : 'print:hidden'}>
+      <div data-schedule-term="5" className={selectedTerms.has(5) ? '' : 'print:hidden'}>
         <TermBlockGrid
           term={5}
           courses={term5}
@@ -1518,7 +1537,7 @@ export function TimetableView({
         />
       </div>
 
-      <div className={selectedTerms.has(6) ? '' : 'print:hidden'}>
+      <div data-schedule-term="6" className={selectedTerms.has(6) ? '' : 'print:hidden'}>
         <TermDivider label="Term 6" dateRange="Jan – Apr 2027" />
         <CourseWeekList courses={term6} visibleIds={visibleIds} userSpecs={userSpecs} friendOverlays={friendOverlays} term={6} highlightIds={highlightIds} onCourseClick={onCourseClick} />
       </div>

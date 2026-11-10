@@ -5,7 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GraduationCap, LogOut, BookOpen, ShieldAlert } from 'lucide-react';
 import { SPECS, ALL_COURSES } from '@/data/courses';
-import { computeProgress, TOTAL_ELECTIVE_CREDITS } from '@/lib/progress';
+import { computeProgress, TOTAL_ELECTIVE_CREDITS, YEAR2_COURSE_MAX } from '@/lib/progress';
 import { AppliedAiOption } from '@/components/planner/AppliedAiOption';
 import type { SpecId, WorkloadLevel } from '@/types';
 
@@ -227,8 +227,8 @@ export function FilterSidebar({
               <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--ash)' }}>
                 <BookOpen className="w-3 h-3" /> Electives
               </span>
-              <span className="text-xs font-semibold" style={{ color: 'var(--cream)' }}>
-                {selectedElectiveCount}/{TOTAL_ELECTIVE_CREDITS}
+              <span className="text-xs font-semibold" style={{ color: 'var(--cream)' }} title={`Year 2 target: ${TOTAL_ELECTIVE_CREDITS} to ${YEAR2_COURSE_MAX} courses`}>
+                {selectedElectiveCount}/{TOTAL_ELECTIVE_CREDITS}–{YEAR2_COURSE_MAX}
               </span>
             </div>
             <KyotoProgressBar value={selectedElectiveCount} max={TOTAL_ELECTIVE_CREDITS} color="var(--accent)" />

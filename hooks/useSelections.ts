@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { takeOnceBlockerById } from '@/lib/takeOnce';
+import { leadOf, followersOf } from '@/lib/linkedCourses';
 
 type OnEvent = (type: 'course_selected' | 'course_removed', courseId: number) => void;
 
@@ -28,7 +29,20 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
       .select('course_id')
       .eq('user_id', userId)
       .then(({ data }) => {
-        if (data) setSelected(new Set(data.map(r => r.course_id as number)));
+        if (data) {
+          const loaded = new Set(data.map(r => r.course_id as number));
+          // Follow-on courses (FEDM-II): a saved lead without its follower gets the
+          // follower now, the same as picking the lead today would.
+          const missing = [...loaded].flatMap(followersOf).filter(id => !loaded.has(id));
+          missing.forEach(id => loaded.add(id));
+          setSelected(loaded);
+          if (missing.length > 0 && !readOnly) {
+            supabase
+              .from('course_selections')
+              .upsert(missing.map(course_id => ({ user_id: userId, course_id })))
+              .then(() => {});
+          }
+        }
         setLoading(false);
       });
   }, [userId]);
@@ -38,38 +52,39 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
     // Take-once programs (Vertex): never add a second run. The cards and the course
     // detail show why; this is the backstop for every caller.
     if (!selected.has(courseId) && takeOnceBlockerById(courseId, selected)) return;
+    // Follow-on courses (FEDM-II) move with their lead, never on their own. The one
+    // exception is unticking an old pick whose lead isn't selected.
+    const lead = leadOf(courseId);
+    if (lead !== undefined && (selected.has(lead) || !selected.has(courseId))) return;
 
-    if (readOnly) {
-      const next = new Set(selected);
-      if (next.has(courseId)) next.delete(courseId); else next.add(courseId);
-      setSelected(next);
-      return;
-    }
+    const removing = selected.has(courseId);
+    // The course plus any follow-on course that moves with it.
+    const ids = [courseId, ...followersOf(courseId)].filter(id => selected.has(id) === removing);
 
     const next = new Set(selected);
-    if (next.has(courseId)) {
-      next.delete(courseId);
-      setSelected(next);
+    ids.forEach(id => (removing ? next.delete(id) : next.add(id)));
+    setSelected(next);
+    if (readOnly) return;
+
+    if (removing) {
       const { error } = await supabase
         .from('course_selections')
         .delete()
         .eq('user_id', userId)
-        .eq('course_id', courseId);
+        .in('course_id', ids);
       if (error) {
         setSelected(new Set(selected));
       } else {
-        onEventRef.current?.('course_removed', courseId);
+        ids.forEach(id => onEventRef.current?.('course_removed', id));
       }
     } else {
-      next.add(courseId);
-      setSelected(next);
       const { error } = await supabase
         .from('course_selections')
-        .insert({ user_id: userId, course_id: courseId });
+        .insert(ids.map(course_id => ({ user_id: userId, course_id })));
       if (error) {
         setSelected(new Set(selected));
       } else {
-        onEventRef.current?.('course_selected', courseId);
+        ids.forEach(id => onEventRef.current?.('course_selected', id));
       }
     }
   }, [userId, selected, readOnly]);
@@ -81,7 +96,11 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
     for (const id of courseIds) {
       if (selected.has(id) || toAdd.includes(id)) continue;
       if (takeOnceBlockerById(id, new Set([...selected, ...toAdd]))) continue;
+      if (leadOf(id) !== undefined) continue; // follow-on: added with its lead below
       toAdd.push(id);
+    }
+    for (const id of [...toAdd]) {
+      for (const f of followersOf(id)) if (!selected.has(f) && !toAdd.includes(f)) toAdd.push(f);
     }
     if (toAdd.length === 0) return;
     const next = new Set(selected);
@@ -95,7 +114,16 @@ export function useSelections(userId: string | null, onEvent?: OnEvent, readOnly
 
   const deselectBatch = useCallback(async (courseIds: number[]) => {
     if (!userId || courseIds.length === 0) return;
-    const toRemove = courseIds.filter(id => selected.has(id));
+    // A follow-on course leaves only with its lead.
+    const leads = courseIds.filter(id => selected.has(id) && leadOf(id) === undefined);
+    const toRemove = [
+      ...leads,
+      ...leads.flatMap(followersOf).filter(id => selected.has(id)),
+      ...courseIds.filter(id => {
+        const lead = leadOf(id);
+        return lead !== undefined && selected.has(id) && !selected.has(lead);
+      }),
+    ].filter((id, i, a) => a.indexOf(id) === i);
     if (toRemove.length === 0) return;
     const next = new Set(selected);
     toRemove.forEach(id => next.delete(id));

@@ -885,7 +885,7 @@ export const ALL_COURSES: Course[] = [
     id: 33, term: 6, week: 28,
     startDate: '2027-01-04', endDate: '2027-01-08',
     dates: 'Jan 4–8', block: 27,
-    name: 'Corp Innovation & Venture Building (Staggered)',
+    name: 'Corporate Innovation & Venture Building (Staggered)',
     faculty: 'Srikant Sastri',
     seats: null, specs: ['ENT'], mandatoryFor: ['ENT'], type: 'elective', conflictGroup: null,
     review: {
@@ -919,7 +919,8 @@ export const ALL_COURSES: Course[] = [
     dates: 'Jan 11–15', block: 27,
     name: 'Advanced Corporate Finance',
     faculty: 'N Prabhala',
-    seats: null, specs: ['FIN'], mandatoryFor: ['FIN'], type: 'elective', conflictGroup: 'T6W29',
+    seats: 60, specs: ['FIN'], mandatoryFor: ['FIN'], type: 'elective', conflictGroup: 'T6W29',
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-acf.pdf',
     review: null,
   },
   {
@@ -928,7 +929,9 @@ export const ALL_COURSES: Course[] = [
     dates: 'Jan 11–15', block: 27,
     name: 'Pricing & Revenue Optimisation',
     faculty: 'Prof. Andrew Gershoff',
-    seats: null, specs: ['ECOM', 'MKT'], mandatoryFor: ['ECOM'], type: 'elective', conflictGroup: 'T6W29',
+    seats: 120, specs: ['ECOM', 'MKT'], mandatoryFor: ['ECOM'], type: 'elective', conflictGroup: 'T6W29',
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-pro.pdf',
+    outlineLabel: "2025-26 outline (last year's)",
     review: {
       learningDepth: 5, workload: 'High', careerRelevance: 4,
       whatYouLearn: ['Pricing Strategies/TEV', 'Willingness to Pay', 'Competitor Response'],
@@ -949,7 +952,7 @@ export const ALL_COURSES: Course[] = [
     id: 111, term: 6, week: 30,
     startDate: '2027-01-18', endDate: '2027-01-22',
     dates: 'Jan 18–22', block: 28,
-    name: 'Forward Deployed Engineer (FDE) Management - Staggered',
+    name: 'Forward Deployed Engineer (FDE) Management II',
     faculty: 'Shankar Prakash, Jyothi Korem',
     seats: null, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null, review: null,
   },
@@ -961,7 +964,9 @@ export const ALL_COURSES: Course[] = [
     dates: 'Jan 25–29', block: 28,
     name: 'Organisation Change Management',
     faculty: 'Prof. Ranjeet Nambudiri',
-    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W31',
+    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W31',
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-ocm.pdf',
+    outlineLabel: "2025-26 outline (last year's)",
     review: {
       learningDepth: 3, workload: 'Low', careerRelevance: 2,
       whatYouLearn: ['Organizational Development', 'Process Consulting', 'Change intervention & implementation in Organizations'],
@@ -980,20 +985,24 @@ export const ALL_COURSES: Course[] = [
     id: 38, term: 6, week: 31,
     startDate: '2027-01-25', endDate: '2027-01-29',
     dates: 'Jan 25–29', block: 28,
-    name: 'New Product & Service Development',
+    name: 'New Product and Service Development',
     faculty: 'Prof. Rohit Verma',
-    seats: null, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: 'T6W31',
+    seats: 80, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: 'T6W31',
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-npsd.docx',
     review: null,
   },
 
   // Block 29 Week 1 — Feb 1
   {
     id: 43, term: 6, week: 32,
-    startDate: '2027-02-01', endDate: '2027-02-05',
-    dates: 'Feb 1–5', block: 29,
+    // Listed in Week 32 / Block 29; taught on the bidding brief's session dates:
+    // Sat 13, Sun 14, Tue 16 (eve), Thu 18 (eve), Sat 20, Sun 21 Feb 2027.
+    startDate: '2027-02-13', endDate: '2027-02-21',
+    dates: 'Feb 13, 14, 16, 18, 20, 21', block: 29,
     name: 'Economics of Strategy',
     faculty: 'Prof. Parasuram Balasubramanian',
-    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null,
+    seats: 40, specs: ['LSTR'], type: 'elective', conflictGroup: null,
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-eos.docx',
     review: {
       learningDepth: 4, workload: 'Moderate', careerRelevance: 4,
       whatYouLearn: ['Horizontal & Vertical Boundaries of firms', 'Forward & Backward Integration, Make or Buy', 'Entry & Exit, MOAT & Competitive Dynamics', 'Market & Org Structure'],
@@ -1024,9 +1033,11 @@ export const ALL_COURSES: Course[] = [
     id: 40, term: 6, week: 33,
     startDate: '2027-02-08', endDate: '2027-02-12',
     dates: 'Feb 8–12', block: 29,
-    name: 'Private Markets, Equities & Hedge Funds',
+    name: 'Private Markets, Public Equities, and Hedge Funds',
     faculty: 'Prof. Vikram Kuriyan',
-    seats: null, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-pmhf.pdf',
+    outlineLabel: "2025-26 outline (last year's)",
     review: {
       learningDepth: 4, workload: 'Low', careerRelevance: 4,
       whatYouLearn: ['Value Investing', 'Portfolio Strategy', 'Hedge Funds & PE', 'Risk & Return'],
@@ -1058,7 +1069,8 @@ export const ALL_COURSES: Course[] = [
     dates: 'Feb 22–26', block: 30,
     name: 'Game Theory for Strategic Decision Making',
     faculty: 'Prof. Pallavi Vyas',
-    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W35',
+    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W35',
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-gtsd.docx',
     review: {
       learningDepth: 3, workload: 'Low-Moderate', careerRelevance: 3,
       whatYouLearn: ['Nash Equilibrium', 'Sequential Games, Auctions', 'Behavioural Economics & Bayesian Games'],
@@ -1080,7 +1092,9 @@ export const ALL_COURSES: Course[] = [
     dates: 'Feb 22–26', block: 30,
     name: 'Fintech and Future of Finance',
     faculty: 'Prof. Pulak Ghosh',
-    seats: null, specs: ['FIN'], type: 'elective', conflictGroup: 'T6W35',
+    seats: 80, specs: ['FIN'], type: 'elective', conflictGroup: 'T6W35',
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-fff.pdf',
+    outlineLabel: "2025-26 outline (last year's)",
     review: {
       learningDepth: 4, workload: 'Moderate-High', careerRelevance: 3,
       whatYouLearn: ['AI & ML in Finance', 'Blockchain & Crypto', 'Digital Lending', 'Payment Systems'],
@@ -1103,7 +1117,8 @@ export const ALL_COURSES: Course[] = [
     dates: 'Mar 1–5', block: 30,
     name: 'Digital Transformation in the Age of Agentic AI',
     faculty: 'Balaji Rajgopalan',
-    seats: null, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null, review: null,
+    seats: 60, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null, review: null,
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-dtaa.pdf',
   },
 
   // Block 31 Week 1 — Mar 8
@@ -1113,7 +1128,8 @@ export const ALL_COURSES: Course[] = [
     dates: 'Mar 8–12', block: 31,
     name: 'Routes to Market Strategies',
     faculty: 'Tarun Kushwaha',
-    seats: null, specs: ['MKT'], type: 'elective', conflictGroup: 'T6W37', review: null,
+    seats: 60, specs: ['MKT'], type: 'elective', conflictGroup: 'T6W37', review: null,
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-rtm.docx',
   },
   {
     id: 44, term: 6, week: 37,
@@ -1121,7 +1137,8 @@ export const ALL_COURSES: Course[] = [
     dates: 'Mar 8–12', block: 31,
     name: 'Project Management',
     faculty: 'Prof. Luigi Laporte',
-    seats: null, specs: ['OPS'], type: 'elective', conflictGroup: 'T6W37',
+    seats: 60, specs: ['OPS'], type: 'elective', conflictGroup: 'T6W37',
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-pjm.docx',
     review: {
       learningDepth: 5, workload: 'Moderate-High', careerRelevance: 4,
       whatYouLearn: ['Project Management Fundamentals', 'WBS, PERT, GERT, CPM', 'Planning, Scheduling, Forecasting'],
@@ -1144,7 +1161,8 @@ export const ALL_COURSES: Course[] = [
     dates: 'Mar 15–19', block: 31,
     name: 'First Principles of Consulting',
     faculty: 'Pallavi Malani',
-    seats: null, specs: ['LSTR'], type: 'elective', conflictGroup: null, review: null,
+    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: null, review: null,
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-fpc.pdf',
   },
 
   // Block 32 Week 1 — Mar 22
@@ -1154,7 +1172,7 @@ export const ALL_COURSES: Course[] = [
     dates: 'Mar 22–26', block: 32,
     name: 'Digital Strategy & Marketing',
     faculty: 'Prof. Lil Mohan',
-    seats: null, specs: ['ENT', 'ECOM', 'MKT'], type: 'elective', conflictGroup: null,
+    seats: 120, specs: ['ENT', 'ECOM', 'MKT'], type: 'elective', conflictGroup: null,
     review: {
       learningDepth: 1, workload: 'Moderate-High', careerRelevance: 2,
       whatYouLearn: ['Digital Transformation: Overview', 'Different Components of DT', 'Customer Experience & Digital Mindset'],
@@ -1170,12 +1188,14 @@ export const ALL_COURSES: Course[] = [
   },
   {
     id: 115, term: 6, week: 39,
+    // Listed under Block 32; the project itself runs Jan–Mar 2027 (bidding brief), so
+    // `dates` shows that window while start/end keep the Block 32 listing week.
     startDate: '2027-03-22', endDate: '2027-03-26',
-    dates: 'Mar 22–26', block: 32,
+    dates: 'Jan–Mar 2027', block: 32,
     // Vertex, Jan–Mar run (was "AI Incubator Program (Experiential, Jan–Mar)"). Same
     // program as id 49: 2 electives, take-once with it.
     name: 'Vertex',
-    faculty: 'Arvind Ravishankar',
+    faculty: 'Arvind Ravishunkar',
     seats: null, specs: [], type: 'elective', conflictGroup: 'VERTEX', credits: 2, review: null,
   },
 
@@ -1186,7 +1206,8 @@ export const ALL_COURSES: Course[] = [
     dates: 'Mar 29–Apr 2', block: 32,
     name: 'ML OPS',
     faculty: 'Prof. Shankar Prakash',
-    seats: null, specs: ['OPS'], type: 'elective', conflictGroup: null,
+    seats: 60, specs: ['OPS'], type: 'elective', conflictGroup: null,
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-mlops.docx',
     review: null,
   },
 ];

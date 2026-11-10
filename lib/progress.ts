@@ -14,6 +14,12 @@ import { campusToday } from '@/lib/terms';
 import type { Course, Spec, SpecId } from '@/types';
 
 export const TOTAL_ELECTIVE_CREDITS = 16;
+/**
+ * Year 2 allows 16 to 18 courses (Term 6 bidding brief, 2026-27). Display only: the
+ * Electives bar still fills against TOTAL_ELECTIVE_CREDITS (the 16 floor) and nothing
+ * enforces the ceiling.
+ */
+export const YEAR2_COURSE_MAX = 18;
 export const SPEC_REQUIRED_CREDITS = 6;
 
 /**

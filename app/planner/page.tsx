@@ -15,7 +15,7 @@ import { FriendDetailModal } from '@/components/planner/FriendDetailModal';
 import { FilterSidebar, type Filters } from '@/components/planner/FilterSidebar';
 import { MobileDrawer } from '@/components/planner/MobileDrawer';
 import { CourseDetailModal } from '@/components/planner/CourseDetailModal';
-import { takeOnceBlocker } from '@/lib/takeOnce';
+import { selectionBlock } from '@/lib/linkedCourses';
 import { CourseSearch, EMPTY_SEARCH, type SearchState } from '@/components/planner/CourseSearch';
 import { ImpactStrip } from '@/components/planner/ImpactStrip';
 import { matchesQuery } from '@/lib/courseSearch';
@@ -902,7 +902,7 @@ export default function PlannerPage() {
         course={activeModal}
         isSelected={activeModal ? selected.has(activeModal.id) : false}
         onToggle={toggle}
-        blockedBy={activeModal ? takeOnceBlocker(activeModal, selected) : undefined}
+        blockedReason={activeModal ? selectionBlock(activeModal, selected) : undefined}
         onClose={() => setActiveModal(null)}
         userSpecs={profile.specializations}
         nonModal={tour.active}

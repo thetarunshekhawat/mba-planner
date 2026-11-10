@@ -6,7 +6,7 @@ import { CheckCircle2, PlusCircle, Star, Info } from 'lucide-react';
 import type { Course } from '@/types';
 import { SPECS, normalizeWorkload } from '@/data/courses';
 import { ReqBadges } from '@/components/planner/ReqBadges';
-import { takeOnceNote, blockedMessage } from '@/lib/takeOnce';
+import { takeOnceNote } from '@/lib/takeOnce';
 
 interface Props {
   course: Course | null;
@@ -15,8 +15,8 @@ interface Props {
   onClose: () => void;
   /** The user's declared specializations — decides red vs muted 'Req. <SPEC>' badges. */
   userSpecs?: string[];
-  /** Take-once program (Vertex) already selected in its other run: Add is disabled. */
-  blockedBy?: Course;
+  /** Why Add is disabled: Vertex picked in its other run, or FEDM-II (follows Term 5 FEDM). */
+  blockedReason?: string;
 }
 
 function Stars({ value, max = 5 }: { value: number; max?: number }) {
@@ -98,7 +98,7 @@ function RippleBtn({ onClick, isSelected, disabled, title }: { onClick: () => vo
   );
 }
 
-export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [], blockedBy }: Props) {
+export function CourseDetailModal({ course: courseProp, isSelected: isSelectedProp, onToggle, onClose, userSpecs = [], blockedReason }: Props) {
   // Snapshot the course + its selected state so the content stays rendered while the
   // sheet slides out (the parent zeroes these props the instant `course` goes null).
   const lastRef = useRef<{ course: Course; isSelected: boolean } | null>(null);
@@ -283,10 +283,10 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
               className="animate-modal-block-in"
               style={{ animationDelay: '200ms', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--dim)' }}
             >
-              {blockedBy && !isSelected ? (
+              {blockedReason ? (
                 <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
                   <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ marginTop: 1 }} />
-                  {blockedMessage(blockedBy)}
+                  {blockedReason}
                 </p>
               ) : takeOnceNote(course) && (
                 <p className="flex items-start gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ash)', marginBottom: 10 }}>
@@ -294,7 +294,7 @@ export function CourseDetailModal({ course: courseProp, isSelected: isSelectedPr
                   {takeOnceNote(course)}
                 </p>
               )}
-              <RippleBtn onClick={() => onToggle(course.id)} isSelected={isSelected} disabled={!!blockedBy && !isSelected} title={blockedBy && !isSelected ? blockedMessage(blockedBy) : undefined} />
+              <RippleBtn onClick={() => onToggle(course.id)} isSelected={isSelected} disabled={!!blockedReason} title={blockedReason} />
             </div>
           )}
         </div>

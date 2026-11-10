@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { GraduationCap, LogOut, BookOpen, ShieldAlert, Layers, RotateCcw } from 'lucide-react';
 import { SPECS } from '@/data/courses';
 import {
-  computeProgress, formatCampusDay, SPEC_REQUIRED_CREDITS,
+  computeProgress, formatCampusDay, SPEC_REQUIRED_CREDITS, YEAR2_COURSE_MAX,
   type ProgressBasis,
 } from '@/lib/progress';
 import { campusToday } from '@/lib/terms';
@@ -208,8 +208,8 @@ export function FilterSidebar({
               <span className="text-slate-400 text-xs flex items-center gap-1">
                 <BookOpen className="w-3 h-3" /> Electives
               </span>
-              <span className="text-white text-xs font-semibold">
-                {summary.electives.earned}/{summary.electives.total}
+              <span className="text-white text-xs font-semibold" title={`Year 2 target: ${summary.electives.total} to ${YEAR2_COURSE_MAX} courses`}>
+                {summary.electives.earned}/{summary.electives.total}–{YEAR2_COURSE_MAX}
               </span>
             </div>
             <Progress

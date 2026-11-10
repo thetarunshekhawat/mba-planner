@@ -8,7 +8,8 @@ import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/bloc
 import { mandatoryReq } from '@/lib/mandatory';
 import { currentSpanIndex, scrollToPlanToday } from '@/lib/today';
 import { ReqBadges } from '@/components/planner/ReqBadges';
-import { takeOnceBlocker, takeOnceNote, blockedMessage } from '@/lib/takeOnce';
+import { takeOnceNote } from '@/lib/takeOnce';
+import { selectionBlock } from '@/lib/linkedCourses';
 
 interface Props {
   selected: Set<number>;
@@ -40,7 +41,7 @@ function CourseCard({
   isDimmed,
   hasConflict,
   animDelay,
-  blockedBy,
+  blockedReason,
   userSpecs,
   onToggle,
   onClick,
@@ -50,8 +51,8 @@ function CourseCard({
   isDimmed: boolean;
   hasConflict: boolean;
   animDelay: number;
-  /** Take-once program (Vertex) already selected in its other run. */
-  blockedBy?: Course;
+  /** Why the select control is disabled: Vertex picked in its other run, or FEDM-II. */
+  blockedReason?: string;
   userSpecs: SpecId[];
   onToggle: () => void;
   onClick: () => void;
@@ -136,10 +137,10 @@ function CourseCard({
             <AlertTriangle className="w-3 h-3" /> Conflict
           </div>
         )}
-        {blockedBy ? (
+        {blockedReason ? (
           <div className="flex items-start gap-1 text-xs font-semibold mb-2" style={{ color: 'var(--ash)' }}>
             <Info className="w-3 h-3 mt-px flex-shrink-0" />
-            <span>{blockedMessage(blockedBy)}</span>
+            <span>{blockedReason}</span>
           </div>
         ) : onceNote && (
           <div className="flex items-start gap-1 text-xs font-semibold mb-2" style={{ color: 'var(--ash)' }}>
@@ -176,9 +177,9 @@ function CourseCard({
           {!isFixed && (
             <button
               onClick={e => { e.stopPropagation(); onToggle(); }}
-              disabled={!!blockedBy}
-              title={blockedBy ? blockedMessage(blockedBy) : undefined}
-              style={{ flexShrink: 0, background: 'none', border: 'none', cursor: blockedBy ? 'not-allowed' : 'pointer', opacity: blockedBy ? 0.4 : 1, color: isSelected ? accentColor : 'var(--mid)', transition: 'color 150ms' }}
+              disabled={!!blockedReason}
+              title={blockedReason}
+              style={{ flexShrink: 0, background: 'none', border: 'none', cursor: blockedReason ? 'not-allowed' : 'pointer', opacity: blockedReason ? 0.4 : 1, color: isSelected ? accentColor : 'var(--mid)', transition: 'color 150ms' }}
             >
               {isSelected ? <CheckCircle2 className="w-5 h-5" /> : <PlusCircle className="w-5 h-5" />}
             </button>
@@ -336,7 +337,7 @@ function WeekGroup({
                 isDimmed={isDimmed}
                 hasConflict={hasConflict}
                 animDelay={Math.min(i, 7) * 40}
-                blockedBy={takeOnceBlocker(c, selected)}
+                blockedReason={selectionBlock(c, selected)}
                 userSpecs={userSpecs}
                 onToggle={() => onToggle(c.id)}
                 onClick={() => onClick(c)}

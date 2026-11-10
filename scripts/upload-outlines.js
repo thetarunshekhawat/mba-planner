@@ -74,6 +74,27 @@ const TERMS = {
       { source: 'svop.pdf',  dest: 'svop.pdf',  mime: PDF  },
     ],
   },
+  // Term 6 rows have no course codes, so keys are `t6-<short name>`. Unlike Terms 4–5
+  // these files are committed in the repo. Four are 2025-26 outlines (outlineLabel in
+  // data/courses.ts): t6-pro, t6-ocm, t6-pmhf, t6-fff.
+  6: {
+    dir: join(__dirname, '..', 'Term 6 course outlines'),
+    files: [
+      { source: 't6-acf.pdf',    dest: 't6-acf.pdf',    mime: PDF  },
+      { source: 't6-pro.pdf',    dest: 't6-pro.pdf',    mime: PDF  },
+      { source: 't6-ocm.pdf',    dest: 't6-ocm.pdf',    mime: PDF  },
+      { source: 't6-npsd.docx',  dest: 't6-npsd.docx',  mime: DOCX },
+      { source: 't6-eos.docx',   dest: 't6-eos.docx',   mime: DOCX },
+      { source: 't6-pmhf.pdf',   dest: 't6-pmhf.pdf',   mime: PDF  },
+      { source: 't6-gtsd.docx',  dest: 't6-gtsd.docx',  mime: DOCX },
+      { source: 't6-fff.pdf',    dest: 't6-fff.pdf',    mime: PDF  },
+      { source: 't6-dtaa.pdf',   dest: 't6-dtaa.pdf',   mime: PDF  },
+      { source: 't6-rtm.docx',   dest: 't6-rtm.docx',   mime: DOCX },
+      { source: 't6-pjm.docx',   dest: 't6-pjm.docx',   mime: DOCX },
+      { source: 't6-fpc.pdf',    dest: 't6-fpc.pdf',    mime: PDF  },
+      { source: 't6-mlops.docx', dest: 't6-mlops.docx', mime: DOCX },
+    ],
+  },
 };
 
 async function ensureBucket() {

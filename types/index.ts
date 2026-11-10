@@ -61,6 +61,8 @@ export interface Course {
     exemptCodes?: string[];
   }[];
   outlineUrl?: string;
+  /** Shown with the outline link when it isn't this year's, e.g. "2025-26 outline (last year's)". */
+  outlineLabel?: string;
   seatingCharts?: { section: string; url: string }[]; // registrar seating chart PDFs per section
   review: CourseReview | null;
 }

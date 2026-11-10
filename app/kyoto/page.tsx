@@ -9,7 +9,7 @@ import { TimetableView } from '@/components/planner-kyoto/TimetableView';
 import { PlannerListView } from '@/components/planner-kyoto/PlannerListView';
 import { FilterSidebar, type Filters } from '@/components/planner-kyoto/FilterSidebar';
 import { CourseDetailModal } from '@/components/planner-kyoto/CourseDetailModal';
-import { takeOnceBlocker } from '@/lib/takeOnce';
+import { selectionBlock } from '@/lib/linkedCourses';
 import { generateScheduleICS } from '@/lib/calendar';
 import {
   LayoutList, CalendarDays, Menu, X,
@@ -594,7 +594,7 @@ export default function KyotoPage() {
         course={activeModal}
         isSelected={activeModal ? selected.has(activeModal.id) : false}
         onToggle={toggle}
-        blockedBy={activeModal ? takeOnceBlocker(activeModal, selected) : undefined}
+        blockedReason={activeModal ? selectionBlock(activeModal, selected) : undefined}
         onClose={() => setActiveModal(null)}
         userSpecs={profile.specializations}
       />

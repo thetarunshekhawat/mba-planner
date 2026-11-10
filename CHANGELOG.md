@@ -4,6 +4,27 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed - Term 6 catalogue matches the 2026-27 bidding pack
+
+From the Term 6 bidding brief, the Term 6 electives sheet and the course outlines.
+- **FEDM-II (id 111)** is renamed "Forward Deployed Engineer (FDE) Management II" and follows Term 5
+  FEDM (id 48): picking FEDM adds it, unticking FEDM removes it, and a saved FEDM pick without it
+  gets it on load. It can't be picked on its own; its control is disabled with a muted hint
+  (`lib/linkedCourses.ts`). Credit was already 1 + 1 = 2 (separate courses), so `lib/progress.ts`
+  is unchanged there. Cards and course detail now take one `blockedReason` string for Vertex and FEDM-II.
+- **Vertex (id 115)** shows "Jan–Mar 2027"; it stays listed under Block 32.
+- **Electives bar** reads `n/16–18` (Year 2 allows 16 to 18 courses). Display only.
+- **Seats** filled from the sheet; CIVB, FEDM-II and Vertex stay unset (NA on the sheet).
+- **Economics of Strategy (id 43)** dates are the brief's sessions: Feb 13, 14, 16, 18, 20, 21, 2027.
+- **Names** match the sheet: Corporate Innovation & Venture Building (Staggered), FDE Management II,
+  New Product and Service Development, Private Markets, Public Equities, and Hedge Funds.
+- **Professors**: Shankar Aiyar, Nagpurnanand Prabhala, "Forward Deployed Engineer", and
+  Arvind Ravishunkar on both Vertex rows (the Term 5 outline's spelling).
+- **Outlines**: 13 Term 6 outlines committed in `Term 6 course outlines/` and linked via
+  `outlineUrl` (keys `t6-*`, added to `scripts/upload-outlines.js`). Pricing, OCM, Private Markets and
+  Fintech are 2025-26 outlines, labelled with the new `outlineLabel` field. The links work once
+  `node scripts/upload-outlines.js --term 6` has been run.
+
 ### Changed - Schedule's Today is one floating pill, like Plan
 
 The standard planner's Schedule tab had a Today button inline in each term's control row (one per

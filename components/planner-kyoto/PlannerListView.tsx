@@ -6,6 +6,7 @@ import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
 import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
 import { mandatoryReq } from '@/lib/mandatory';
+import { clashingIds } from '@/lib/conflicts';
 import { currentSpanIndex, scrollToPlanToday } from '@/lib/today';
 import { ReqBadges } from '@/components/planner/ReqBadges';
 import { takeOnceNote } from '@/lib/takeOnce';
@@ -296,6 +297,8 @@ function WeekGroup({
   Object.entries(groupMap).forEach(([grp, ids]) => {
     if (ids.filter(id => selected.has(id)).length > 1) conflictGroups.add(grp);
   });
+  // Cross-row clashes (Vertex II vs OCM / FEDM-II) need the whole catalogue.
+  const clashIds = clashingIds(ALL_COURSES, selected);
 
   const blockLabel = row.block;
   // Per teaching week, not per merged row: back-to-back weeks of one block are not a double block.
@@ -327,7 +330,7 @@ function WeekGroup({
           {visible.map((c, i) => {
             const specMatch = c.specs.some(s => userSpecs.includes(s));
             const isDimmed = userSpecs.length > 0 && !specMatch && c.type === 'elective';
-            const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id));
+            const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id)) || clashIds.has(c.id);
 
             return (
               <CourseCard

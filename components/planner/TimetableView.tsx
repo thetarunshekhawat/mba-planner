@@ -10,7 +10,7 @@ import { colorForFriend } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import type { EventType } from '@/hooks/useAnalytics';
 import { Term1GanttPanel } from './Term1GanttPanel';
-import { getSectionAdvisories, isTimingVisible, type SectionAdvisory } from '@/lib/conflicts';
+import { clashingIds, getSectionAdvisories, isTimingVisible, type SectionAdvisory } from '@/lib/conflicts';
 import { groupBlockRows, weekLabel } from '@/lib/blockRows';
 import { mandatoryReq } from '@/lib/mandatory';
 import { ReqBadges } from './ReqBadges';
@@ -296,6 +296,7 @@ function getConflictIds(courses: Course[], visibleIds: Set<number>): Set<number>
   Object.values(groupMap).forEach(ids => {
     if (ids.length > 1) ids.forEach(id => conflicting.add(id));
   });
+  clashingIds(courses, visibleIds).forEach(id => conflicting.add(id));
   return conflicting;
 }
 

@@ -6,6 +6,7 @@ import type { Course, SpecId } from '@/types';
 import { ALL_COURSES, SPECS } from '@/data/courses';
 import { groupBlockRows, weekLabel } from '@/lib/blockRows';
 import { mandatoryReq } from '@/lib/mandatory';
+import { clashingIds } from '@/lib/conflicts';
 import { ReqBadges } from '@/components/planner/ReqBadges';
 import { campusToday, getCurrentTerm } from '@/lib/terms';
 import { currentSpanIndex, scrollToScheduleToday } from '@/lib/today';
@@ -131,6 +132,7 @@ function getConflictIds(courses: Course[], visibleIds: Set<number>): Set<number>
   Object.values(groupMap).forEach(ids => {
     if (ids.length > 1) ids.forEach(id => conflicting.add(id));
   });
+  clashingIds(courses, visibleIds).forEach(id => conflicting.add(id));
   return conflicting;
 }
 

@@ -880,14 +880,19 @@ export const ALL_COURSES: Course[] = [
 
   // ─── TERM 6  (Jan 4 – Apr 4 2027) ────────────────────────────────────────
 
-  // Block 27 Week 1 — Jan 4
+  // Block 27 — Jan 4–16
   {
     id: 33, term: 6, week: 28,
-    startDate: '2027-01-04', endDate: '2027-01-08',
-    dates: 'Jan 4–8', block: 27,
-    name: 'Corporate Innovation & Venture Building (Staggered)',
+    startDate: '2027-01-04', endDate: '2027-01-09',
+    dates: 'Jan 4–9', block: 27,
+    name: 'Corporate Innovation & Venture Building',
     faculty: 'Srikant Sastri',
     seats: null, specs: ['ENT'], mandatoryFor: ['ENT'], type: 'elective', conflictGroup: null,
+    // Term 6 timetable (12 Nov 2026): Mon–Wed evenings, then Sat morning. No class Thu/Fri.
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed'] },
+      { slot: '09:00–12:00', room: 'S04', days: ['Sat'] },
+    ],
     review: {
       learningDepth: 4, workload: 'Heavy', careerRelevance: 4,
       whatYouLearn: ['MVP Building', 'User feedback and market research', 'Different pitches to investors/customers'],
@@ -905,31 +910,50 @@ export const ALL_COURSES: Course[] = [
   // WaW — Block 27
   {
     id: 107, term: 6, week: 28,
-    startDate: '2027-01-04', endDate: '2027-01-08',
-    dates: 'Jan 4–8', block: 27,
+    startDate: '2027-01-07', endDate: '2027-01-14',
+    dates: 'Jan 7–14', block: 27,
     name: 'Geopolitics and Business',
     faculty: 'Shankar Aiyar',
-    seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
+    seats: null, specs: [], type: 'waw', conflictGroup: null,
+    timings: [
+      { slot: '13:30–15:30', room: 'S01', days: ['Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
+      { slot: '17:30–19:30', room: 'S01', days: ['Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+    ],
+    review: null,
   },
 
-  // Block 27 Week 2 — Jan 11
   {
-    id: 34, term: 6, week: 29,
-    startDate: '2027-01-11', endDate: '2027-01-15',
-    dates: 'Jan 11–15', block: 27,
+    id: 34, term: 6, week: 28,
+    startDate: '2027-01-05', endDate: '2027-01-16',
+    dates: 'Jan 5–16', block: 27,
     name: 'Advanced Corporate Finance',
     faculty: 'N Prabhala',
     seats: 60, specs: ['FIN'], mandatoryFor: ['FIN'], type: 'elective', conflictGroup: 'T6W29',
+    // Week 1 Tue–Fri mornings plus Sat afternoon; week 2 Mon–Fri mornings.
+    timings: [
+      { slot: '09:00–12:00', room: 'S01', days: ['Tue', 'Wed', 'Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+      { slot: '13:30–16:30', room: 'S01', days: ['Sat'], week2Days: [] },
+    ],
+    examSessions: [
+      { date: '2027-01-16', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-acf.pdf',
     review: null,
   },
   {
-    id: 35, term: 6, week: 29,
-    startDate: '2027-01-11', endDate: '2027-01-15',
-    dates: 'Jan 11–15', block: 27,
+    id: 35, term: 6, week: 28,
+    startDate: '2027-01-04', endDate: '2027-01-16',
+    dates: 'Jan 4–16', block: 27,
     name: 'Pricing & Revenue Optimisation',
     faculty: 'Prof. Andrew Gershoff',
     seats: 120, specs: ['ECOM', 'MKT'], mandatoryFor: ['ECOM'], type: 'elective', conflictGroup: 'T6W29',
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+    ],
+    examSessions: [
+      { date: '2027-01-16', slot: '13:30–15:30', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-pro.pdf',
     outlineLabel: "2025-26 outline (last year's)",
     review: {
@@ -947,24 +971,38 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
-  // Block 28 Week 1 — Jan 18
+  // Block 28 — Jan 18–31 (Republic Day Tue Jan 26)
   {
     id: 111, term: 6, week: 30,
-    startDate: '2027-01-18', endDate: '2027-01-22',
-    dates: 'Jan 18–22', block: 28,
-    name: 'Forward Deployed Engineer (FDE) Management II',
+    startDate: '2027-01-18', endDate: '2027-01-30',
+    dates: 'Jan 18–30', block: 28,
+    name: 'Forward Deployed Engineer (FDE) Management - II',
     faculty: 'Shankar Prakash, Jyothi Korem',
-    seats: null, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null, review: null,
+    seats: null, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null,
+    // Week 2 skips Tue Jan 26 (Republic Day).
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-01-30', slot: '17:30–20:30', label: 'End Block Exam' },
+    ],
+    review: null,
   },
 
-  // Block 28 Week 2 — Jan 25
   {
-    id: 37, term: 6, week: 31,
-    startDate: '2027-01-25', endDate: '2027-01-29',
-    dates: 'Jan 25–29', block: 28,
+    id: 37, term: 6, week: 30,
+    startDate: '2027-01-18', endDate: '2027-01-31',
+    dates: 'Jan 18–31', block: 28,
     name: 'Organisation Change Management',
     faculty: 'Prof. Ranjeet Nambudiri',
-    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W31',
+    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: null,
+    // Week 2 skips Tue Jan 26 (Republic Day). Clashes with Vertex II's immersion (see id 115).
+    timings: [
+      { slot: '13:30–16:30', room: 'S01', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-01-31', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-ocm.pdf',
     outlineLabel: "2025-26 outline (last year's)",
     review: {
@@ -982,26 +1020,41 @@ export const ALL_COURSES: Course[] = [
     },
   },
   {
-    id: 38, term: 6, week: 31,
-    startDate: '2027-01-25', endDate: '2027-01-29',
-    dates: 'Jan 25–29', block: 28,
+    id: 38, term: 6, week: 30,
+    startDate: '2027-01-18', endDate: '2027-01-30',
+    dates: 'Jan 18–30', block: 28,
     name: 'New Product and Service Development',
     faculty: 'Prof. Rohit Verma',
-    seats: 80, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: 'T6W31',
+    seats: 80, specs: ['MKT', 'OPS'], type: 'elective', conflictGroup: null,
+    // Week 2 skips Tue Jan 26 (Republic Day).
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-01-30', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-npsd.docx',
     review: null,
   },
 
-  // Block 29 Week 1 — Feb 1
+  // Block 29 — Feb 1–21
   {
-    id: 43, term: 6, week: 32,
-    // Listed in Week 32 / Block 29; taught on the bidding brief's session dates:
+    id: 43, term: 6, week: 33,
+    // Block 29; taught on the bidding brief's session dates:
     // Sat 13, Sun 14, Tue 16 (eve), Thu 18 (eve), Sat 20, Sun 21 Feb 2027.
     startDate: '2027-02-13', endDate: '2027-02-21',
     dates: 'Feb 13, 14, 16, 18, 20, 21', block: 29,
     name: 'Economics of Strategy',
     faculty: 'Prof. Parasuram Balasubramanian',
     seats: 40, specs: ['LSTR'], type: 'elective', conflictGroup: null,
+    // Weekends: four 90-minute slots a day. Week of Feb 15: Tue/Thu evenings.
+    timings: [
+      { slot: '09:00–10:30', room: 'S04', days: ['Sat', 'Sun'] },
+      { slot: '11:00–12:30', room: 'S04', days: ['Sat', 'Sun'] },
+      { slot: '13:30–15:00', room: 'S04', days: ['Sat', 'Sun'] },
+      { slot: '15:30–17:00', room: 'S04', days: ['Sat', 'Sun'] },
+      { slot: '17:00–20:00', room: 'S04', days: [], week2Days: ['Tue', 'Thu'] },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-eos.docx',
     review: {
       learningDepth: 4, workload: 'Moderate', careerRelevance: 4,
@@ -1021,21 +1074,32 @@ export const ALL_COURSES: Course[] = [
   // WaW — Block 29
   {
     id: 108, term: 6, week: 32,
-    startDate: '2027-02-01', endDate: '2027-02-05',
-    dates: 'Feb 1–5', block: 29,
+    startDate: '2027-02-01', endDate: '2027-02-11',
+    dates: 'Feb 1–11', block: 29,
     name: 'Non Market Strategy',
     faculty: 'Anuradha Das Mathur',
-    seats: null, specs: [], type: 'waw', conflictGroup: null, review: null,
+    seats: null, specs: [], type: 'waw', conflictGroup: null,
+    timings: [
+      { slot: '09:00–10:30', room: 'S01', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
+      { slot: '13:30–15:00', room: 'S01', days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+    ],
+    review: null,
   },
 
-  // Block 29 Week 2 — Feb 8
   {
-    id: 40, term: 6, week: 33,
-    startDate: '2027-02-08', endDate: '2027-02-12',
-    dates: 'Feb 8–12', block: 29,
+    id: 40, term: 6, week: 32,
+    startDate: '2027-02-01', endDate: '2027-02-15',
+    dates: 'Feb 1–15', block: 29,
     name: 'Private Markets, Public Equities, and Hedge Funds',
     faculty: 'Prof. Vikram Kuriyan',
     seats: 60, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    timings: [
+      // block2Days: [] stops week 3 (Mon Feb 15, end-block only) repeating the pattern.
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], block2Days: [] },
+    ],
+    examSessions: [
+      { date: '2027-02-15', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-pmhf.pdf',
     outlineLabel: "2025-26 outline (last year's)",
     review: {
@@ -1053,23 +1117,30 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
-  // Exam Week — Feb 15
+  // Week 34 — Feb 15. Was "Exam Week"; the 12 Nov timetable has Block 29 running to
+  // Feb 21 with classes this week, so this row only points at what's on.
   {
     id: 41, term: 6, week: 34,
     startDate: '2027-02-15', endDate: '2027-02-19',
     dates: 'Feb 15–19', block: null,
-    name: 'Exam Week',
-    faculty: '', seats: null, specs: [], type: 'exam', conflictGroup: null, review: null,
+    name: 'Block 29 continues: PMEH end-block exam Mon 15, ECST evenings Tue 16 & Thu 18',
+    faculty: '', seats: null, specs: [], type: 'free', conflictGroup: null, review: null,
   },
 
-  // Block 30 Week 1 — Feb 22
+  // Block 30 — Feb 22–Mar 7
   {
     id: 39, term: 6, week: 35,
-    startDate: '2027-02-22', endDate: '2027-02-26',
-    dates: 'Feb 22–26', block: 30,
+    startDate: '2027-02-22', endDate: '2027-03-06',
+    dates: 'Feb 22–Mar 6', block: 30,
     name: 'Game Theory for Strategic Decision Making',
     faculty: 'Prof. Pallavi Vyas',
-    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: 'T6W35',
+    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-03-06', slot: '13:30–16:30', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-gtsd.docx',
     review: {
       learningDepth: 3, workload: 'Low-Moderate', careerRelevance: 3,
@@ -1088,11 +1159,17 @@ export const ALL_COURSES: Course[] = [
   },
   {
     id: 42, term: 6, week: 35,
-    startDate: '2027-02-22', endDate: '2027-02-26',
-    dates: 'Feb 22–26', block: 30,
+    startDate: '2027-02-22', endDate: '2027-03-07',
+    dates: 'Feb 22–Mar 7', block: 30,
     name: 'Fintech and Future of Finance',
     faculty: 'Prof. Pulak Ghosh',
-    seats: 80, specs: ['FIN'], type: 'elective', conflictGroup: 'T6W35',
+    seats: 80, specs: ['FIN'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-03-07', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-fff.pdf',
     outlineLabel: "2025-26 outline (last year's)",
     review: {
@@ -1110,34 +1187,53 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
-  // Block 30 Week 2 — Mar 1
   {
-    id: 112, term: 6, week: 36,
-    startDate: '2027-03-01', endDate: '2027-03-05',
-    dates: 'Mar 1–5', block: 30,
+    id: 112, term: 6, week: 35,
+    startDate: '2027-02-22', endDate: '2027-03-06',
+    dates: 'Feb 22–Mar 6', block: 30,
     name: 'Digital Transformation in the Age of Agentic AI',
     faculty: 'Balaji Rajgopalan',
-    seats: 60, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null, review: null,
+    seats: 60, specs: ['ECOM', 'LSTR'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-03-06', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
+    review: null,
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-dtaa.pdf',
   },
 
-  // Block 31 Week 1 — Mar 8
+  // Block 31 — Mar 8–21
   {
     id: 113, term: 6, week: 37,
-    startDate: '2027-03-08', endDate: '2027-03-12',
-    dates: 'Mar 8–12', block: 31,
+    startDate: '2027-03-08', endDate: '2027-03-20',
+    dates: 'Mar 8–20', block: 31,
     name: 'Routes to Market Strategies',
     faculty: 'Tarun Kushwaha',
-    seats: 60, specs: ['MKT'], type: 'elective', conflictGroup: 'T6W37', review: null,
+    seats: 60, specs: ['MKT'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '13:30–16:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-03-20', slot: '13:30–16:30', label: 'End Block Exam' },
+    ],
+    review: null,
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-rtm.docx',
   },
   {
     id: 44, term: 6, week: 37,
-    startDate: '2027-03-08', endDate: '2027-03-12',
-    dates: 'Mar 8–12', block: 31,
+    startDate: '2027-03-08', endDate: '2027-03-20',
+    dates: 'Mar 8–20', block: 31,
     name: 'Project Management',
     faculty: 'Prof. Luigi Laporte',
-    seats: 60, specs: ['OPS'], type: 'elective', conflictGroup: 'T6W37',
+    seats: 60, specs: ['OPS'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-03-20', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-pjm.docx',
     review: {
       learningDepth: 5, workload: 'Moderate-High', careerRelevance: 4,
@@ -1154,28 +1250,54 @@ export const ALL_COURSES: Course[] = [
     },
   },
 
-  // Block 31 Week 2 — Mar 15
   {
-    id: 114, term: 6, week: 38,
-    startDate: '2027-03-15', endDate: '2027-03-19',
-    dates: 'Mar 15–19', block: 31,
+    id: 114, term: 6, week: 37,
+    startDate: '2027-03-08', endDate: '2027-03-21',
+    dates: 'Mar 8–21', block: 31,
     name: 'First Principles of Consulting',
     faculty: 'Pallavi Malani',
-    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: null, review: null,
+    seats: 60, specs: ['LSTR'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '17:30–20:30', room: 'S04', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-03-21', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
+    review: null,
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-fpc.pdf',
   },
 
-  // Block 32 Week 1 — Mar 22
+  // Block 32 — Mar 22–Apr 4 (Holi Mon Mar 22)
   {
     id: 46, term: 6, week: 39,
-    startDate: '2027-03-22', endDate: '2027-03-26',
-    dates: 'Mar 22–26', block: 32,
-    name: 'Digital Strategy & Marketing',
+    // Window from the 14 Nov 2026 outline (Mar 22 – Apr 4); classes from the 12 Nov
+    // timetable, where it's still "Digital Strategy & Marketing" (DSMK). Mon Mar 22 is Holi.
+    startDate: '2027-03-22', endDate: '2027-04-04',
+    dates: 'Mar 22–Apr 4', block: 32,
+    name: 'Digital & AI Marketing (DAIM)',
     faculty: 'Prof. Lil Mohan',
     seats: 120, specs: ['ENT', 'ECOM', 'MKT'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '09:00–12:00', room: 'S04', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-04-03', slot: '09:00–12:00', label: 'End Block Exam' },
+    ],
+    outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-daim.pdf',
     review: {
       learningDepth: 1, workload: 'Moderate-High', careerRelevance: 2,
-      whatYouLearn: ['Digital Transformation: Overview', 'Different Components of DT', 'Customer Experience & Digital Mindset'],
+      // Session topics from the 14 Nov 2026 outline (the course was rebuilt).
+      whatYouLearn: [
+        'Digital Consumer & MarTech Infrastructure',
+        'Customer Tracking & Analytics',
+        'AI-Grounded Personas & SEO',
+        'AI Visibility & GEO',
+        'Social Media, Creators & Influencers',
+        'Marketing Automation',
+        'Product-Led Growth & Freemium',
+        'Paid Search & Social Ads',
+        'Chatbots & Conversational Agents',
+      ],
       highlights: [
         'The course is designed to finish well before 10 days, hence lots of breaks',
       ],
@@ -1196,17 +1318,26 @@ export const ALL_COURSES: Course[] = [
     // program as id 49: 2 electives, take-once with it.
     name: 'Vertex',
     faculty: 'Arvind Ravishunkar',
-    seats: null, specs: [], type: 'elective', conflictGroup: 'VERTEX', credits: 2, review: null,
+    seats: null, specs: [], type: 'elective', conflictGroup: 'VERTEX', credits: 2,
+    // Immersion Jan 25–29, 13:30–20:30 (bidding guidelines, 12 Nov 2026) overlaps OCM
+    // afternoons and FEDM-II evenings that week.
+    clashesWith: [37, 111],
+    review: null,
   },
 
-  // Block 32 Week 2 — Mar 29
   {
-    id: 47, term: 6, week: 40,
-    startDate: '2027-03-29', endDate: '2027-04-02',
-    dates: 'Mar 29–Apr 2', block: 32,
-    name: 'ML OPS',
+    id: 47, term: 6, week: 39,
+    startDate: '2027-03-23', endDate: '2027-04-03',
+    dates: 'Mar 23–Apr 3', block: 32,
+    name: 'ML Operations',
     faculty: 'Prof. Shankar Prakash',
     seats: 60, specs: ['OPS'], type: 'elective', conflictGroup: null,
+    timings: [
+      { slot: '13:30–16:30', room: 'S04', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2027-04-03', slot: '13:30–16:30', label: 'End Block Exam' },
+    ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/t6-mlops.docx',
     review: null,
   },

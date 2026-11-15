@@ -93,6 +93,7 @@ const TERMS = {
       { source: 't6-pjm.docx',   dest: 't6-pjm.docx',   mime: DOCX },
       { source: 't6-fpc.pdf',    dest: 't6-fpc.pdf',    mime: PDF  },
       { source: 't6-mlops.docx', dest: 't6-mlops.docx', mime: DOCX },
+      { source: 't6-daim.pdf',   dest: 't6-daim.pdf',   mime: PDF  },
     ],
   },
 };

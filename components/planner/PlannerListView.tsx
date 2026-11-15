@@ -5,7 +5,7 @@ import { Star, AlertTriangle, CheckCircle2, PlusCircle, Zap, Info, BookOpen, Cal
 import type { Course, SpecId } from '@/types';
 import type { EventType } from '@/hooks/useAnalytics';
 import { ALL_COURSES, SPECS, normalizeWorkload } from '@/data/courses';
-import { getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
+import { clashingIds, getSectionAdvisories, type SectionAdvisory } from '@/lib/conflicts';
 import { fileHref } from '@/lib/storageLinks';
 import { groupBlockRows, maxPerWeek, weekLabel, type BlockRow } from '@/lib/blockRows';
 import { currentSpanIndex, scrollToPlanToday } from '@/lib/today';
@@ -337,6 +337,8 @@ function WeekGroup({
   Object.entries(groupMap).forEach(([grp, ids]) => {
     if (ids.filter(id => selected.has(id)).length > 1) conflictGroups.add(grp);
   });
+  // Cross-row clashes (Vertex II vs OCM / FEDM-II) need the whole catalogue.
+  const clashIds = clashingIds(ALL_COURSES, selected);
 
   // Section advisory detection (section-resolvable overlaps)
   const advisories = getSectionAdvisories(ALL_COURSES, visibleIds);
@@ -356,7 +358,7 @@ function WeekGroup({
         {visible.map(c => {
           const specMatch = c.specs.some(s => userSpecs.includes(s));
           const isDimmed = userSpecs.length > 0 && !specMatch && c.type === 'elective';
-          const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id));
+          const hasConflict = !!(c.conflictGroup && conflictGroups.has(c.conflictGroup) && selected.has(c.id)) || clashIds.has(c.id);
           return (
             <CourseCard
               key={c.id}

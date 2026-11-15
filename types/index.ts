@@ -46,6 +46,9 @@ export interface Course {
   mandatoryFor?: SpecId[];   // specializations this course is required for
   type: CourseType;
   conflictGroup: string | null;
+  /** Course ids that clash with this one outside its own listing week (Vertex II's
+   *  Jan immersion vs OCM / FEDM-II). Declare on one side; `clashingIds` reads both. */
+  clashesWith?: number[];
   /** Electives this course is worth on the Electives bar. Default 1 (Vertex is 2). */
   credits?: number;
   timings?: SessionSlot[]; // time slot + room data from timetable (Term 4 has this)

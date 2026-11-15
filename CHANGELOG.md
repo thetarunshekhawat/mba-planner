@@ -4,6 +4,23 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed - Term 6 timetable matches the Nov 12 schedule
+
+From the 2026-11-12 Term 6 schedule, bidding guidelines and the DAIM outline (diff report 2026-11-12).
+- **Vertex II (id 115)** clashes with OCM (37) and FEDM-II (111): its Jan 25–29 immersion runs
+  13:30–20:30. New optional `Course.clashesWith` plus `clashingIds()` in `lib/conflicts.ts`, shown
+  with the existing conflict highlight and banner in both list and timetable views. Take-once rule,
+  credits, "Jan–Mar 2027" label and FEDM-II auto-select are unchanged.
+- **False clashes removed**: OCM/NPSD, GTSD/FTFF and RTMS/PJMG no longer share a conflict group.
+- **Dates and sessions** for every Term 6 course from the schedule: A/B sections for GPBS, PROP and
+  NMST, end-block exams, Republic Day and Holi skipped. Weeks now follow each course's start date.
+- **Week 34 (Feb 15–19)** is no longer an exam week: it carries the PMEH end-block (Mon 15) and ECST
+  evenings (Tue 16, Thu 18).
+- **Names**: Corporate Innovation & Venture Building, FDE Management - II, ML Operations, and
+  Digital & AI Marketing (DAIM, id 46, Mar 22–Apr 4) with the outline's topics and outline PDF
+  (`t6-daim.pdf`, added to the `upload-outlines.js` Term 6 list; upload not run).
+- `data/professors.ts` course names and Term 6 dates mirror the above.
+
 ### Changed - Term 6 catalogue matches the 2026-27 bidding pack
 
 From the Term 6 bidding brief, the Term 6 electives sheet and the course outlines.

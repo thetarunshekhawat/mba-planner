@@ -93,3 +93,18 @@ export function isTimingVisible(
   if (advisories.has(courseId) && timing.part === 'A') return false;
   return true;
 }
+
+/**
+ * Selected courses that clash through a `clashesWith` pair (either side may declare it).
+ * Shown with the same conflict styling as a shared `conflictGroup`.
+ */
+export function clashingIds(courses: Course[], selected: Set<number>): Set<number> {
+  const out = new Set<number>();
+  for (const c of courses) {
+    if (!c.clashesWith || !selected.has(c.id)) continue;
+    for (const other of c.clashesWith) {
+      if (selected.has(other)) { out.add(c.id); out.add(other); }
+    }
+  }
+  return out;
+}

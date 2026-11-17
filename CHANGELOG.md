@@ -4,6 +4,17 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - Block 25 matches the updated timetable (Nov 17)
+
+From the official Term 5 Block 25 PDF (23 Nov–6 Dec 2026), replacing the tentative-xlsx data.
+- **ENFF (id 25)** room S01; End Block Exam Sat Dec 5, 09:00–12:00.
+- **ESGV (id 106)** room S01; 2-hour classes (A 13:30–15:30, B 17:30–19:30) on Thu–Fri then
+  Mon–Thu (no Sat Nov 28 or Fri Dec 4); dates Nov 26–Dec 3. Mid Block Exam Tue Dec 1,
+  20:00–20:40; End Block Exam Sat Dec 5, 13:30–15:30.
+- **SBRM** in-class exam on Wed Dec 2 (during class) shown as a Block 25 week 2 banner in both
+  timetable views.
+- `scripts/verify-timings.mts` expects the new ESGV dates.
+
 ### Changed - Term 6 timetable matches the Nov 12 schedule
 
 From the 2026-11-12 Term 6 schedule, bidding guidelines and the DAIM outline (diff report 2026-11-12).

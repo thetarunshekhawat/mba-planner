@@ -670,7 +670,10 @@ export const ALL_COURSES: Course[] = [
     faculty: 'Prof. Amit Bubna',
     seats: 60, specs: ['ENT', 'FIN'], type: 'elective', conflictGroup: null,
     timings: [
-      { slot: '09:00–12:00', room: 'S02', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+      { slot: '09:00–12:00', room: 'S01', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    ],
+    examSessions: [
+      { date: '2026-12-05', slot: '09:00–12:00', label: 'End Block Exam' },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/enff.pdf',
     review: {
@@ -746,15 +749,19 @@ export const ALL_COURSES: Course[] = [
   // WaW — Block 25
   {
     id: 106, term: 5, week: 22,
-    startDate: '2026-11-26', endDate: '2026-12-04',
-    dates: 'Nov 26–Dec 4', block: 25,
+    startDate: '2026-11-26', endDate: '2026-12-03',
+    dates: 'Nov 26–Dec 3', block: 25,
     name: 'Environmental, Social & Governance',
     code: 'ESGV',
     faculty: 'Ram Mahidhara',
     seats: null, specs: [], type: 'waw', conflictGroup: null,
     timings: [
-      { slot: '13:30–15:00', room: 'S02', days: ['Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
-      { slot: '17:30–19:00', room: 'S02', days: ['Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+      { slot: '13:30–15:30', room: 'S01', days: ['Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'A' },
+      { slot: '17:30–19:30', room: 'S01', days: ['Thu', 'Fri'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu'], part: 'B' },
+    ],
+    examSessions: [
+      { date: '2026-12-01', slot: '20:00–20:40', label: 'Mid Block Exam' },
+      { date: '2026-12-05', slot: '13:30–15:30', label: 'End Block Exam' },
     ],
     review: null,
   },

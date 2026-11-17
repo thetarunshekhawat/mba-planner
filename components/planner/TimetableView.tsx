@@ -128,7 +128,10 @@ const SCHEDULE_BY_TERM: Record<number, TermSchedule> = {
           { label: 'Exam Break — Nov 9–15', tone: 'exam' },
           { label: 'Placements Week — Nov 16–22', tone: 'break' },
         ] },
-      { block: 25, weekNum: 2, dates: 'Nov 30 – Dec 6',  start: '2026-11-30', end: '2026-12-06' },
+      { block: 25, weekNum: 2, dates: 'Nov 30 – Dec 6',  start: '2026-11-30', end: '2026-12-06',
+        banners: [
+          { label: 'In-class Exam — SBRM · Wed Dec 2, during class', tone: 'exam' },
+        ] },
       { block: 26, weekNum: 1, dates: 'Dec 7 – Dec 13',  start: '2026-12-07', end: '2026-12-13' },
       { block: 26, weekNum: 2, dates: 'Dec 14 – Dec 20', start: '2026-12-14', end: '2026-12-20' },
     ],

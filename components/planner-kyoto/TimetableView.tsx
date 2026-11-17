@@ -70,6 +70,7 @@ const BLOCKS_BY_TERM: Record<number, KyotoBlock[]> = {
       banners: [
         { label: 'Exam Break — Nov 9–15', tone: 'exam' },
         { label: 'Placements Week — Nov 16–22', tone: 'break' },
+        { label: 'In-class Exam — SBRM · Wed Dec 2, during class', tone: 'exam' },
       ] },
     { block: 26, dates: 'Dec 7 – 20',      start: '2026-12-07', end: '2026-12-20' },
   ],

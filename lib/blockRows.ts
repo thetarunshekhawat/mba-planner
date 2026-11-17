@@ -13,6 +13,7 @@
 //    (e.g. FSA, Jul 27–Aug 21, block 18) shows once, in its own block's row.
 
 import type { Course } from '@/types';
+import { courseSessions } from '@/lib/calendar';
 
 export interface BlockRow {
   /** Stable React key: term, block (or "x" for null) and first week. */
@@ -120,15 +121,41 @@ export function groupBlockRows(courses: Course[]): BlockRow[] {
   return rows;
 }
 
+/** Term 6 courses with real session data are counted by clock overlap, not by week. */
+const countsBySessions = (c: Course) => c.term === 6 && !!c.timings?.length;
+
 /**
- * The most courses matching `pred` that fall in any single week of the row. Double/triple
+ * The most courses matching `pred` that run at the same time in the row. Double/triple
  * block warnings are about electives running at the same time, so a merged row counts per
  * week — Economics of Strategy (wk 32) + Private Markets (wk 33) are back to back, not a double.
+ * Term 6 courses with timings count only where their class sessions actually overlap
+ * (PROP 09:00 + DTAI-style 13:30 blocks in the same week are not a double). Section parts
+ * are not narrowed, so a two-section course counts both its A and B times. Term 6 courses
+ * without timings (Vertex) don't add to that count; other terms are counted per week as before.
  */
 export function maxPerWeek(row: Pick<BlockRow, 'courses'>, pred: (c: Course) => boolean): number {
   const perWeek = new Map<number, number>();
+  const timed: Course[] = [];
   for (const c of row.courses) {
-    if (pred(c)) perWeek.set(c.week, (perWeek.get(c.week) ?? 0) + 1);
+    if (!pred(c)) continue;
+    if (countsBySessions(c)) { timed.push(c); continue; }
+    if (c.term === 6) { perWeek.set(c.week, Math.max(perWeek.get(c.week) ?? 0, 1)); continue; }
+    perWeek.set(c.week, (perWeek.get(c.week) ?? 0) + 1);
   }
-  return Math.max(0, ...perWeek.values());
+  return Math.max(0, ...perWeek.values(), maxConcurrent(timed));
+}
+
+/** Most distinct courses in session at one instant (exam sessions excluded). */
+function maxConcurrent(courses: Course[]): number {
+  const spans = courses.flatMap(c => courseSessions(c).map(s => {
+    const base = s.day.getTime() / 60000;
+    const mins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    return { id: c.id, start: base + mins(s.startTime), end: base + mins(s.endTime) };
+  }));
+  let best = courses.length ? 1 : 0;
+  for (const p of spans) {
+    const live = new Set(spans.filter(s => s.start <= p.start && p.start < s.end).map(s => s.id));
+    best = Math.max(best, live.size);
+  }
+  return best;
 }

@@ -20,6 +20,11 @@ From the 2026-11-12 Term 6 schedule, bidding guidelines and the DAIM outline (di
   Digital & AI Marketing (DAIM, id 46, Mar 22–Apr 4) with the outline's topics and outline PDF
   (`t6-daim.pdf`, added to the `upload-outlines.js` Term 6 list; upload not run).
 - `data/professors.ts` course names and Term 6 dates mirror the above.
+- **Double/Triple Block** warnings for Term 6 count only electives whose class sessions overlap on
+  the clock (`maxPerWeek` in `lib/blockRows.ts`, using the new `courseSessions()` from
+  `lib/calendar.ts`, which the ICS export now shares). Same-block courses at different times
+  (e.g. DTAI + GTSD + FTFF) no longer warn; ACFN + PROP still does. Both sections of a two-section
+  course count; exam sessions and Vertex (no timings) don't. Terms 4–5 are counted per week as before.
 
 ### Changed - Term 6 catalogue matches the 2026-27 bidding pack
 

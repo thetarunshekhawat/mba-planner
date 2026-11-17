@@ -4,6 +4,18 @@ All notable changes to the MBA Planner project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - Block 26 matches the updated timetable (Nov 16)
+
+From the official Term 5 Block 26 PDF (7–20 Dec 2026), replacing the tentative-xlsx data.
+- **INMK (id 28)** is one unsectioned course: 09:00–12:00 in S01, Mon–Fri both weeks (Dec 7–11,
+  Dec 14–18), no Saturday. `data/classSessions.json`, `verify-timings.mts` and
+  `verify-conflicts.mts` (INMK + SVOP now advises SVOP Section B) follow. The INMK insights in
+  `data/term5Insights.json` no longer claim A/B sections, a mirror of SVOP, or a free Monday Dec 7.
+  Saved section picks in the database are untouched.
+- **End-block exams** for Service Operations (Mon Dec 21) and Mergers & Acquisitions (Tue Dec 22)
+  shown as Term 5 trailing banners in both timetable views (no time published yet). Kyoto now shows
+  the Term 5 Exam Week and Term Break banners too.
+
 ### Fixed - Block 25 matches the updated timetable (Nov 17)
 
 From the official Term 5 Block 25 PDF (23 Nov–6 Dec 2026), replacing the tentative-xlsx data.

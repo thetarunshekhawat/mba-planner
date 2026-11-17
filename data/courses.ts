@@ -766,7 +766,7 @@ export const ALL_COURSES: Course[] = [
     review: null,
   },
 
-  // Block 26 (Dec 7 – Dec 20) — INMK + SVOP (mornings/afternoons) + MGAQ (evenings)
+  // Block 26 (Dec 7 – Dec 20) — INMK (mornings) + SVOP (mornings/afternoons) + MGAQ (evenings)
   {
     id: 28, term: 5, week: 24,
     startDate: '2026-12-07', endDate: '2026-12-20',
@@ -775,10 +775,9 @@ export const ALL_COURSES: Course[] = [
     code: 'INMK',
     faculty: 'Prof. Venkatesh (Venky) Shankar',
     seats: 60, specs: ['MKT'], type: 'elective', conflictGroup: null,
-    // Week 1 has no Monday session; week 2 runs Mon–Fri.
+    // Week 1 and week 2 both run Mon–Fri in S01; no Saturday class. Single section (no A/B).
     timings: [
-      { slot: '09:00–12:00', room: 'S02', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'A' },
-      { slot: '13:30–16:30', room: 'S02', days: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat'], week2Days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], part: 'B' },
+      { slot: '09:00–12:00', room: 'S01', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
     ],
     outlineUrl: 'https://rtchhbkrzdmfryxxuyih.supabase.co/storage/v1/object/public/course-outlines/inmk.pdf',
     review: {

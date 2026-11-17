@@ -83,6 +83,13 @@ const TRAILING_BY_TERM: Record<number, { label: string; tone: 'exam' | 'break' }
     { label: 'End Block Exam — Product Management · Sun Sep 27, 09:00–12:00', tone: 'exam' },
     { label: 'End Block Exam — Managing High Performance Teams · Sun Sep 27, 13:30–16:30', tone: 'exam' },
   ],
+  // Keep in sync with SCHEDULE_BY_TERM[5].trailing in the planner TimetableView.
+  5: [
+    { label: 'End Block Exam — Service Operations · Mon Dec 21', tone: 'exam' },
+    { label: 'End Block Exam — Mergers & Acquisitions · Tue Dec 22', tone: 'exam' },
+    { label: 'Exam Week — Dec 21–27', tone: 'exam' },
+    { label: 'Term Break — Dec 28–Jan 3', tone: 'break' },
+  ],
 };
 
 const TERM_META: Record<number, { label: string; dateRange: string }> = {

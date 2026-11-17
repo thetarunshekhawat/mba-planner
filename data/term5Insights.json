@@ -3161,10 +3161,10 @@
    ],
    "primaryCourse": "INMK",
    "type": "fact",
-   "text": "International Marketing's week 1 has no Monday session — it starts Tuesday Dec 8. One free Monday at the top of Block 26.",
+   "text": "International Marketing starts Monday Dec 7 and meets Mon–Fri in both weeks of Block 26, with no Saturday class.",
    "variants": [
-    "The Term 5 timetable shows no INMK session on Monday Dec 7; week 1 runs Tue–Sat.",
-    "International Marketing gifts you the first Monday of Block 26. Use it on the Service Operations backlog."
+    "The Block 26 timetable (16 Nov) has INMK Mon–Fri, Dec 7–11 and Dec 14–18, 09:00–12:00.",
+    "International Marketing has no weekend sessions in Block 26; Saturdays Dec 12 and 19 are free."
    ],
    "seedQuestion": "When does International Marketing meet?",
    "tier": "Medium",
@@ -3190,10 +3190,10 @@
    ],
    "primaryCourse": "INMK",
    "type": "fact",
-   "text": "International Marketing runs mornings (Sec A) or afternoons (Sec B) in Block 26 — the same two slots as Service Operations. Split your sections to take both.",
+   "text": "International Marketing runs one section, mornings 09:00–12:00 in S01, Mon–Fri across Block 26 — the same slot as Service Operations Section A.",
    "variants": [
-    "INMK and SVOP both run Section A 09:00–12:00 and Section B 13:30–16:30 in Block 26.",
-    "International Marketing and Service Operations mirror each other exactly in Block 26. Take opposite sections or take one."
+    "INMK has no sections: 09:00–12:00, Mon–Fri, Dec 7–18, room S01.",
+    "International Marketing meets every weekday morning in Block 26. Taking Service Operations too means being in its Section B (afternoons)."
    ],
    "seedQuestion": "When does International Marketing meet?",
    "tier": "High",
@@ -4496,10 +4496,10 @@
    ],
    "primaryCourse": null,
    "type": "fact",
-   "text": "International Marketing and Service Operations mirror each other exactly in Block 26 — both run Sec A mornings and Sec B afternoons. You need opposite sections, and the registrar decides, not you.",
+   "text": "International Marketing (09:00–12:00, one section) clashes with Service Operations Section A in Block 26. Taking both needs you in SVOP Section B (13:30–16:30), and the registrar decides sections, not you.",
    "variants": [
-    "INMK and SVOP both offer Section A 09:00–12:00 and Section B 13:30–16:30 in Block 26; taking both requires being placed in opposite sections.",
-    "International Marketing and Service Operations have identical timetables. Taking both is a bet on section assignment going your way."
+    "INMK runs 09:00–12:00 only; SVOP runs Section A 09:00–12:00 and Section B 13:30–16:30 in Block 26. Taking both requires SVOP Section B.",
+    "International Marketing overlaps Service Operations' morning section. Taking both is a bet on getting SVOP's afternoon section."
    ],
    "seedQuestion": "Do International Marketing and Service Operations clash in the timetable?",
    "tier": "Critical",

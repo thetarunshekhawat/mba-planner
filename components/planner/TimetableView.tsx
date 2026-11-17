@@ -136,6 +136,8 @@ const SCHEDULE_BY_TERM: Record<number, TermSchedule> = {
       { block: 26, weekNum: 2, dates: 'Dec 14 – Dec 20', start: '2026-12-14', end: '2026-12-20' },
     ],
     trailing: [
+      { label: 'End Block Exam — Service Operations · Mon Dec 21', tone: 'exam' },
+      { label: 'End Block Exam — Mergers & Acquisitions · Tue Dec 22', tone: 'exam' },
       { label: 'Exam Week — Dec 21–27', tone: 'exam' },
       { label: 'Term Break — Dec 28–Jan 3', tone: 'break' },
     ],

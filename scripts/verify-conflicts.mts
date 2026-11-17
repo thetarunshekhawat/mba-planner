@@ -11,11 +11,9 @@ function idsFor(codes: string[]) {
 const CASES: { label: string; codes: string[]; expectAdvisoryOn: string[] }[] = [
   { label: 'OPST + VALU (Block 22 mornings)', codes: ['OPST', 'VALU'], expectAdvisoryOn: ['OPST'] },
   { label: 'ENFF + SBRM (Block 25 mornings)', codes: ['ENFF', 'SBRM'], expectAdvisoryOn: ['SBRM'] },
-  // INMK and SVOP have identical A and B slots, so switching either to Section B still
-  // collides. The advisory only fires when moving to B actually resolves the overlap, so
-  // silence is correct here — the pair only works if the registrar assigns opposite
-  // sections, which the app cannot promise. The Term 5 insight for this pair says exactly that.
-  { label: 'INMK + SVOP (mirrored, unresolvable)', codes: ['INMK', 'SVOP'], expectAdvisoryOn: [] },
+  // INMK is a single 09:00–12:00 section (Block 26 PDF), so it overlaps SVOP A only;
+  // SVOP's Section B (13:30–16:30) resolves it.
+  { label: 'INMK + SVOP (Block 26 mornings)', codes: ['INMK', 'SVOP'], expectAdvisoryOn: ['SVOP'] },
   { label: 'TOPS + CLAW (should be clean)', codes: ['TOPS', 'CLAW'], expectAdvisoryOn: [] },
   { label: 'MGAQ + SVOP (evening vs day)', codes: ['MGAQ', 'SVOP'], expectAdvisoryOn: [] },
 ];

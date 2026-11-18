@@ -217,13 +217,23 @@ export function LoginForm() {
       return;
     }
 
-    const { data: entry } = await supabase
+    // Case-insensitive exact match. Escape ilike wildcards (`_` is common in
+    // emails) and use limit(1) rather than maybeSingle(), so case-variant
+    // duplicate rows can't turn a whitelisted email into a rejection.
+    const pattern = email.trim().replace(/[\\%_]/g, (c) => `\\${c}`);
+    const { data: entries, error: lookupError } = await supabase
       .from('cohort_whitelist')
       .select('email')
-      .ilike('email', email.trim())
-      .maybeSingle();
+      .ilike('email', pattern)
+      .limit(1);
 
-    if (!entry) {
+    if (lookupError) {
+      setStatus('error');
+      setErrorMsg('Could not check the cohort list. Please try again.');
+      return;
+    }
+
+    if (!entries || entries.length === 0) {
       setStatus('error');
       setErrorMsg('Email not in BITSoM MBA Co\'27 cohort list.');
       return;
